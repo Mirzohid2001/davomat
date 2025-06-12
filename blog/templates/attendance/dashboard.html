@@ -1,0 +1,169 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+{% load static %}
+<link href="{% static 'css/dashboard-styles.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header animate__animated animate__fadeIn">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="mb-0">Dashboard</h2>
+      <p class="mb-0 text-white-50">Davomat tizimi boshqaruv paneli</p>
+    </div>
+    <div>
+      <a href="{% url 'select_employee_attendance' %}" class="btn btn-light action-btn animate__animated animate__pulse animate__infinite animate__slower">
+        <i class="bi bi-person-plus-fill"></i> Individual davomat
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  <!-- Bugungi Davomat -->
+  <div class="col-lg-4 col-md-6">
+    <div class="card stats-card animate__animated animate__fadeInUp">
+      <div class="card-header">
+        <i class="bi bi-calendar-check-fill text-primary"></i>
+        <span>Bugungi Davomat</span>
+      </div>
+      <div class="card-body">
+        <i class="bi bi-bar-chart-line stats-icon text-primary"></i>
+        <div class="text-center mb-4">
+          {% with total=stats|length %}
+            <div class="stats-number">{{ total }}</div>
+            <div class="text-muted">Umumiy holat</div>
+          {% endwith %}
+        </div>
+        
+        <div class="d-flex flex-wrap justify-content-center">
+          {% for item in stats %}
+            <span class="status-badge bg-{{ item.status|yesno:'success,danger,warning,info,secondary,info,secondary' }}">
+              {{ item.status|title }}: {{ item.count }}
+            </span>
+          {% empty %}
+            <p class="text-muted">Bugun uchun ma'lumot yo'q</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Kiritilmaganlar -->
+  <div class="col-lg-4 col-md-6">
+    <div class="card stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+      <div class="card-header">
+        <i class="bi bi-person-x-fill text-danger"></i>
+        <span>Kiritilmaganlar</span>
+      </div>
+      <div class="card-body">
+        <i class="bi bi-exclamation-triangle stats-icon text-danger"></i>
+        
+        <div class="text-center mb-4">
+          <div class="stats-number">{{ not_filled|length }}</div>
+          <div class="text-muted">Kiritilmagan</div>
+        </div>
+        
+        <div class="not-filled-container">
+          {% for emp in not_filled %}
+            <div class="d-flex align-items-center mb-2">
+              <i class="bi bi-person-dash me-2 text-danger"></i>
+              <span class="badge bg-danger-subtle text-danger w-100 py-2 text-start ps-2">{{ emp }}</span>
+            </div>
+          {% empty %}
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              Hamma uchun kiritilgan!
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Eng namunali xodimlar -->
+  <div class="col-lg-4 col-md-12">
+    <div class="card stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+      <div class="card-header">
+        <i class="bi bi-trophy-fill text-warning"></i>
+        <span>Eng namunali xodimlar (30 kun)</span>
+      </div>
+      <div class="card-body">
+        <i class="bi bi-star stats-icon text-warning"></i>
+        
+        <ol class="employee-list">
+          {% for emp in best_employees %}
+            <li>
+              <div class="d-flex justify-content-between align-items-center">
+                <span>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
+                <span class="badge bg-success rounded-pill">{{ emp.present_count }} kun</span>
+              </div>
+            </li>
+          {% empty %}
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              Ma'lumot yo'q
+            </div>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Qo'shimcha ma'lumotlar uchun bo'lim -->
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+      <div class="card-header">
+        <i class="bi bi-info-circle-fill text-info me-2"></i>
+        Tizim haqida
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h5><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Tezkor harakatlar</h5>
+            <div class="list-group mt-3">
+              <a href="{% url 'attendance_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-journal-check me-2"></i>Davomat ro'yxati</span>
+                <i class="bi bi-chevron-right"></i>
+              </a>
+              <a href="{% url 'attendance_statistics' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bar-chart-line-fill me-2"></i>Statistika</span>
+                <i class="bi bi-chevron-right"></i>
+              </a>
+              <a href="{% url 'employee_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people-fill me-2"></i>Xodimlar</span>
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+          <div class="col-md-6 mt-4 mt-md-0">
+            <h5><i class="bi bi-graph-up-arrow text-success me-2"></i>Tizim statistikasi</h5>
+            <div class="card bg-light mt-3">
+              <div class="card-body">
+                <div class="row text-center">
+                  <div class="col-4">
+                    <h3 class="mb-0">{{ today_date|date:"d" }}</h3>
+                    <small class="text-muted">Sana</small>
+                  </div>
+                  <div class="col-4">
+                    <h3 class="mb-0">{{ stats|length }}</h3>
+                    <small class="text-muted">Holat</small>
+                  </div>
+                  <div class="col-4">
+                    <h3 class="mb-0">{{ not_filled|length }}</h3>
+                    <small class="text-muted">Qolgan</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

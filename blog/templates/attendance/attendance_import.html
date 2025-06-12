@@ -1,0 +1,25 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Davomat import qilish{% endblock %}
+{% block content %}
+<h2 class="mb-4">Excel/CSV dan import qilish</h2>
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card p-4 shadow-lg">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Faylni tanlang (Excel yoki CSV)</label>
+          {{ form.file }}
+        </div>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Import qilish</button>
+        <a href="{% url 'attendance_list' %}" class="btn btn-secondary ms-2">Ortga</a>
+      </form>
+      <hr>
+      <small class="text-muted">
+        <b>Namuna (header):</b><br>
+        <code>last_name,first_name,date,status,comment</code>
+      </small>
+    </div>
+  </div>
+</div>
+{% endblock %}

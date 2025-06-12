@@ -1,0 +1,165 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+{% block title %}Davomatlar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/list-styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="attendance-header animate__animated animate__fadeIn">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="mb-0">Davomatlar</h2>
+      <p class="mb-0 text-white-50">Xodimlar davomati ro'yxati</p>
+    </div>
+    <div>
+      <a href="{% url 'select_employee_attendance' %}" class="btn btn-light action-btn px-4 py-2">
+        <i class="bi bi-plus-circle-fill me-2"></i> Yangi davomat
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card filter-card animate__animated animate__fadeInUp animate__faster">
+  <div class="card-body">
+    <form class="row g-3 filter-form" method="get">
+      <div class="col-md-4">
+        <label for="date" class="form-label">Sana</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+          <input type="date" id="date" name="date" value="{{ today|date:'Y-m-d' }}" class="form-control">
+        </div>
+      </div>
+      <div class="col-md-5">
+        <label for="status" class="form-label">Holat</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-filter"></i></span>
+          <select name="status" id="status" class="form-select">
+            <option value="">Barcha holatlar</option>
+            <option value="present">Keldi</option>
+            <option value="late">Kechikdi</option>
+            <option value="absent">Kelmagan</option>
+            <option value="vacation">Ta'til</option>
+            <option value="sick">Kasal</option>
+            <option value="business">Ish safarida</option>
+            <option value="offday">Yopiq kun</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <button type="submit" class="btn btn-filter">
+          <i class="bi bi-search me-2"></i> Qidirish
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+<table class="table attendance-table animate__animated animate__fadeInUp">
+  <thead>
+    <tr>
+      <th width="40">#</th>
+      <th>Ismi</th>
+      <th>Familiyasi</th>
+      <th>Bo'limi</th>
+      <th>Lavozimi</th>
+      <th width="120">Holat</th>
+      <th>Izoh/Sabab</th>
+      <th width="60">Fayl</th>
+      <th width="100">Amal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for att in attendance %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ att.employee.first_name }}</td>
+        <td>{{ att.employee.last_name }}</td>
+        <td>{{ att.employee.department }}</td>
+        <td>{{ att.employee.position }}</td>
+        <td>
+            <span class="status-badge
+                {% if att.status == 'present' %}bg-success
+                {% elif att.status == 'absent' %}bg-danger
+                {% elif att.status == 'late' %}bg-warning text-dark
+                {% elif att.status == 'vacation' %}bg-primary
+                {% elif att.status == 'offday' %}bg-secondary
+                {% else %}bg-info
+                {% endif %}
+            ">
+              <i class="bi 
+                {% if att.status == 'present' %}bi-check-circle-fill
+                {% elif att.status == 'absent' %}bi-x-circle-fill
+                {% elif att.status == 'late' %}bi-exclamation-triangle-fill
+                {% elif att.status == 'vacation' %}bi-umbrella-fill
+                {% elif att.status == 'sick' %}bi-bandaid-fill
+                {% elif att.status == 'business' %}bi-briefcase-fill
+                {% elif att.status == 'offday' %}bi-calendar-x-fill
+                {% else %}bi-question-circle-fill
+                {% endif %}
+              "></i>
+              {{ att.get_status_display }}
+            </span>
+        </td>
+        <td>{{ att.comment|default:"—" }}</td>
+        <td class="text-center">
+          {% if att.attachment %}
+            <a href="{{ att.attachment.url }}" target="_blank" class="action-btn file-btn" data-bs-toggle="tooltip" title="Faylni ko'rish">
+              <i class="bi bi-file-earmark-arrow-down"></i>
+            </a>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <a href="{% url 'attendance_update' att.id %}" class="action-btn edit-btn" data-bs-toggle="tooltip" title="Tahrirlash">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <a href="{% url 'attendance_delete' att.id %}" class="action-btn delete-btn" data-bs-toggle="tooltip" title="O'chirish">
+            <i class="bi bi-trash"></i>
+          </a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="9">
+          <div class="empty-state py-5">
+            <i class="bi bi-calendar-x"></i>
+            <p>Davomat ma'lumotlari topilmadi</p>
+            <a href="{% url 'select_employee_attendance' %}" class="btn btn-primary mt-3">
+              <i class="bi bi-plus-circle me-2"></i> Yangi davomat qo'shish
+            </a>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tooltips ni ishga tushirish
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+    
+    // Status bo'yicha filtrlash uchun select ni oldingi qiymatga o'rnatish
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParam = urlParams.get('status');
+    if (statusParam) {
+      document.querySelector('select[name="status"]').value = statusParam;
+    }
+    
+    // Sana bo'yicha filtrlash uchun input ni oldingi qiymatga o'rnatish
+    const dateParam = urlParams.get('date');
+    if (dateParam) {
+      document.querySelector('input[name="date"]').value = dateParam;
+    }
+  });
+</script>
+{% endblock %}

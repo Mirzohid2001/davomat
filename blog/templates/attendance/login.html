@@ -1,0 +1,41 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Tizimga kirish{% endblock %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
+  <div class="col-12 col-sm-8 col-md-5 col-lg-4 animate__animated animate__fadeInDown">
+    <div class="card p-4 shadow-lg border-0">
+      <div class="text-center mb-3">
+        <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+        <h3 class="mt-2 mb-3 fw-bold">Tizimga kirish</h3>
+      </div>
+      <form method="post" autocomplete="off" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Login</label>
+            <input type="text" name="username" class="form-control form-control-lg" required id="id_username" autofocus>
+            <div class="invalid-feedback">Login kiriting.</div>
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Parol</label>
+            <input type="password" name="password" class="form-control form-control-lg" required id="id_password">
+            <div class="invalid-feedback">Parol kiriting.</div>
+        </div>
+        <button class="btn btn-primary w-100 py-2 mt-2 animate__animated animate__pulse animate__infinite" type="submit">Kirish</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  let forms = document.getElementsByClassName('needs-validation');
+  Array.prototype.forEach.call(forms, function(form) {
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault(); event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+});
+</script>
+{% endblock %}

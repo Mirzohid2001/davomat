@@ -1,0 +1,790 @@
+{% extends 'attendance/base.html' %}
+{% load custom_filters %}
+{% load attendance_filters %}
+{% block title %}Statistika va tahlil{% endblock %}
+
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="{% static 'css/statistics-styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="stats-header animate__animated animate__fadeIn">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">Statistika va tahlil</h2>
+    <div class="d-flex align-items-center">
+      <span class="badge bg-light text-dark me-2">{{ date_from|date:'d.m.Y' }} - {{ date_to|date:'d.m.Y' }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="filter-form animate__animated animate__fadeIn">
+  <form class="row g-3 align-items-end" method="get">
+    <div class="col-md-3 col-sm-6">
+      <label class="form-label"><i class="bi bi-calendar-range"></i> Davr</label>
+      <select name="period" class="form-select">
+        <option value="day" {% if period == "day" %}selected{% endif %}>Kunlik</option>
+        <option value="week" {% if period == "week" %}selected{% endif %}>Haftalik</option>
+        <option value="month" {% if period == "month" %}selected{% endif %}>Oylik</option>
+        <option value="quarter" {% if period == "quarter" %}selected{% endif %}>3 oylik</option>
+        <option value="halfyear" {% if period == "halfyear" %}selected{% endif %}>6 oylik</option>
+        <option value="year" {% if period == "year" %}selected{% endif %}>Yillik</option>
+        <option value="custom" {% if period == "custom" %}selected{% endif %}>Oraliq (custom)</option>
+      </select>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <label class="form-label"><i class="bi bi-calendar-minus"></i> dan:</label>
+      <input type="date" name="date_from" class="form-control" value="{{ date_from|date:'Y-m-d' }}">
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <label class="form-label"><i class="bi bi-calendar-plus"></i> gacha:</label>
+      <input type="date" name="date_to" class="form-control" value="{{ date_to|date:'Y-m-d' }}">
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Ko'rish</button>
+    </div>
+  </form>
+</div>
+
+<!-- Umumiy statistika kartalar -->
+<div class="row g-3 mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+  {% for item in stats_by_status %}
+  <div class="col-md-3 col-sm-6">
+    <div class="stats-card card p-3 h-100 animate__animated animate__fadeIn animate__delay-{{ forloop.counter }}s">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="stat-number">{{ item.count }}</h3>
+          <p class="stat-label">{{ item.status|title }}</p>
+        </div>
+        <div class="stat-icon text-{{ item.status|status_color }}">
+          <i class="bi bi-{{ item.status|status_icon }}"></i>
+        </div>
+      </div>
+      <div class="progress mt-3">
+        <div class="progress-bar progress-bar-custom progress-bar-striped progress-bar-animated progress-width-{{ item.percentage|default:0|floatformat:0 }}" 
+             role="progressbar" aria-valuenow="{{ item.percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Holatlar bo'yicha kengaytirilgan statistika -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="stats-card card animate__animated animate__fadeInUp animate__delay-2s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i> Holatlar bo'yicha umumiy statistika</h5>
+          <div class="btn-group" role="group">
+            <button class="btn btn-sm btn-outline-light" onclick="toggleChartView('pie')" id="pie-btn">
+              <i class="bi bi-pie-chart"></i> Doiraviy
+            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="toggleChartView('bar')" id="bar-btn">
+              <i class="bi bi-bar-chart"></i> Ustunli
+            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="toggleChartView('doughnut')" id="doughnut-btn">
+              <i class="bi bi-donut"></i> Halqa
+            </button>
+            <button class="btn btn-sm btn-outline-light" onclick="toggleChartView('table')" id="table-btn">
+              <i class="bi bi-table"></i> Jadval
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- Diagrammalar bo'limi -->
+          <div class="col-lg-8 col-md-7">
+            <div class="chart-container-enhanced">
+              <!-- Pie Chart -->
+              <div id="pie-chart-container" class="chart-view">
+                <canvas id="pie-status-enhanced"></canvas>
+              </div>
+              <!-- Bar Chart -->
+              <div id="bar-chart-container" class="chart-view" style="display: none;">
+                <canvas id="bar-status-enhanced"></canvas>
+              </div>
+              <!-- Doughnut Chart -->
+              <div id="doughnut-chart-container" class="chart-view" style="display: none;">
+                <canvas id="doughnut-status-enhanced"></canvas>
+              </div>
+              <!-- Table View -->
+              <div id="table-chart-container" class="chart-view" style="display: none;">
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover">
+                    <thead class="table-primary">
+                      <tr>
+                        <th><i class="bi bi-info-circle"></i> Holat</th>
+                        <th><i class="bi bi-people"></i> Soni</th>
+                        <th><i class="bi bi-percent"></i> Foizi</th>
+                        <th><i class="bi bi-graph-up"></i> Trend</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for item in stats_by_status %}
+                      <tr>
+                        <td>
+                          <span class="badge bg-{{ item.status|status_color }} me-2">
+                            <i class="bi bi-{{ item.status|status_icon }}"></i>
+                          </span>
+                          <strong>{{ item.status|title }}</strong>
+                        </td>
+                        <td><span class="fs-5 fw-bold text-primary">{{ item.count }}</span></td>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                              <div class="progress-bar bg-{{ item.status|status_color }}" 
+                                   style="width: {{ item.percentage|default:0 }}%"></div>
+                            </div>
+                            <span class="fw-bold">{{ item.percentage|default:0|floatformat:1 }}%</span>
+                          </div>
+                        </td>
+                        <td>
+                          <i class="bi bi-arrow-up text-success"></i>
+                          <small class="text-muted">Stabild</small>
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="4" class="text-center text-muted">
+                          <i class="bi bi-info-circle"></i> Ma'lumot topilmadi
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Statistika ma'lumotlari -->
+          <div class="col-lg-4 col-md-5">
+            <div class="stats-info">
+              <h6 class="text-muted mb-3"><i class="bi bi-graph-up-arrow"></i> Statistika ma'lumotlari</h6>
+              {% for item in stats_by_status %}
+              <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded" 
+                   style="background-color: rgba({{ item.status|status_color_rgb }}, 0.1);">
+                <div class="d-flex align-items-center">
+                  <div class="status-indicator bg-{{ item.status|status_color }} me-2"></div>
+                  <span class="fw-500">{{ item.status|title }}</span>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold fs-6">{{ item.count }}</div>
+                  <small class="text-muted">{{ item.percentage|default:0|floatformat:1 }}%</small>
+                </div>
+              </div>
+              {% endfor %}
+              
+              <!-- Qo'shimcha ma'lumotlar -->
+              <div class="mt-4 p-3 bg-light rounded">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-check"></i> Umumiy ma'lumot</h6>
+                <div class="row text-center">
+                  <div class="col-6">
+                    <div class="fw-bold fs-5 text-primary">{{ stats_by_status|length }}</div>
+                    <small class="text-muted">Holat turlari</small>
+                  </div>
+                  <div class="col-6">
+                    <div class="fw-bold fs-5 text-success">
+                      {% widthratio stats_by_status.0.count stats_by_status|length 1 %}
+                    </div>
+                    <small class="text-muted">O'rtacha</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Top xodimlar jadvali -->
+  <div class="col-12">
+    <div class="stats-card card animate__animated animate__fadeInRight animate__delay-2s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-trophy-fill me-2"></i> Top xodimlar</h5>
+          <span class="badge bg-light text-dark">Keldi/ishlash holati bo'yicha</span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-stats table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Familiya</th><th>Ismi</th>
+                <th>Keldi</th><th>Kechikdi</th><th>Kelmagan</th>
+                <th>Ta'til</th><th>Kasal</th><th>Safar</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for emp in stats_by_employee %}
+              <tr class="animate__animated animate__fadeIn animate__delay-{{ forloop.counter|add:2 }}s">
+                <td><strong>{{ emp.employee__last_name }}</strong></td>
+                <td>{{ emp.employee__first_name }}</td>
+                <td class="text-success"><strong>{{ emp.present }}</strong></td>
+                <td class="text-warning">{{ emp.late }}</td>
+                <td class="text-danger">{{ emp.absent }}</td>
+                <td>{{ emp.vacation }}</td>
+                <td>{{ emp.sick }}</td>
+                <td>{{ emp.business }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="8" class="text-danger text-center">Ma'lumot yo'q</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-4">
+  <div class="col-12">
+    <div class="stats-card card animate__animated animate__fadeInUp animate__delay-3s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i> Bo'limlar bo'yicha statistika</h5>
+          <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#departmentStats">
+            <i class="bi bi-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="collapse show" id="departmentStats">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-stats table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Bo'lim</th>
+                  <th>Keldi</th><th>Kechikdi</th><th>Kelmagan</th>
+                  <th>Ta'til</th><th>Kasal</th><th>Safar</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for dept in stats_by_department %}
+                <tr class="animate__animated animate__fadeIn animate__delay-{{ forloop.counter|add:3 }}s">
+                  <td><strong>{{ dept.employee__department__name }}</strong></td>
+                  <td class="text-success"><strong>{{ dept.present }}</strong></td>
+                  <td class="text-warning">{{ dept.late }}</td>
+                  <td class="text-danger">{{ dept.absent }}</td>
+                  <td>{{ dept.vacation }}</td>
+                  <td>{{ dept.sick }}</td>
+                  <td>{{ dept.business }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="7" class="text-danger text-center">Ma'lumot yo'q</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-4">
+  <!-- Kundalik trend diagramma -->
+  <div class="col-lg-6">
+    <div class="stats-card card animate__animated animate__fadeInLeft animate__delay-4s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i> Kundalik trend (dinamika)</h5>
+          <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#trendChart">
+            <i class="bi bi-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="collapse show" id="trendChart">
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="line-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Kunlar bo'yicha statistika -->
+  <div class="col-lg-6">
+    <div class="stats-card card animate__animated animate__fadeInRight animate__delay-4s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-calendar-date me-2"></i> Kunlar bo'yicha statistika</h5>
+          <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#dailyStats">
+            <i class="bi bi-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="collapse show" id="dailyStats">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-stats table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Sana</th>
+                  <th>Keldi</th><th>Kechikdi</th><th>Kelmagan</th>
+                  <th>Ta'til</th><th>Kasal</th><th>Safar</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for day in stats_by_date %}
+                <tr class="animate__animated animate__fadeIn animate__delay-{{ forloop.counter|add:4 }}s">
+                  <td><strong>{{ day.date|date:"d.m.Y" }}</strong></td>
+                  <td class="text-success"><strong>{{ day.present }}</strong></td>
+                  <td class="text-warning">{{ day.late }}</td>
+                  <td class="text-danger">{{ day.absent }}</td>
+                  <td>{{ day.vacation }}</td>
+                  <td>{{ day.sick }}</td>
+                  <td>{{ day.business }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="7" class="text-danger text-center">Ma'lumot yo'q</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-4">
+  <div class="col-lg-12">
+    <div class="stats-card card animate__animated animate__fadeInUp animate__delay-5s">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i> Joylashuv bo'yicha statistika</h5>
+          <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#locationStats">
+            <i class="bi bi-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="collapse show" id="locationStats">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-stats table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Joylashuv</th>
+                  <th>Keldi</th>
+                  <th>Kechikdi</th>
+                  <th>Kelmagan</th>
+                  <th>Ta'til</th>
+                  <th>Kasal</th>
+                  <th>Safar</th>
+                  <th>Jami</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for loc in stats_by_location %}
+                <tr class="animate__animated animate__fadeIn animate__delay-{{ forloop.counter|add:5 }}s">
+                  <td>
+                    <strong>
+                    {% if loc.employee__location in location_choices %}
+                      {{ location_choices|get_item:loc.employee__location }}
+                    {% else %}
+                      {{ loc.employee__location|default:"Belgilanmagan" }}
+                    {% endif %}
+                    </strong>
+                  </td>
+                  <td class="text-success"><strong>{{ loc.present }}</strong></td>
+                  <td class="text-warning">{{ loc.late }}</td>
+                  <td class="text-danger">{{ loc.absent }}</td>
+                  <td>{{ loc.vacation }}</td>
+                  <td>{{ loc.sick }}</td>
+                  <td>{{ loc.business }}</td>
+                  <td><strong>{{ loc.total }}</strong></td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="8" class="text-center text-danger">Statistika yo'q</td></tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<style>
+/* Enhanced chart container styling */
+.chart-container-enhanced {
+  position: relative;
+  height: 400px;
+  background: linear-gradient(145deg, #f8f9fa, #ffffff);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.chart-view {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.stats-info {
+  height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.btn-group .btn.active {
+  background-color: rgba(255,255,255,0.3) !important;
+  border-color: rgba(255,255,255,0.5) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container-enhanced {
+    height: 300px;
+  }
+  
+  .stats-info {
+    height: auto;
+    margin-top: 20px;
+  }
+}
+</style>
+
+<script>
+// Enhanced chart functionality
+let currentChart = null;
+let chartInstances = {};
+
+// Rasm ranglar va konfiguratsiya
+const chartColors = {
+  present: '#28a745',
+  absent: '#dc3545', 
+  late: '#ffc107',
+  vacation: '#17a2b8',
+  sick: '#fd7e14',
+  business: '#6f42c1',
+  offday: '#6c757d'
+};
+
+const chartData = {
+  statusLabels: {{ status_labels|safe|default:'[]' }},
+  statusCounts: {{ status_counts|safe|default:'[]' }},
+  departmentLabels: {{ department_labels|safe|default:'[]' }},
+  departmentPresent: {{ department_present|safe|default:'[]' }},
+  departmentAbsent: {{ department_absent|safe|default:'[]' }},
+  departmentLate: {{ department_late|safe|default:'[]' }},
+  locationLabels: {{ location_labels|safe|default:'[]' }},
+  locationPresent: {{ location_present|safe|default:'[]' }},
+  locationAbsent: {{ location_absent|safe|default:'[]' }},
+  locationLate: {{ location_late|safe|default:'[]' }},
+  trendDates: {{ trend_dates|safe|default:'[]' }},
+  trendData: {{ trend_data|safe|default:'{}' }}
+};
+
+// Diagram ko'rinishini almashtirish funksiyasi
+function toggleChartView(viewType) {
+  // Barcha ko'rinishlarni yashirish
+  document.querySelectorAll('.chart-view').forEach(view => {
+    view.style.display = 'none';
+  });
+  
+  // Barcha tugmalardan active klassini olib tashlash
+  document.querySelectorAll('.btn-group .btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Tanlangan ko'rinishni ko'rsatish va tugmani active qilish
+  document.getElementById(viewType + '-chart-container').style.display = 'block';
+  document.getElementById(viewType + '-btn').classList.add('active');
+  
+  // Diagramma yaratish yoki yangilash
+  if (viewType !== 'table') {
+    createChart(viewType);
+  }
+}
+
+// Diagramma yaratish funksiyasi
+function createChart(type) {
+  const canvasId = type + '-status-enhanced';
+  const canvas = document.getElementById(canvasId);
+  
+  if (!canvas) return;
+  
+  // Mavjud diagrammani yo'q qilish
+  if (chartInstances[canvasId]) {
+    chartInstances[canvasId].destroy();
+  }
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Ranglar ro'yxatini tayyorlash
+  const backgroundColors = chartData.statusLabels.map((label, index) => {
+    const status = label.toLowerCase();
+    return chartColors[status] || `hsl(${index * 360 / chartData.statusLabels.length}, 70%, 50%)`;
+  });
+  
+  let config = {};
+  
+  switch(type) {
+    case 'pie':
+      config = {
+        type: 'pie',
+        data: {
+          labels: chartData.statusLabels,
+          datasets: [{
+            data: chartData.statusCounts,
+            backgroundColor: backgroundColors,
+            borderWidth: 3,
+            borderColor: '#ffffff',
+            hoverBorderWidth: 5,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                font: {
+                  size: 12,
+                  family: 'Inter, sans-serif'
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.parsed * 100) / total).toFixed(1);
+                  return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1500,
+            easing: 'easeOutQuart'
+          }
+        }
+      };
+      break;
+      
+    case 'bar':
+      config = {
+        type: 'bar',
+        data: {
+          labels: chartData.statusLabels,
+          datasets: [{
+            label: 'Xodimlar soni',
+            data: chartData.statusCounts,
+            backgroundColor: backgroundColors.map(color => color + '80'),
+            borderColor: backgroundColors,
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y + ' kishi';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              },
+              grid: {
+                color: 'rgba(0,0,0,0.1)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          animation: {
+            duration: 1500,
+            easing: 'easeOutBounce'
+          }
+        }
+      };
+      break;
+      
+    case 'doughnut':
+      config = {
+        type: 'doughnut',
+        data: {
+          labels: chartData.statusLabels,
+          datasets: [{
+            data: chartData.statusCounts,
+            backgroundColor: backgroundColors,
+            borderWidth: 4,
+            borderColor: '#ffffff',
+            hoverBorderWidth: 6,
+            hoverOffset: 15,
+            cutout: '60%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: {
+                  size: 12,
+                  family: 'Inter, sans-serif'
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.parsed * 100) / total).toFixed(1);
+                  return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 2000,
+            easing: 'easeOutElastic'
+          }
+        }
+      };
+      break;
+  }
+  
+  chartInstances[canvasId] = new Chart(ctx, config);
+}
+
+// Sahifa yuklanganda ishga tushirish
+document.addEventListener('DOMContentLoaded', function() {
+  // Birinchi pie chart ko'rinishini faollashtirilish
+  setTimeout(() => {
+    toggleChartView('pie');
+  }, 500);
+  
+  // Existing line chart functionality
+  const trendCtx = document.getElementById('line-chart');
+  const trendData = {{ trend|default:'[]'|safe }};
+  if (trendCtx && trendData.length > 0) {
+    let dates = [...new Set(trendData.map(x => x.date))];
+    let statusLabels = [...new Set(trendData.map(x => x.status))];
+    let lineColors = Object.values(chartColors);
+    let datasets = [];
+    
+    statusLabels.forEach(function(status, idx) {
+      datasets.push({
+        label: status.charAt(0).toUpperCase() + status.slice(1),
+        data: dates.map(function(d) {
+          let rec = trendData.find(function(x) { return x.date === d && x.status === status; });
+          return rec ? rec.count : 0;
+        }),
+        borderColor: lineColors[idx % lineColors.length],
+        backgroundColor: lineColors[idx % lineColors.length] + '20',
+        tension: 0.4,
+        fill: false,
+        pointRadius: 6,
+        pointHoverRadius: 10,
+        pointBackgroundColor: lineColors[idx % lineColors.length],
+        pointBorderColor: '#fff',
+        pointBorderWidth: 3
+      });
+    });
+    
+    new Chart(trendCtx, {
+      type: 'line',
+      data: {labels: dates, datasets: datasets},
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            }
+          }
+        },
+        animation: {
+          duration: 2000,
+          easing: 'easeInOutQuart'
+        }
+      }
+    });
+  }
+  
+  // Animatsiyani yangilash
+  setTimeout(() => { 
+    if (window.AOS) AOS.refresh(); 
+  }, 200);
+});
+
+// Resize hodisasini boshqarish
+window.addEventListener('resize', function() {
+  Object.values(chartInstances).forEach(chart => {
+    if (chart) chart.resize();
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

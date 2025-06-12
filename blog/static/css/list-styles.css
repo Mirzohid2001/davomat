@@ -1,0 +1,277 @@
+/* List specific styles for the attendance system */
+:root {
+  /* Using the same variables from improved-styles.css for consistency */
+  --primary-color: #4361ee;
+  --secondary-color: #3a0ca3;
+  --accent-color: #4cc9f0;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --info-color: #3498db;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --gradient-primary: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  --gradient-secondary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-md: 0 8px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
+  --border-radius: 15px;
+  --transition-speed: 0.3s;
+}
+
+/* List header styling */
+.list-header {
+  background: var(--gradient-primary);
+  color: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.list-header h2 {
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.list-header .btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  transition: all var(--transition-speed);
+}
+
+.list-header .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Filter section */
+.list-filter {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.list-filter .form-control:focus,
+.list-filter .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+.list-filter .btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+}
+
+.list-filter .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+}
+
+/* Table styling */
+.list-table {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.list-table thead th {
+  background-color: rgba(67, 97, 238, 0.1);
+  border-bottom: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 1rem;
+}
+
+.list-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.list-table tbody tr:hover {
+  background-color: rgba(76, 201, 240, 0.05);
+}
+
+.list-table tbody td {
+  vertical-align: middle;
+  padding: 0.85rem 1rem;
+}
+
+/* Action buttons in tables */
+.list-table .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+}
+
+.list-table .btn-group .btn {
+  margin: 0 0.15rem;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 50rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge-success {
+  background-color: rgba(46, 204, 113, 0.15);
+  color: var(--success-color);
+}
+
+.status-badge-warning {
+  background-color: rgba(243, 156, 18, 0.15);
+  color: var(--warning-color);
+}
+
+.status-badge-danger {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: var(--danger-color);
+}
+
+.status-badge-info {
+  background-color: rgba(52, 152, 219, 0.15);
+  color: var(--info-color);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.empty-state h4 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #6c757d;
+  max-width: 500px;
+  margin: 0 auto 1.5rem;
+}
+
+/* Pagination styling */
+.pagination {
+  margin-top: 1.5rem;
+}
+
+.pagination .page-link {
+  color: var(--primary-color);
+  border-radius: 0.5rem;
+  margin: 0 0.15rem;
+  transition: all 0.2s;
+}
+
+.pagination .page-link:hover {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .list-header {
+    padding: 1.25rem;
+  }
+  
+  .list-table thead th {
+    padding: 0.85rem;
+  }
+  
+  .list-table tbody td {
+    padding: 0.75rem 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .list-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .list-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .list-header .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .list-filter {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .list-table thead th {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .list-table tbody td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .list-header .btn-group {
+    margin-top: 0.75rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .list-table {
+    font-size: 0.85rem;
+  }
+  
+  .list-table thead th {
+    padding: 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .list-table tbody td {
+    padding: 0.6rem;
+  }
+  
+  .list-table .btn-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+}

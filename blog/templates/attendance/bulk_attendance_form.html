@@ -1,0 +1,77 @@
+{% extends 'attendance/base.html' %}
+{% load attendance_extras %}
+{% block title %}Jadval orqali davomat kiritish{% endblock %}
+{% block content %}
+<h2 class="mb-3">Jadval orqali tez davomat kiritish</h2>
+{% if dayoff %}
+  <div class="alert alert-warning mb-3">
+    <i class="bi bi-exclamation-triangle"></i>
+    Bu kun dam olish yoki yopiq kun: <b>{{ dayoff.reason }}</b>
+  </div>
+{% endif %}
+<form method="post" enctype="multipart/form-data" autocomplete="off">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle table-sm" style="font-size: 15px;">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center" style="width: 40px;">#</th>
+            <th>Ismi</th>
+            <th>Familiyasi</th>
+            <th style="width: 120px;">Status</th>
+            <th style="width: 220px;">Izoh</th>
+            <th style="width: 160px;">Fayl</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for form in formset.forms %}
+            <tr>
+              <td class="text-center align-middle">{{ forloop.counter }}</td>
+              <td class="align-middle">
+                {{ employee_id_to_fio|get_item:form.initial.employee|dict_get:'first_name' }}
+              </td>
+              <td class="align-middle">
+                {{ employee_id_to_fio|get_item:form.initial.employee|dict_get:'last_name' }}
+              </td>
+              <td>
+                {{ form.status }}
+              </td>
+              <td>
+                {{ form.comment }}
+              </td>
+              <td>
+                {{ form.attachment }}
+              </td>
+              <td style="display:none;">
+                {{ form.employee }}
+                {{ form.date }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-3">
+      <button class="btn btn-success px-4" type="submit">Saqlash</button>
+      <a href="{% url 'attendance_list' %}" class="btn btn-secondary ms-2 px-4">Bekor qilish</a>
+    </div>
+</form>
+<style>
+  .form-select,
+  .form-control {
+    min-width: 90px;
+    max-width: 100%;
+  }
+  textarea.form-control {
+    min-height: 38px;
+    max-height: 80px;
+    resize: vertical;
+  }
+  input[type="file"].form-control {
+    padding: 2px 4px;
+    font-size: 0.95em;
+    height: 32px;
+  }
+</style>
+{% endblock %}

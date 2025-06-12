@@ -1,0 +1,17 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Yopiq kunni o‘chirish{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card p-4 shadow-lg text-center animate__animated animate__fadeInUp">
+      <h2 class="mb-3">Yopiq kunni o‘chirish</h2>
+      <p>Siz <b>{{ day.date }}</b> ({{ day.reason }}) ni rostdan ham o‘chirmoqchimisiz?</p>
+      <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger">Ha, o‘chirish</button>
+        <a href="{% url 'dayoff_list' %}" class="btn btn-secondary ms-2">Bekor qilish</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Xodimlar{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="animate__animated animate__fadeInLeft">Xodimlar</h2>
+    <a href="{% url 'employee_create' %}" class="btn btn-success animate__animated animate__fadeInRight">+ Yangi xodim</a>
+</div>
+<form class="mb-3 row g-2" method="get">
+    <div class="col-auto">
+      <input type="text" name="q" placeholder="Qidiruv..." value="{{ search }}" class="form-control" autofocus>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-primary">Qidirish</button>
+    </div>
+</form>
+<div class="table-responsive">
+<table class="table table-bordered table-striped shadow-sm align-middle animate__animated animate__fadeInUp">
+    <thead class="table-primary">
+        <tr>
+            <th>#</th>
+            <th>Ismi</th>
+            <th>Familiyasi</th>
+            <th>Lavozimi</th>
+            <th>Bo‘limi</th>
+            <th>Telefon</th>
+            <th>Aktiv</th>
+            <th>Amallar</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for e in employees %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ e.first_name }}</td>
+            <td>{{ e.last_name }}</td>
+            <td>{{ e.position }}</td>
+            <td>{{ e.department }}</td>
+            <td>{{ e.phone_number }}</td>
+            <td>{% if e.is_active %}<span class="badge bg-success">Aktiv</span>{% else %}<span class="badge bg-danger">Noaktiv</span>{% endif %}</td>
+            <td>
+                <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-success btn-sm" title="Davomat kiritish"><i class="bi bi-calendar-check"></i></a>
+                <a href="{% url 'employee_update' e.id %}" class="btn btn-warning btn-sm" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'employee_delete' e.id %}" class="btn btn-danger btn-sm" title="O'chirish"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="8" class="text-center text-danger">Xodimlar topilmadi</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

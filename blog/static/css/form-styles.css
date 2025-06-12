@@ -1,0 +1,178 @@
+/* Form specific styles for the attendance system */
+:root {
+  /* Using the same variables from improved-styles.css for consistency */
+  --primary-color: #4361ee;
+  --secondary-color: #3a0ca3;
+  --accent-color: #4cc9f0;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --info-color: #3498db;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --gradient-primary: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  --gradient-secondary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-md: 0 8px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
+  --border-radius: 15px;
+  --transition-speed: 0.3s;
+}
+
+/* Form header styling */
+.form-header {
+  background: var(--gradient-primary);
+  color: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.form-header h2 {
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+/* Form card styling */
+.form-card {
+  border-radius: var(--border-radius);
+  border: none;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-speed) ease;
+  background-color: white;
+}
+
+.form-card form {
+  padding: 1.5rem;
+}
+
+/* Form elements styling */
+.form-card label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--dark-color);
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea {
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus {
+  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+  border-color: var(--primary-color);
+}
+
+/* Button styling */
+.form-card .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.form-card .btn-success {
+  background: var(--gradient-primary);
+  border: none;
+}
+
+.form-card .btn-success:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+}
+
+.form-card .btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* Error messages */
+.errorlist {
+  color: var(--danger-color);
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Form group spacing */
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+/* Help text styling */
+.form-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Checkbox and radio styling */
+.form-check {
+  padding-left: 1.8rem;
+}
+
+.form-check-input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.25rem;
+  margin-left: -1.8rem;
+}
+
+/* File input styling */
+.form-control-file {
+  padding: 0.5rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-header {
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  
+  .form-card form {
+    padding: 1.2rem;
+  }
+  
+  .form-card .btn {
+    padding: 0.7rem 1.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .form-card form {
+    padding: 1rem;
+  }
+  
+  .form-card .btn {
+    padding: 0.6rem 1.2rem;
+  }
+  
+  .form-card input,
+  .form-card select,
+  .form-card textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}
