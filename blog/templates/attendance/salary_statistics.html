@@ -1,0 +1,77 @@
+{% extends 'attendance/base.html' %}
+{% block content %}
+<h2 class="mb-4">Oylik xodim statistikasi ({{ year }}-{{ month }})</h2>
+<form method="get" class="mb-3 d-flex flex-wrap align-items-end gap-2">
+    <div>
+        {{ form.year.label_tag }} {{ form.year }}
+    </div>
+    <div>
+        {{ form.month.label_tag }} {{ form.month }}
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Ko'rsatish</button>
+    <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success btn-sm">Excelga eksport</a>
+</form>
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle shadow" style="border-radius:18px; overflow:hidden;">
+    <thead style="background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%); color:white;">
+        <tr class="text-center">
+            <th>№</th>
+            <th>F I O xodim</th>
+            <th>Oylik</th>
+            <th>Mukofot</th>
+            <th>Jarima</th>
+            <th>Oy kunlari</th>
+            <th>Ishlangan kunlar</th>
+            <th>Kelmagan kunlar</th>
+            <th>Hisoblangan</th>
+            <th>To'langan</th>
+            <th>Qarzdorlik (boshl.)</th>
+            <th>Qarzdorlik (oxiri)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stat in stats %}
+        <tr class="text-center">
+            <td>{{ forloop.counter }}</td>
+            <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
+            <td>{{ stat.salary|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td>{{ stat.bonus|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td>{{ stat.penalty|floatformat:0 }}</td>
+            <td>{{ stat.days_in_month }}</td>
+            <td>{{ stat.worked_days }}</td>
+            <td>
+                <span {% if stat.absent_dates %} title="{{ stat.absent_dates|join:', ' }}" {% endif %}>
+                    {{ stat.absent_count }}
+                </span>
+            </td>
+            <td>{{ stat.accrued|floatformat:0 }}</td>
+            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td class="{% if stat.debt_start < 0 %}table-danger{% endif %}">{{ stat.debt_start|floatformat:0 }}</td>
+            <td class="{% if stat.debt_end < 0 %}table-danger{% endif %}">{{ stat.debt_end|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="11" class="text-center py-4">
+                <span class="badge bg-info text-dark fs-6 px-4 py-2 shadow">Ma'lumot topilmadi.</span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="font-weight:bold; background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); color:#222;" class="text-center">
+            <td colspan="7">Jami</td>
+            <td>{{ total_absent }}</td>
+            <td>{{ total_accrued|floatformat:0 }}</td>
+            <td>{{ total_paid|floatformat:0 }}</td>
+            <td>{{ total_debt_start|floatformat:0 }}</td>
+            <td>{{ total_debt_end|floatformat:0 }}</td>
+        </tr>
+    </tfoot>
+</table>
+</div>
+<style>
+.table thead th { font-size: 1rem; letter-spacing: 0.5px; }
+.table tfoot td { font-size: 1rem; font-weight: 600; }
+.table td, .table th { vertical-align: middle !important; }
+</style>
+{% endblock %} 

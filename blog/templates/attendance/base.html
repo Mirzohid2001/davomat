@@ -280,6 +280,11 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'salary_statistics' %}active{% endif %}" href="{% url 'salary_statistics' %}">
+              <i class="bi bi-cash-coin"></i> Oylik Statistika
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link {% if 'dayoff' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dayoff_list' %}">
               <i class="bi bi-calendar-x-fill"></i> Yopiq kunlar
             </a>

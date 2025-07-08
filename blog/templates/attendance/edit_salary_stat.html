@@ -1,0 +1,21 @@
+{% extends 'attendance/base.html' %}
+{% block content %}
+<h3>Xodim: {{ stat.employee.last_name }} {{ stat.employee.first_name }} ({{ stat.year }}-{{ stat.month }})</h3>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.salary.label_tag }}
+        {{ form.salary }}
+    </div>
+    <div class="mb-3">
+        {{ form.paid.label_tag }}
+        {{ form.paid }}
+    </div>
+    <div class="mb-3">
+        {{ form.bonus.label_tag }}
+        {{ form.bonus }}
+    </div>
+    <button type="submit" class="btn btn-success">Saqlash</button>
+    <a href="{{ request.GET.next|default:'/statistics/salary/' }}" class="btn btn-secondary">Bekor qilish</a>
+</form>
+{% endblock %} 

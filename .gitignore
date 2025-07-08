@@ -62,6 +62,8 @@ Desktop.ini
 # Jupyter
 .ipynb_checkpoints
 
+.config/settings_dev.py
+
 
 .pytest_cache/
 

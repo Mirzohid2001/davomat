@@ -50,7 +50,7 @@ class Attendance(models.Model):
         ('present', "Keldi"),
         ('absent', "Kelmagan"),
         ('late', "Kechikdi"),
-        ('vacation', "Ta’til"),
+        ('vacation', "Ta'til"),
         ('sick', "Kasal"),
         ('business', "Ish safarida"),
         ('offday', "Ish kuni emas"),
@@ -61,7 +61,7 @@ class Attendance(models.Model):
     comment = models.TextField("Izoh/sabab", blank=True, null=True)
     # Fayl yuklash funksiyasi hozircha kerak emas
     # attachment = models.FileField("Ilova (hujjat/rasm)", upload_to=attendance_attachment_path, blank=True, null=True)
-    created_at = models.DateTimeField("Qo‘shilgan vaqt", auto_now_add=True)
+    created_at = models.DateTimeField("Qo'shilgan vaqt", auto_now_add=True)
     updated_at = models.DateTimeField("Yangilangan vaqt", auto_now=True)
 
     class Meta:
@@ -80,3 +80,26 @@ class AttendanceImportLog(models.Model):
     record_count = models.PositiveIntegerField(default=0)
     success = models.BooleanField(default=True)
     log = models.TextField(blank=True, null=True)
+
+class MonthlyEmployeeStat(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='monthly_stats', verbose_name="Xodim")
+    year = models.PositiveIntegerField("Yil")
+    month = models.PositiveIntegerField("Oy")  # 1-12
+    salary = models.DecimalField("Oylik", max_digits=12, decimal_places=2, default=0)
+    bonus = models.DecimalField("Mukofot", max_digits=12, decimal_places=2, default=0)
+    penalty = models.DecimalField("Jarima", max_digits=12, decimal_places=2, default=0)
+    days_in_month = models.PositiveIntegerField("Oy kunlari", default=0)
+    worked_days = models.PositiveIntegerField("Ishlangan kunlar", default=0)
+    accrued = models.DecimalField("Hisoblangan", max_digits=12, decimal_places=2, default=0)
+    paid = models.DecimalField("To'langan", max_digits=12, decimal_places=2, default=0)
+    debt_start = models.DecimalField("Boshlang'ich qarzdorlik", max_digits=12, decimal_places=2, default=0)
+    debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        unique_together = ('employee', 'year', 'month')
+        verbose_name = "Oylik xodim statistikasi"
+        verbose_name_plural = "Oylik xodim statistikasi"
+        ordering = ['-year', '-month', 'employee']
+
+    def __str__(self):
+        return f"{self.year}-{self.month:02d} - {self.employee}"

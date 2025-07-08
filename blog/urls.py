@@ -25,5 +25,8 @@ urlpatterns = [
     path('dayoff/<int:pk>/delete/', views.dayoff_delete, name='dayoff_delete'),
 
     path('statistics/', views.attendance_statistics, name='attendance_statistics'),
+    path('statistics/salary/', views.salary_statistics_view, name='salary_statistics'),
+    path('statistics/salary/export/', views.export_salary_statistics_excel, name='salary_statistics_export'),
+    path('statistics/salary/edit/<int:stat_id>/', views.edit_salary_stat, name='edit_salary_stat'),
     path('dashboard/', views.dashboard, name='dashboard'),
 ]

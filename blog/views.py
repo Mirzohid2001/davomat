@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import Employee, Attendance, DayOff, AttendanceImportLog
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat
 from .forms import EmployeeForm, AttendanceForm, BulkAttendanceForm, AttendanceImportForm, DayOffForm
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -14,7 +14,24 @@ from django.db import transaction
 import pandas as pd
 import openpyxl
 from django.http import HttpResponse
+from .services import calculate_monthly_stats
+from openpyxl.utils import get_column_letter
 
+from django import forms
+
+class SalaryStatFilterForm(forms.Form):
+    year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)
+    month = forms.IntegerField(label="Oy", min_value=1, max_value=12)
+
+class SalaryStatEditForm(forms.ModelForm):
+    class Meta:
+        model = MonthlyEmployeeStat
+        fields = ['salary', 'paid', 'bonus']
+        widgets = {
+            'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+        }
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -663,3 +680,126 @@ def attendance_statistics(request):
         'trend_data': json.dumps(trend_data),
     }
     return render(request, 'attendance/attendance_statistics.html', context)
+
+@login_required
+def salary_statistics_view(request):
+    import datetime
+    today = datetime.date.today()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
+    # Statistikani hisoblash (agar kerak bo'lsa)
+    calculate_monthly_stats(year, month)
+    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
+    form = SalaryStatFilterForm(initial={'year': year, 'month': month})
+    # Kelmagan kunlar soni va sanalari
+    absent_days = {}
+    for stat in stats:
+        absents = Attendance.objects.filter(
+            employee=stat.employee,
+            date__year=year,
+            date__month=month,
+            status='absent'
+        ).values_list('date', flat=True)
+        stat.absent_count = len(absents)
+        stat.absent_dates = list(absents)
+    # Umumiy summalar
+    total_salary = sum([s.salary for s in stats])
+    total_bonus = sum([s.bonus for s in stats])
+    total_penalty = sum([s.penalty for s in stats])
+    total_accrued = sum([s.accrued for s in stats])
+    total_paid = sum([s.paid for s in stats])
+    total_debt_start = sum([s.debt_start for s in stats])
+    total_debt_end = sum([s.debt_end for s in stats])
+    total_absent = sum([s.absent_count for s in stats])
+    return render(request, 'attendance/salary_statistics.html', {
+        'stats': stats,
+        'form': form,
+        'year': year,
+        'month': month,
+        'total_salary': total_salary,
+        'total_bonus': total_bonus,
+        'total_penalty': total_penalty,
+        'total_accrued': total_accrued,
+        'total_paid': total_paid,
+        'total_debt_start': total_debt_start,
+        'total_debt_end': total_debt_end,
+        'absent_days': absent_days,
+        'total_absent': total_absent,
+    })
+
+@login_required
+def export_salary_statistics_excel(request):
+    import datetime
+    today = datetime.date.today()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
+    calculate_monthly_stats(year, month)
+    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
+    # Absentlarni har bir stat obyektiga biriktiramiz
+    for stat in stats:
+        absents = Attendance.objects.filter(
+            employee=stat.employee,
+            date__year=year,
+            date__month=month,
+            status='absent'
+        ).values_list('date', flat=True)
+        stat.absent_count = len(absents)
+        stat.absent_dates = list(absents)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"{year}-{month:02d}"
+    headers = [
+        '№', 'F I O xodim', 'Oylik', 'Mukofot', 'Jarima', 'Oy kunlari',
+        'Ishlangan kunlar', 'Kelmagan kunlar soni', 'Kelmagan kunlar sanalari',
+        'Hisoblangan', "To'langan", 'Qarzdorlik (boshl.)', 'Qarzdorlik (oxiri)'
+    ]
+    ws.append(headers)
+    total_salary = total_bonus = total_penalty = total_accrued = total_paid = total_debt_start = total_debt_end = total_absent = 0
+    for idx, stat in enumerate(stats, 1):
+        ws.append([
+            idx,
+            f"{stat.employee.last_name} {stat.employee.first_name}",
+            float(stat.salary),
+            float(stat.bonus),
+            float(stat.penalty),
+            stat.days_in_month,
+            stat.worked_days,
+            stat.absent_count,
+            ', '.join([str(d) for d in stat.absent_dates]),
+            float(stat.accrued),
+            float(stat.paid),
+            float(stat.debt_start),
+            float(stat.debt_end),
+        ])
+        total_salary += float(stat.salary)
+        total_bonus += float(stat.bonus)
+        total_penalty += float(stat.penalty)
+        total_accrued += float(stat.accrued)
+        total_paid += float(stat.paid)
+        total_debt_start += float(stat.debt_start)
+        total_debt_end += float(stat.debt_end)
+        total_absent += stat.absent_count
+    # Jami qatori
+    ws.append([
+        '', 'Jami', total_salary, total_bonus, total_penalty, '', '', total_absent, '', total_accrued, total_paid, total_debt_start, total_debt_end
+    ])
+    # Ustunlarni kengaytirish
+    for col in range(1, len(headers)+1):
+        ws.column_dimensions[get_column_letter(col)].width = 20
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    filename = f"salary_statistics_{year}_{month:02d}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    wb.save(response)
+    return response
+
+@login_required
+def edit_salary_stat(request, stat_id):
+    stat = MonthlyEmployeeStat.objects.get(id=stat_id)
+    if request.method == 'POST':
+        form = SalaryStatEditForm(request.POST, instance=stat)
+        if form.is_valid():
+            form.save()
+            return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
+    else:
+        form = SalaryStatEditForm(instance=stat)
+    return render(request, 'attendance/edit_salary_stat.html', {'form': form, 'stat': stat})
