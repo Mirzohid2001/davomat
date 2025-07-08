@@ -26,9 +26,10 @@ class SalaryStatFilterForm(forms.Form):
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:
         model = MonthlyEmployeeStat
-        fields = ['salary', 'paid', 'bonus']
+        fields = ['salary', 'currency', 'paid', 'bonus']
         widgets = {
             'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'currency': forms.Select(attrs={'class': 'form-select'}),
             'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
         }
@@ -711,6 +712,8 @@ def salary_statistics_view(request):
     total_debt_start = sum([s.debt_start for s in stats])
     total_debt_end = sum([s.debt_end for s in stats])
     total_absent = sum([s.absent_count for s in stats])
+    currency_set = set([s.currency for s in stats])
+    total_currency = currency_set.pop() if len(currency_set) == 1 else '...'
     return render(request, 'attendance/salary_statistics.html', {
         'stats': stats,
         'form': form,
@@ -725,6 +728,7 @@ def salary_statistics_view(request):
         'total_debt_end': total_debt_end,
         'absent_days': absent_days,
         'total_absent': total_absent,
+        'total_currency': total_currency,
     })
 
 @login_required
@@ -749,7 +753,7 @@ def export_salary_statistics_excel(request):
     ws = wb.active
     ws.title = f"{year}-{month:02d}"
     headers = [
-        '№', 'F I O xodim', 'Oylik', 'Mukofot', 'Jarima', 'Oy kunlari',
+        '№', 'F I O xodim', 'Oylik', 'Valyuta', 'Mukofot', 'Jarima', 'Oy kunlari',
         'Ishlangan kunlar', 'Kelmagan kunlar soni', 'Kelmagan kunlar sanalari',
         'Hisoblangan', "To'langan", 'Qarzdorlik (boshl.)', 'Qarzdorlik (oxiri)'
     ]
@@ -760,6 +764,7 @@ def export_salary_statistics_excel(request):
             idx,
             f"{stat.employee.last_name} {stat.employee.first_name}",
             float(stat.salary),
+            stat.currency,
             float(stat.bonus),
             float(stat.penalty),
             stat.days_in_month,
@@ -781,7 +786,7 @@ def export_salary_statistics_excel(request):
         total_absent += stat.absent_count
     # Jami qatori
     ws.append([
-        '', 'Jami', total_salary, total_bonus, total_penalty, '', '', total_absent, '', total_accrued, total_paid, total_debt_start, total_debt_end
+        '', 'Jami', total_salary, total_currency, total_bonus, total_penalty, '', '', total_absent, '', total_accrued, total_paid, total_debt_start, total_debt_end
     ])
     # Ustunlarni kengaytirish
     for col in range(1, len(headers)+1):

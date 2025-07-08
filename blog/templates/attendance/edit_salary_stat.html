@@ -3,9 +3,15 @@
 <h3>Xodim: {{ stat.employee.last_name }} {{ stat.employee.first_name }} ({{ stat.year }}-{{ stat.month }})</h3>
 <form method="post">
     {% csrf_token %}
-    <div class="mb-3">
-        {{ form.salary.label_tag }}
-        {{ form.salary }}
+    <div class="row mb-3">
+        <div class="col-md-6">
+            {{ form.salary.label_tag }}
+            {{ form.salary }}
+        </div>
+        <div class="col-md-6">
+            {{ form.currency.label_tag }}
+            {{ form.currency }}
+        </div>
     </div>
     <div class="mb-3">
         {{ form.paid.label_tag }}

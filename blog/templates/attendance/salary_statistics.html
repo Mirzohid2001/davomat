@@ -34,9 +34,9 @@
         <tr class="text-center">
             <td>{{ forloop.counter }}</td>
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
-            <td>{{ stat.salary|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
-            <td>{{ stat.bonus|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
-            <td>{{ stat.penalty|floatformat:0 }}</td>
+            <td>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</td>
+            <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td>{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.worked_days }}</td>
             <td>
@@ -44,10 +44,10 @@
                     {{ stat.absent_count }}
                 </span>
             </td>
-            <td>{{ stat.accrued|floatformat:0 }}</td>
-            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
-            <td class="{% if stat.debt_start < 0 %}table-danger{% endif %}">{{ stat.debt_start|floatformat:0 }}</td>
-            <td class="{% if stat.debt_end < 0 %}table-danger{% endif %}">{{ stat.debt_end|floatformat:0 }}</td>
+            <td>{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</td>
+            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} {{ stat.currency }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td class="{% if stat.debt_start < 0 %}table-danger{% endif %}">{{ stat.debt_start|floatformat:0 }} {{ stat.currency }}</td>
+            <td class="{% if stat.debt_end < 0 %}table-danger{% endif %}">{{ stat.debt_end|floatformat:0 }} {{ stat.currency }}</td>
         </tr>
         {% empty %}
         <tr>
@@ -61,10 +61,10 @@
         <tr style="font-weight:bold; background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); color:#222;" class="text-center">
             <td colspan="7">Jami</td>
             <td>{{ total_absent }}</td>
-            <td>{{ total_accrued|floatformat:0 }}</td>
-            <td>{{ total_paid|floatformat:0 }}</td>
-            <td>{{ total_debt_start|floatformat:0 }}</td>
-            <td>{{ total_debt_end|floatformat:0 }}</td>
+            <td>{{ total_accrued|floatformat:0 }} {{ total_currency }}</td>
+            <td>{{ total_paid|floatformat:0 }} {{ total_currency }}</td>
+            <td>{{ total_debt_start|floatformat:0 }} {{ total_currency }}</td>
+            <td>{{ total_debt_end|floatformat:0 }} {{ total_currency }}</td>
         </tr>
     </tfoot>
 </table>

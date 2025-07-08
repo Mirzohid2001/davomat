@@ -82,6 +82,11 @@ class AttendanceImportLog(models.Model):
     log = models.TextField(blank=True, null=True)
 
 class MonthlyEmployeeStat(models.Model):
+    CURRENCY_CHOICES = [
+        ('UZS', 'So‘m'),
+        ('USD', 'Dollar'),
+        ('EUR', 'Yevro'),
+    ]
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='monthly_stats', verbose_name="Xodim")
     year = models.PositiveIntegerField("Yil")
     month = models.PositiveIntegerField("Oy")  # 1-12
@@ -94,6 +99,7 @@ class MonthlyEmployeeStat(models.Model):
     paid = models.DecimalField("To'langan", max_digits=12, decimal_places=2, default=0)
     debt_start = models.DecimalField("Boshlang'ich qarzdorlik", max_digits=12, decimal_places=2, default=0)
     debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
+    currency = models.CharField("Valyuta", max_length=3, choices=CURRENCY_CHOICES, default='UZS')
 
     class Meta:
         unique_together = ('employee', 'year', 'month')
