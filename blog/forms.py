@@ -2,6 +2,7 @@ from django import forms
 from .models import Attendance, Employee, DayOff
 import datetime
 import os
+from .models import MonthlyEmployeeStat
 
 class BulkAttendanceForm(forms.Form):
     date = forms.DateField(initial=datetime.date.today)
@@ -49,4 +50,16 @@ class DayOffForm(forms.ModelForm):
 class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
-        fields = ['first_name', 'last_name', 'position', 'department', 'location', 'phone_number', 'is_active']
+        fields = ['first_name', 'last_name', 'position', 'department', 'location', 'phone_number', 'is_active', 'employee_type']
+
+class SalaryStatEditForm(forms.ModelForm):
+    class Meta:
+        model = MonthlyEmployeeStat
+        fields = ['salary', 'currency', 'paid', 'bonus', 'manual_salary']
+        widgets = {
+            'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'currency': forms.Select(attrs={'class': 'form-select'}),
+            'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'manual_salary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

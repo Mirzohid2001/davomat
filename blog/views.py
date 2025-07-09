@@ -18,6 +18,7 @@ from .services import calculate_monthly_stats
 from openpyxl.utils import get_column_letter
 
 from django import forms
+from decimal import Decimal
 
 class SalaryStatFilterForm(forms.Form):
     year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)

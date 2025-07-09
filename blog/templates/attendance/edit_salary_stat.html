@@ -21,6 +21,9 @@
         {{ form.bonus.label_tag }}
         {{ form.bonus }}
     </div>
+    <div class="mb-3 form-check">
+        {{ form.manual_salary }} {{ form.manual_salary.label_tag }}
+    </div>
     <button type="submit" class="btn btn-success">Saqlash</button>
     <a href="{{ request.GET.next|default:'/statistics/salary/' }}" class="btn btn-secondary">Bekor qilish</a>
 </form>

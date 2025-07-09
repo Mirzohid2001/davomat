@@ -13,6 +13,11 @@ class Employee(models.Model):
         ('field', 'Dala'),
         ('other', 'Boshqa'),
     ]
+    EMPLOYEE_TYPE_CHOICES = [
+        ('full', 'To‘liq stavka'),
+        ('half', '15 kunlik/yarim stavka'),
+        ('office', 'Ofis xodimi (davomatsiz)'),
+    ]
     
     first_name = models.CharField("Ismi", max_length=64)
     last_name = models.CharField("Familiyasi", max_length=64)
@@ -29,6 +34,7 @@ class Employee(models.Model):
     is_active = models.BooleanField("Aktiv", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    employee_type = models.CharField("Xodim turi", max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
 
     class Meta:
         verbose_name = "Xodim"
@@ -100,6 +106,7 @@ class MonthlyEmployeeStat(models.Model):
     debt_start = models.DecimalField("Boshlang'ich qarzdorlik", max_digits=12, decimal_places=2, default=0)
     debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
     currency = models.CharField("Valyuta", max_length=3, choices=CURRENCY_CHOICES, default='UZS')
+    manual_salary = models.BooleanField("Oylik faqat qo‘lda kiritiladi (ofis xodimi)", default=False)
 
     class Meta:
         unique_together = ('employee', 'year', 'month')
