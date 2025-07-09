@@ -19,6 +19,10 @@ from openpyxl.utils import get_column_letter
 
 from django import forms
 from decimal import Decimal
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, NamedStyle
+from openpyxl.worksheet.dimensions import ColumnDimension
+from openpyxl.comments import Comment
+from openpyxl.formatting.rule import CellIsRule
 
 class SalaryStatFilterForm(forms.Form):
     year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)
@@ -776,6 +780,26 @@ def export_salary_statistics_excel(request):
     ]
     ws.append(headers)
     total_salary = total_bonus = total_penalty = total_accrued = total_paid = total_debt_start = total_debt_end = total_absent = 0
+    # Valyuta bo'yicha jami qiymatlar (Excel uchun)
+    currency_totals = {}
+    for stat in stats:
+        cur = stat.currency
+        if cur not in currency_totals:
+            currency_totals[cur] = {
+                'salary': 0, 'bonus': 0, 'penalty': 0, 'accrued': 0, 'paid': 0, 'debt_start': 0, 'debt_end': 0
+            }
+        currency_totals[cur]['salary'] += float(stat.salary)
+        currency_totals[cur]['bonus'] += float(stat.bonus)
+        currency_totals[cur]['penalty'] += float(stat.penalty)
+        currency_totals[cur]['accrued'] += float(stat.accrued)
+        currency_totals[cur]['paid'] += float(stat.paid)
+        currency_totals[cur]['debt_start'] += float(stat.debt_start)
+        currency_totals[cur]['debt_end'] += float(stat.debt_end)
+    # Jami qatorlari har bir valyuta uchun alohida
+    for cur, vals in currency_totals.items():
+        ws.append([
+            '', f'Jami ({cur})', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
+        ])
     for idx, stat in enumerate(stats, 1):
         ws.append([
             idx,
@@ -801,13 +825,81 @@ def export_salary_statistics_excel(request):
         total_debt_start += float(stat.debt_start)
         total_debt_end += float(stat.debt_end)
         total_absent += stat.absent_count
-    # Jami qatori
-    ws.append([
-        '', 'Jami', total_salary, total_currency, total_bonus, total_penalty, '', '', total_absent, '', total_accrued, total_paid, total_debt_start, total_debt_end
-    ])
+    # Eski jami qatorini olib tashlab, har bir valyuta uchun alohida jami qatorini yozaman
+    for cur, vals in currency_totals.items():
+        ws.append([
+            '', f'Jami ({cur})', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
+        ])
     # Ustunlarni kengaytirish
+    # Sarlavha uchun style
+    header_font = Font(bold=True, size=12, color='FFFFFF')
+    header_fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
     for col in range(1, len(headers)+1):
-        ws.column_dimensions[get_column_letter(col)].width = 20
+        cell = ws.cell(row=1, column=col)
+        cell.font = header_font
+        cell.fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        ws.column_dimensions[get_column_letter(col)].width = 18
+    # Jadvalga border
+    thin = Side(border_style="thin", color="AAAAAA")
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=len(headers)):
+        for cell in row:
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+    # Jami qatorlari uchun style
+    for i in range(ws.max_row-len(currency_totals)+1, ws.max_row+1):
+        for j in range(1, len(headers)+1):
+            cell = ws.cell(row=i, column=j)
+            cell.font = Font(bold=True, color='222222')
+            cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+    # Kompaniya va oy sarlavhasi
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+    title_cell = ws.cell(row=1, column=1)
+    title_cell.value = f"ISOMER OIL Davomat - Oylik xodim statistikasi ({year}-{month:02d})"
+    title_cell.font = Font(bold=True, size=14, color='222222')
+    title_cell.alignment = Alignment(horizontal='center', vertical='center')
+    title_cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
+    # Header row (2)
+    for col in range(1, len(headers)+1):
+        cell = ws.cell(row=2, column=col)
+        cell.value = headers[col-1]
+        cell.font = Font(bold=True, size=12, color='FFFFFF')
+        cell.fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        ws.column_dimensions[get_column_letter(col)].width = 18
+    # Jadvalga border va format
+    thin = Side(border_style="thin", color="AAAAAA")
+    number_style = NamedStyle(name="number_style", number_format="# ##0.00")
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=len(headers)):
+        for cell in row:
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+            if isinstance(cell.value, (int, float)):
+                cell.style = number_style
+    # Jami qatorlari uchun style (oxirgi qatorlar)
+    for i in range(ws.max_row-len(currency_totals)+1, ws.max_row+1):
+        for j in range(1, len(headers)+1):
+            cell = ws.cell(row=i, column=j)
+            cell.font = Font(bold=True, color='222222')
+            cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+    # Jadval ustunlarini optimal kenglikka moslash
+    for col in ws.columns:
+        max_length = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+        ws.column_dimensions[col_letter].width = max(12, min(max_length+2, 30))
+    # Jadvalga filter qo‘shish
+    ws.auto_filter.ref = ws.dimensions
+    # Ustunlarga comment (ixtiyoriy, misol uchun)
+    ws.cell(row=3, column=3).comment = Comment("Xodimning oylik stavkasi", "AI")
+    ws.cell(row=3, column=4).comment = Comment("Oylik valyutasi", "AI")
+    ws.cell(row=3, column=7).comment = Comment("Xodim oy davomida ishlagan kunlar soni", "AI")
+    ws.cell(row=3, column=8).comment = Comment("Kelmagan kunlar soni", "AI")
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     filename = f"salary_statistics_{year}_{month:02d}.xlsx"
     response['Content-Disposition'] = f'attachment; filename={filename}'
