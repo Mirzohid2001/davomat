@@ -715,6 +715,21 @@ def salary_statistics_view(request):
     total_absent = sum([s.absent_count for s in stats])
     currency_set = set([s.currency for s in stats])
     total_currency = currency_set.pop() if len(currency_set) == 1 else '...'
+    # Valyuta bo'yicha jami qiymatlar
+    currency_totals = {}
+    for stat in stats:
+        cur = stat.currency
+        if cur not in currency_totals:
+            currency_totals[cur] = {
+                'salary': 0, 'bonus': 0, 'penalty': 0, 'accrued': 0, 'paid': 0, 'debt_start': 0, 'debt_end': 0
+            }
+        currency_totals[cur]['salary'] += float(stat.salary)
+        currency_totals[cur]['bonus'] += float(stat.bonus)
+        currency_totals[cur]['penalty'] += float(stat.penalty)
+        currency_totals[cur]['accrued'] += float(stat.accrued)
+        currency_totals[cur]['paid'] += float(stat.paid)
+        currency_totals[cur]['debt_start'] += float(stat.debt_start)
+        currency_totals[cur]['debt_end'] += float(stat.debt_end)
     return render(request, 'attendance/salary_statistics.html', {
         'stats': stats,
         'form': form,
@@ -730,6 +745,7 @@ def salary_statistics_view(request):
         'absent_days': absent_days,
         'total_absent': total_absent,
         'total_currency': total_currency,
+        'currency_totals': currency_totals,
     })
 
 @login_required

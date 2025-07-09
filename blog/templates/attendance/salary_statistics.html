@@ -61,10 +61,26 @@
         <tr style="font-weight:bold; background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); color:#222;" class="text-center">
             <td colspan="7">Jami</td>
             <td>{{ total_absent }}</td>
-            <td>{{ total_accrued|floatformat:0 }} {{ total_currency }}</td>
-            <td>{{ total_paid|floatformat:0 }} {{ total_currency }}</td>
-            <td>{{ total_debt_start|floatformat:0 }} {{ total_currency }}</td>
-            <td>{{ total_debt_end|floatformat:0 }} {{ total_currency }}</td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div>{{ vals.accrued|floatformat:0 }} {{ cur }}</div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div>{{ vals.paid|floatformat:0 }} {{ cur }}</div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div>{{ vals.debt_start|floatformat:0 }} {{ cur }}</div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div>{{ vals.debt_end|floatformat:0 }} {{ cur }}</div>
+                {% endfor %}
+            </td>
         </tr>
     </tfoot>
 </table>
