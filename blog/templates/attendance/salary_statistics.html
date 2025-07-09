@@ -17,10 +17,12 @@
         <tr class="text-center">
             <th>№</th>
             <th>F I O xodim</th>
+            <th>Turi</th>
             <th>Oylik</th>
             <th>Mukofot</th>
             <th>Jarima</th>
             <th>Oy kunlari</th>
+            <th>Ишчи кунлар*</th>
             <th>Ishlangan kunlar</th>
             <th>Kelmagan kunlar</th>
             <th>Hisoblangan</th>
@@ -34,10 +36,17 @@
         <tr class="text-center">
             <td>{{ forloop.counter }}</td>
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
+            <td>
+                <span class="badge 
+                    {% if stat.employee.employee_type == 'office' %}bg-info{% elif stat.employee.employee_type == 'half' %}bg-warning{% else %}bg-success{% endif %} text-dark">
+                    {{ stat.employee.get_employee_type_display }}
+                </span>
+            </td>
             <td>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</td>
             <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
             <td>{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</td>
             <td>{{ stat.days_in_month }}</td>
+            <td>{{ stat.working_days_in_month }}</td>
             <td>{{ stat.worked_days }}</td>
             <td>
                 <span {% if stat.absent_dates %} title="{{ stat.absent_dates|join:', ' }}" {% endif %}>
@@ -51,7 +60,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="11" class="text-center py-4">
+            <td colspan="13" class="text-center py-4">
                 <span class="badge bg-info text-dark fs-6 px-4 py-2 shadow">Ma'lumot topilmadi.</span>
             </td>
         </tr>
@@ -59,7 +68,7 @@
     </tbody>
     <tfoot>
         <tr style="font-weight:bold; background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); color:#222;" class="text-center">
-            <td colspan="7">Jami</td>
+            <td colspan="9">Jami</td>
             <td>{{ total_absent }}</td>
             <td>
                 {% for cur, vals in currency_totals.items %}
@@ -90,4 +99,11 @@
 .table tfoot td { font-size: 1rem; font-weight: 600; }
 .table td, .table th { vertical-align: middle !important; }
 </style>
+<div class="mt-3">
+    <small class="text-muted">
+        <strong>*Ишчи кунлар:</strong> Фақат тўлиқ ставка ходимлар учун ҳисобга олинади (якшанба ва байрам кунлари чиқарилган). 
+        15 кунлик ишчилар ҳар куни ишлайди, офис ходимлари эса давоматсиз тўлиқ ойлик олади.
+    </small>
+</div>
+
 {% endblock %} 

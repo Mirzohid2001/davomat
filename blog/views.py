@@ -14,7 +14,7 @@ from django.db import transaction
 import pandas as pd
 import openpyxl
 from django.http import HttpResponse
-from .services import calculate_monthly_stats
+from .services import calculate_monthly_stats, calculate_working_days_in_month
 from openpyxl.utils import get_column_letter
 
 from django import forms
@@ -65,7 +65,20 @@ def dashboard(request):
     today = date.today()
     employees = Employee.objects.filter(is_active=True)
     attendance_today = Attendance.objects.filter(date=today)
-    not_filled = employees.exclude(id__in=attendance_today.values_list('employee', flat=True))
+    
+    # Бугун ёпиқ кун ёки якшанбами текшириш
+    is_dayoff = DayOff.objects.filter(date=today).exists()
+    is_sunday = today.weekday() == 6
+    
+    # Офис ходимларини ва ёпиқ кунларда барчани чиқариш
+    if is_dayoff or is_sunday:
+        # Ёпиқ кунларда ҳеч кимни "киритилмаган"га чиқармаслик
+        not_filled = Employee.objects.none()
+    else:
+        # Фақат офис ходимларидан бошқаларни текшириш (office емас ходимлар)
+        employees_need_attendance = employees.exclude(employee_type='office')
+        not_filled = employees_need_attendance.exclude(id__in=attendance_today.values_list('employee', flat=True))
+    
     stats = Attendance.objects.values('status').annotate(count=Count('id'))
     best_employees = Attendance.objects.filter(
         status='present',
@@ -133,6 +146,17 @@ def employee_delete(request, pk):
 
 @login_required
 def bulk_attendance_create(request):
+    today = date.today()
+    # Бугун ёпиқ кун ёки якшанбами текшириш
+    is_dayoff = DayOff.objects.filter(date=today).exists()
+    is_sunday = today.weekday() == 6
+    
+    if is_dayoff or is_sunday:
+        dayoff_reason = DayOff.objects.filter(date=today).first()
+        reason = dayoff_reason.reason if dayoff_reason else "Якшанба"
+        messages.error(request, f"Бугун {reason} - давомат киритиб бўлмайди!")
+        return redirect('dashboard')
+    
     employees = Employee.objects.filter(is_active=True)
     date_val = request.GET.get('date') or date.today()
     AttendanceFormSet = modelformset_factory(
@@ -431,6 +455,16 @@ def individual_attendance_create(request, employee_id=None):
         date_val = date.today()
         messages.warning(request, "Noto'g'ri sana formati. Bugungi sana ishlatilmoqda.")
     
+    # Танланган санани текшириш
+    is_dayoff = DayOff.objects.filter(date=date_val).exists()
+    is_sunday = date_val.weekday() == 6
+    
+    if is_dayoff or is_sunday:
+        dayoff_reason = DayOff.objects.filter(date=date_val).first()
+        reason = dayoff_reason.reason if dayoff_reason else "Якшанба"
+        messages.error(request, f"{date_val.strftime('%d.%m.%Y')} - {reason} кунида давомат киритиб бўлмайди!")
+        return redirect('dashboard')
+    
     attendance = Attendance.objects.filter(employee=employee, date=date_val).first()
     
     if request.method == 'POST':
@@ -697,6 +731,13 @@ def salary_statistics_view(request):
     calculate_monthly_stats(year, month)
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
     form = SalaryStatFilterForm(initial={'year': year, 'month': month})
+    
+    # Ишчи кунларни ҳисоблаш
+    working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
+    
+    # Ҳар бир stat объектига ишчи кунлар сонини қўшиш
+    for stat in stats:
+        stat.working_days_in_month = working_days_in_month
     # Kelmagan kunlar soni va sanalari
     absent_days = {}
     for stat in stats:
@@ -760,8 +801,13 @@ def export_salary_statistics_excel(request):
     month = int(request.GET.get('month', today.month))
     calculate_monthly_stats(year, month)
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
-    # Absentlarni har bir stat obyektiga biriktiramiz
+    
+    # Ишчи кунларни ҳисоблаш
+    working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
+    
+    # Absentlarni va ишчи кунларни har bir stat obyektiga biriktiramiz
     for stat in stats:
+        stat.working_days_in_month = working_days_in_month
         absents = Attendance.objects.filter(
             employee=stat.employee,
             date__year=year,
@@ -774,7 +820,7 @@ def export_salary_statistics_excel(request):
     ws = wb.active
     ws.title = f"{year}-{month:02d}"
     headers = [
-        '№', 'F I O xodim', 'Oylik', 'Valyuta', 'Mukofot', 'Jarima', 'Oy kunlari',
+        '№', 'F I O xodim', 'Turi', 'Oylik', 'Valyuta', 'Mukofot', 'Jarima', 'Oy kunlari', 'Ишчи кунлар',
         'Ishlangan kunlar', 'Kelmagan kunlar soni', 'Kelmagan kunlar sanalari',
         'Hisoblangan', "To'langan", 'Qarzdorlik (boshl.)', 'Qarzdorlik (oxiri)'
     ]
@@ -798,17 +844,19 @@ def export_salary_statistics_excel(request):
     # Jami qatorlari har bir valyuta uchun alohida
     for cur, vals in currency_totals.items():
         ws.append([
-            '', f'Jami ({cur})', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
+            '', f'Jami ({cur})', '', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
         ])
     for idx, stat in enumerate(stats, 1):
         ws.append([
             idx,
             f"{stat.employee.last_name} {stat.employee.first_name}",
+            stat.employee.get_employee_type_display(),
             float(stat.salary),
             stat.currency,
             float(stat.bonus),
             float(stat.penalty),
             stat.days_in_month,
+            working_days_in_month,
             stat.worked_days,
             stat.absent_count,
             ', '.join([str(d) for d in stat.absent_dates]),
@@ -828,7 +876,7 @@ def export_salary_statistics_excel(request):
     # Eski jami qatorini olib tashlab, har bir valyuta uchun alohida jami qatorini yozaman
     for cur, vals in currency_totals.items():
         ws.append([
-            '', f'Jami ({cur})', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
+            '', f'Jami ({cur})', '', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
         ])
     # Ustunlarni kengaytirish
     # Sarlavha uchun style
