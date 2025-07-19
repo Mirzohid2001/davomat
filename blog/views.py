@@ -816,141 +816,545 @@ def export_salary_statistics_excel(request):
         ).values_list('date', flat=True)
         stat.absent_count = len(absents)
         stat.absent_dates = list(absents)
+    
+    # Xodimlarni turlari bo'yicha guruhlash
+    half_stats = [s for s in stats if s.employee.employee_type == 'half']
+    full_stats = [s for s in stats if s.employee.employee_type == 'full']
+    office_stats = [s for s in stats if s.employee.employee_type == 'office']
+    
     wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = f"{year}-{month:02d}"
+    
+    # Standart headers
     headers = [
-        '№', 'F I O xodim', 'Turi', 'Oylik', 'Valyuta', 'Mukofot', 'Jarima', 'Oy kunlari', 'Ишчи кунлар',
-        'Ishlangan kunlar', 'Kelmagan kunlar soni', 'Kelmagan kunlar sanalari',
+        '№', 'F I O xodim', 'Oylik', 'Valyuta', 'Mukofot', 'Jarima', 'Oy kunlari', 'Ishchi kunlari',
+        'Ishlangan kunlar', 'Kelmagan kunlar soni', 'Kelmagan sanalari',
         'Hisoblangan', "To'langan", 'Qarzdorlik (boshl.)', 'Qarzdorlik (oxiri)'
     ]
-    ws.append(headers)
-    total_salary = total_bonus = total_penalty = total_accrued = total_paid = total_debt_start = total_debt_end = total_absent = 0
-    # Valyuta bo'yicha jami qiymatlar (Excel uchun)
-    currency_totals = {}
-    for stat in stats:
-        cur = stat.currency
-        if cur not in currency_totals:
-            currency_totals[cur] = {
-                'salary': 0, 'bonus': 0, 'penalty': 0, 'accrued': 0, 'paid': 0, 'debt_start': 0, 'debt_end': 0
+    
+    def create_worksheet(worksheet, title, employee_stats, bg_color='4CC9F0', accent_color='3A0CA3'):
+        """Har bir sheet uchun umumiy funksiya - yangi dizayn bilan"""
+        worksheet.title = title
+        
+        # 🎨 Yangi ranglar palitasi
+        colors = {
+            'half': {'bg': 'FF6B35', 'accent': 'E55D2B', 'light': 'FFE5DF'},
+            'full': {'bg': '3D5A80', 'accent': '293241', 'light': 'E8ECF0'},
+            'office': {'bg': '7209B7', 'accent': '560BAD', 'light': 'F3E8FF'},
+            'summary': {'bg': '2B9348', 'accent': '1E6933', 'light': 'E8F5E8'}
+        }
+        
+        # Rang tanlash
+        if '15 kunlik' in title:
+            color_scheme = colors['half']
+        elif "To'liq stavka" in title:
+            color_scheme = colors['full']
+        elif 'Ofis' in title:
+            color_scheme = colors['office']
+        else:
+            color_scheme = colors['summary']
+        
+        # 🏆 TITLE qatori - gradient effekt uchun 2 qator
+        worksheet.merge_cells(start_row=1, start_column=1, end_row=2, end_column=len(headers))
+        title_cell = worksheet.cell(row=1, column=1)
+        
+        # Title matnini emoji bilan boyitish
+        title_icons = {
+            '15 kunlik': '⏰ ',
+            "To'liq stavka": '👔 ',
+            'Ofis': '💼 ',
+            'Umumiy': '📊 '
+        }
+        icon = next((icon for key, icon in title_icons.items() if key in title), '🏢 ')
+        
+        title_cell.value = f"{icon}ISOMER OIL - {title.upper()}\n📅 {year}-yil {month:02d}-oy"
+        title_cell.font = Font(name='Calibri', bold=True, size=18, color='FFFFFF')
+        title_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        title_cell.fill = PatternFill(start_color=color_scheme['bg'], end_color=color_scheme['bg'], fill_type='solid')
+        
+        # Qo'shimcha stil uchun title cellni balandlashtirish
+        worksheet.row_dimensions[1].height = 45
+        worksheet.row_dimensions[2].height = 15
+        
+        # 📋 Headers qatori - gradient effekt
+        for col, header in enumerate(headers, 1):
+            cell = worksheet.cell(row=3, column=col)
+            
+            # Header matnini yanada tushunarli qilish
+            header_translations = {
+                'F I O xodim': '👤 F.I.O',
+                'Oylik': '💰 Oylik',
+                'Valyuta': '💱 Valyuta',
+                'Mukofot': '🎁 Bonus',
+                'Jarima': '⚠️ Jarima',
+                'Oy kunlari': '📅 Oy kunlari',
+                'Ishchi kunlari': '⚡ Ish kunlari',
+                'Ishlangan kunlar': '✅ Ishlangan',
+                'Kelmagan kunlar soni': '❌ Yo\'q',
+                'Kelmagan sanalari': '📋 Yo\'q sanalar',
+                'Hisoblangan': '🧮 Hisoblangan',
+                "To'langan": '💸 To\'langan',
+                'Qarzdorlik (boshl.)': '📉 Qarz (bosh)',
+                'Qarzdorlik (oxiri)': '📈 Qarz (oxir)'
             }
-        currency_totals[cur]['salary'] += float(stat.salary)
-        currency_totals[cur]['bonus'] += float(stat.bonus)
-        currency_totals[cur]['penalty'] += float(stat.penalty)
-        currency_totals[cur]['accrued'] += float(stat.accrued)
-        currency_totals[cur]['paid'] += float(stat.paid)
-        currency_totals[cur]['debt_start'] += float(stat.debt_start)
-        currency_totals[cur]['debt_end'] += float(stat.debt_end)
-    # Jami qatorlari har bir valyuta uchun alohida
-    for cur, vals in currency_totals.items():
-        ws.append([
-            '', f'Jami ({cur})', '', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
-        ])
-    for idx, stat in enumerate(stats, 1):
-        ws.append([
-            idx,
-            f"{stat.employee.last_name} {stat.employee.first_name}",
-            stat.employee.get_employee_type_display(),
-            float(stat.salary),
-            stat.currency,
-            float(stat.bonus),
-            float(stat.penalty),
-            stat.days_in_month,
-            working_days_in_month,
-            stat.worked_days,
-            stat.absent_count,
-            ', '.join([str(d) for d in stat.absent_dates]),
-            float(stat.accrued),
-            float(stat.paid),
-            float(stat.debt_start),
-            float(stat.debt_end),
-        ])
-        total_salary += float(stat.salary)
-        total_bonus += float(stat.bonus)
-        total_penalty += float(stat.penalty)
-        total_accrued += float(stat.accrued)
-        total_paid += float(stat.paid)
-        total_debt_start += float(stat.debt_start)
-        total_debt_end += float(stat.debt_end)
-        total_absent += stat.absent_count
-    # Eski jami qatorini olib tashlab, har bir valyuta uchun alohida jami qatorini yozaman
-    for cur, vals in currency_totals.items():
-        ws.append([
-            '', f'Jami ({cur})', '', vals['salary'], cur, vals['bonus'], vals['penalty'], '', '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
-        ])
-    # Ustunlarni kengaytirish
-    # Sarlavha uchun style
-    header_font = Font(bold=True, size=12, color='FFFFFF')
-    header_fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
-    for col in range(1, len(headers)+1):
-        cell = ws.cell(row=1, column=col)
-        cell.font = header_font
-        cell.fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
+            
+            display_header = header_translations.get(header, header)
+            cell.value = display_header
+            cell.font = Font(name='Calibri', bold=True, size=11, color='FFFFFF')
+            cell.fill = PatternFill(start_color=color_scheme['accent'], end_color=color_scheme['accent'], fill_type='solid')
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        
+        # Headers qatorini balandlashtirish
+        worksheet.row_dimensions[3].height = 35
+        
+        # 📊 Ma'lumotlar qatorlari - alternativ ranglar bilan
+        row_num = 4
+        currency_totals = {}
+        
+        for idx, stat in enumerate(employee_stats, 1):
+            cur = stat.currency
+            if cur not in currency_totals:
+                currency_totals[cur] = {
+                    'salary': 0, 'bonus': 0, 'penalty': 0, 'accrued': 0, 
+                    'paid': 0, 'debt_start': 0, 'debt_end': 0, 'count': 0
+                }
+            
+            currency_totals[cur]['salary'] += float(stat.salary)
+            currency_totals[cur]['bonus'] += float(stat.bonus)
+            currency_totals[cur]['penalty'] += float(stat.penalty)
+            currency_totals[cur]['accrued'] += float(stat.accrued)
+            currency_totals[cur]['paid'] += float(stat.paid)
+            currency_totals[cur]['debt_start'] += float(stat.debt_start)
+            currency_totals[cur]['debt_end'] += float(stat.debt_end)
+            currency_totals[cur]['count'] += 1
+            
+            row_data = [
+                idx,
+                f"{stat.employee.last_name} {stat.employee.first_name}",
+                float(stat.salary),
+                stat.currency,
+                float(stat.bonus),
+                float(stat.penalty),
+                stat.days_in_month,
+                working_days_in_month if stat.employee.employee_type != 'half' else 15,
+                stat.worked_days,
+                stat.absent_count,
+                ', '.join([str(d.strftime('%d.%m')) for d in stat.absent_dates]),
+                float(stat.accrued),
+                float(stat.paid),
+                float(stat.debt_start),
+                float(stat.debt_end),
+            ]
+            
+            # ✨ Har bir qator uchun ranglar - zebra effekt
+            is_even_row = idx % 2 == 0
+            row_bg_color = color_scheme['light'] if is_even_row else 'FFFFFF'
+            
+            for col, value in enumerate(row_data, 1):
+                cell = worksheet.cell(row=row_num, column=col)
+                cell.value = value
+                
+                # 🎨 Qiymatga qarab ranglar
+                if isinstance(value, (int, float)) and col > 2:
+                    cell.number_format = '#,##0.00'
+                    # Musbat/manfiy qiymatlar uchun ranglar
+                    if col in [12, 13]:  # Hisoblangan, To'langan
+                        if value > 0:
+                            cell.font = Font(name='Calibri', size=10, color='2D5016', bold=True)
+                        else:
+                            cell.font = Font(name='Calibri', size=10, color='8B0000')
+                    elif col in [14, 15]:  # Qarzdorlik
+                        if value > 0:
+                            cell.font = Font(name='Calibri', size=10, color='D63031', bold=True)
+                        elif value < 0:
+                            cell.font = Font(name='Calibri', size=10, color='00B894', bold=True)
+                        else:
+                            cell.font = Font(name='Calibri', size=10, color='636E72')
+                    else:
+                        cell.font = Font(name='Calibri', size=10, color='2D3436')
+                else:
+                    cell.font = Font(name='Calibri', size=10, color='2D3436')
+                
+                # ⚠️ Kelmagan kunlar uchun maxsus rang
+                if col == 10 and isinstance(value, int) and value > 0:  # Kelmagan kunlar soni
+                    cell.font = Font(name='Calibri', size=10, color='D63031', bold=True)
+                    cell.fill = PatternFill(start_color='FFE5E5', end_color='FFE5E5', fill_type='solid')
+                elif col == 11 and value and str(value).strip():  # Kelmagan sanalar
+                    cell.font = Font(name='Calibri', size=9, color='E17055')
+                    cell.fill = PatternFill(start_color='FFE5E5', end_color='FFE5E5', fill_type='solid')
+                else:
+                    cell.fill = PatternFill(start_color=row_bg_color, end_color=row_bg_color, fill_type='solid')
+                
+                # Alignment
+                if col == 1:  # №
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                elif col == 2:  # F.I.O
+                    cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+                elif col in [4, 7, 8, 9, 10]:  # Valyuta, kunlar
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                elif col == 11:  # Sanalar
+                    cell.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+                else:  # Raqamlar
+                    cell.alignment = Alignment(horizontal='right', vertical='center')
+            
+            # Qatorni balandlashtirish
+            worksheet.row_dimensions[row_num].height = 25
+            row_num += 1
+        
+        # 🏆 JAMI qatorlari - gradient effekt bilan
+        row_num += 2  # Bo'sh qator + separator
+        
+        # Separator qatori
+        separator_row = row_num - 1
+        worksheet.merge_cells(start_row=separator_row, start_column=1, end_row=separator_row, end_column=len(headers))
+        separator_cell = worksheet.cell(row=separator_row, column=1)
+        separator_cell.value = "═" * 50
+        separator_cell.font = Font(name='Calibri', size=8, color=color_scheme['accent'])
+        separator_cell.alignment = Alignment(horizontal='center')
+        separator_cell.fill = PatternFill(start_color='F8F9FA', end_color='F8F9FA', fill_type='solid')
+        worksheet.row_dimensions[separator_row].height = 8
+        
+        for cur, vals in currency_totals.items():
+            # 💰 Currency icon
+            currency_icons = {'UZS': '🇺🇿', 'USD': '🇺🇸', 'EUR': '🇪🇺'}
+            currency_icon = currency_icons.get(cur, '💱')
+            
+            jami_row = [
+                '📊', f'{currency_icon} JAMI ({cur})', vals['salary'], cur, vals['bonus'], vals['penalty'], 
+                '', '', '', '', '', vals['accrued'], vals['paid'], vals['debt_start'], vals['debt_end']
+            ]
+            
+            for col, value in enumerate(jami_row, 1):
+                cell = worksheet.cell(row=row_num, column=col)
+                cell.value = value
+                
+                # 🌟 Gradient effekt uchun ranglar
+                if col == 1:  # Icon
+                    cell.font = Font(name='Calibri', bold=True, size=16, color=color_scheme['bg'])
+                    cell.fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+                elif col == 2:  # Label
+                    cell.font = Font(name='Calibri', bold=True, size=13, color='FFFFFF')
+                    cell.fill = PatternFill(start_color=color_scheme['bg'], end_color=color_scheme['bg'], fill_type='solid')
+                else:
+                    cell.font = Font(name='Calibri', bold=True, size=11, color='FFFFFF')
+                    cell.fill = PatternFill(start_color=color_scheme['accent'], end_color=color_scheme['accent'], fill_type='solid')
+                    
+                if isinstance(value, (int, float)) and col > 2:
+                    cell.number_format = '#,##0.00'
+                    # Qiymat bo'yicha rang
+                    if col in [12, 13] and value > 0:  # Hisoblangan, To'langan
+                        cell.font = Font(name='Calibri', bold=True, size=11, color='90EE90')
+                    elif col in [14, 15]:  # Qarzdorlik
+                        if value > 0:
+                            cell.font = Font(name='Calibri', bold=True, size=11, color='FFCCCB')
+                        elif value < 0:
+                            cell.font = Font(name='Calibri', bold=True, size=11, color='90EE90')
+                
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # JAMI qatorini balandlashtirish
+            worksheet.row_dimensions[row_num].height = 35
+            row_num += 1
+        
+        # 🎨 Advanced Borders va Professional Formatting
+        # Title borders - qalin
+        thick_border = Side(border_style="thick", color=color_scheme['bg'])
+        medium_border = Side(border_style="medium", color=color_scheme['accent'])
+        thin_border = Side(border_style="thin", color="CCCCCC")
+        dotted_border = Side(border_style="dotted", color="DDDDDD")
+        
+        # Title qatori uchun
+        for col in range(1, len(headers) + 1):
+            for row in [1, 2]:
+                cell = worksheet.cell(row=row, column=col)
+                cell.border = Border(
+                    top=thick_border if row == 1 else thin_border,
+                    bottom=thick_border if row == 2 else thin_border,
+                    left=thick_border if col == 1 else thin_border,
+                    right=thick_border if col == len(headers) else thin_border
+                )
+        
+        # Headers qatori uchun
+        for col in range(1, len(headers) + 1):
+            cell = worksheet.cell(row=3, column=col)
+            cell.border = Border(
+                top=medium_border, bottom=medium_border,
+                left=medium_border if col == 1 else thin_border,
+                right=medium_border if col == len(headers) else thin_border
+            )
+        
+        # Ma'lumotlar qatorlari uchun
+        data_start_row = 4
+        data_end_row = row_num - len(currency_totals) - 2
+        
+        for row in range(data_start_row, data_end_row):
+            for col in range(1, len(headers) + 1):
+                cell = worksheet.cell(row=row, column=col)
+                # Alternativ qatorlar uchun turli xil borderlar
+                if (row - data_start_row) % 2 == 0:
+                    cell.border = Border(
+                        top=dotted_border, bottom=dotted_border,
+                        left=thin_border, right=thin_border
+                    )
+                else:
+                    cell.border = Border(
+                        top=thin_border, bottom=thin_border,
+                        left=thin_border, right=thin_border
+                    )
+        
+        # JAMI qatorlari uchun qalin borderlar
+        jami_start_row = row_num - len(currency_totals)
+        for row in range(jami_start_row, row_num):
+            for col in range(1, len(headers) + 1):
+                cell = worksheet.cell(row=row, column=col)
+                cell.border = Border(
+                    top=thick_border, bottom=thick_border,
+                    left=thick_border if col == 1 else medium_border,
+                    right=thick_border if col == len(headers) else medium_border
+                )
+        
+        # 📏 Ustunlar kengligini professional sozlash
+        column_widths = [6, 28, 15, 10, 14, 14, 12, 14, 14, 14, 25, 18, 18, 18, 18]
+        for col, width in enumerate(column_widths, 1):
+            worksheet.column_dimensions[get_column_letter(col)].width = width
+        
+        # 🔍 Advanced Auto filter
+        worksheet.auto_filter.ref = f"A3:{get_column_letter(len(headers))}{data_end_row-1}"
+        
+        # ❄️ Freeze panes - Headers ni muzlatish
+        worksheet.freeze_panes = 'A4'
+        
+        return currency_totals
+    
+    # 🎯 1. 15 kunlik xodimlar - Qizil/Olov rang
+    if half_stats:
+        ws_half = wb.active
+        create_worksheet(ws_half, "15 kunlik xodimlar", half_stats)
+    
+    # 🎯 2. To'liq stavka xodimlar - Havo kuchlar rangi 
+    if full_stats:
+        ws_full = wb.create_sheet("To'liq stavka")
+        create_worksheet(ws_full, "To'liq stavka xodimlar", full_stats)
+    
+    # 🎯 3. Ofis xodimlari - Binafsha rang
+    if office_stats:
+        ws_office = wb.create_sheet("Ofis xodimlari")
+        create_worksheet(ws_office, "Ofis xodimlari", office_stats)
+    
+    # 🏆 4. UMUMIY ma'lumot - Premium dizayn
+    ws_summary = wb.create_sheet("📊 Umumiy")
+    ws_summary.title = "📊 Umumiy"
+    
+    # 🎨 Professional Summary Layout
+    # Company logo va title (virtual logo)
+    ws_summary.merge_cells(start_row=1, start_column=1, end_row=3, end_column=6)
+    logo_cell = ws_summary.cell(row=1, column=1)
+    logo_cell.value = f"🏢 ISOMER OIL\n📊 OYLIK STATISTIKA\n📅 {year}-yil {month:02d}-oy"
+    logo_cell.font = Font(name='Calibri', bold=True, size=20, color='FFFFFF')
+    logo_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    logo_cell.fill = PatternFill(start_color='2B9348', end_color='1E6933', fill_type='solid')
+    ws_summary.row_dimensions[1].height = 25
+    ws_summary.row_dimensions[2].height = 25
+    ws_summary.row_dimensions[3].height = 25
+    
+    # Summary headers
+    summary_headers = [
+        "🏷️ Xodim turlari", "👥 Soni", "💰 Jami oylik (UZS)", 
+        "🧮 Jami hisoblangan (UZS)", "💸 Jami to'langan (UZS)", "📈 Foiz"
+    ]
+    
+    for col, header in enumerate(summary_headers, 1):
+        cell = ws_summary.cell(row=5, column=col)
+        cell.value = header
+        cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
+        cell.fill = PatternFill(start_color='1E6933', end_color='1E6933', fill_type='solid')
         cell.alignment = Alignment(horizontal='center', vertical='center')
-        ws.column_dimensions[get_column_letter(col)].width = 18
-    # Jadvalga border
-    thin = Side(border_style="thin", color="AAAAAA")
-    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=len(headers)):
-        for cell in row:
-            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-    # Jami qatorlari uchun style
-    for i in range(ws.max_row-len(currency_totals)+1, ws.max_row+1):
-        for j in range(1, len(headers)+1):
-            cell = ws.cell(row=i, column=j)
-            cell.font = Font(bold=True, color='222222')
-            cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
-            cell.alignment = Alignment(horizontal='center', vertical='center')
-    # Kompaniya va oy sarlavhasi
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
-    title_cell = ws.cell(row=1, column=1)
-    title_cell.value = f"ISOMER OIL Davomat - Oylik xodim statistikasi ({year}-{month:02d})"
-    title_cell.font = Font(bold=True, size=14, color='222222')
-    title_cell.alignment = Alignment(horizontal='center', vertical='center')
-    title_cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
-    # Header row (2)
-    for col in range(1, len(headers)+1):
-        cell = ws.cell(row=2, column=col)
-        cell.value = headers[col-1]
-        cell.font = Font(bold=True, size=12, color='FFFFFF')
-        cell.fill = PatternFill(start_color='4cc9f0', end_color='4361ee', fill_type='solid')
-        cell.alignment = Alignment(horizontal='center', vertical='center')
-        ws.column_dimensions[get_column_letter(col)].width = 18
-    # Jadvalga border va format
-    thin = Side(border_style="thin", color="AAAAAA")
-    number_style = NamedStyle(name="number_style", number_format="# ##0.00")
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=len(headers)):
-        for cell in row:
-            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-            if isinstance(cell.value, (int, float)):
-                cell.style = number_style
-    # Jami qatorlari uchun style (oxirgi qatorlar)
-    for i in range(ws.max_row-len(currency_totals)+1, ws.max_row+1):
-        for j in range(1, len(headers)+1):
-            cell = ws.cell(row=i, column=j)
-            cell.font = Font(bold=True, color='222222')
-            cell.fill = PatternFill(start_color='b2f7ef', end_color='4cc9f0', fill_type='solid')
-            cell.alignment = Alignment(horizontal='center', vertical='center')
-    # Jadval ustunlarini optimal kenglikka moslash
-    for col in ws.columns:
-        max_length = 0
-        col_letter = get_column_letter(col[0].column)
-        for cell in col:
-            try:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-            except:
-                pass
-        ws.column_dimensions[col_letter].width = max(12, min(max_length+2, 30))
-    # Jadvalga filter qo‘shish
-    ws.auto_filter.ref = ws.dimensions
-    # Ustunlarga comment (ixtiyoriy, misol uchun)
-    ws.cell(row=3, column=3).comment = Comment("Xodimning oylik stavkasi", "AI")
-    ws.cell(row=3, column=4).comment = Comment("Oylik valyutasi", "AI")
-    ws.cell(row=3, column=7).comment = Comment("Xodim oy davomida ishlagan kunlar soni", "AI")
-    ws.cell(row=3, column=8).comment = Comment("Kelmagan kunlar soni", "AI")
+    
+    ws_summary.row_dimensions[5].height = 30
+    
+    # Har bir tur bo'yicha hisoblash va ranglar
+    type_colors = {
+        "15 kunlik xodimlar": {'bg': 'FFE5DF', 'text': 'E55D2B', 'icon': '⏰'},
+        "To'liq stavka xodimlar": {'bg': 'E8ECF0', 'text': '293241', 'icon': '👔'},
+        "Ofis xodimlari": {'bg': 'F3E8FF', 'text': '560BAD', 'icon': '💼'},
+    }
+    
+    grand_total_salary = grand_total_accrued = grand_total_paid = 0
+    grand_total_count = 0
+    current_row = 6
+    
+    for type_name, type_stats in [("15 kunlik xodimlar", half_stats), ("To'liq stavka xodimlar", full_stats), ("Ofis xodimlari", office_stats)]:
+        if type_stats:
+            # Faqat UZS valyutasidagi summalarni hisoblash
+            uzs_stats = [s for s in type_stats if s.currency == 'UZS']
+            count = len(type_stats)
+            total_salary = sum(float(s.salary) for s in uzs_stats)
+            total_accrued = sum(float(s.accrued) for s in uzs_stats)
+            total_paid = sum(float(s.paid) for s in uzs_stats)
+            
+            # Foizni hisoblash
+            percentage = (total_accrued / total_salary * 100) if total_salary > 0 else 0
+            
+            # Color scheme
+            colors = type_colors[type_name]
+            icon = colors['icon']
+            
+            row_data = [
+                f"{icon} {type_name}", count, total_salary, total_accrued, total_paid, f"{percentage:.1f}%"
+            ]
+            
+            for col, value in enumerate(row_data, 1):
+                cell = ws_summary.cell(row=current_row, column=col)
+                cell.value = value
+                cell.font = Font(name='Calibri', size=11, color=colors['text'], bold=True)
+                cell.fill = PatternFill(start_color=colors['bg'], end_color=colors['bg'], fill_type='solid')
+                cell.alignment = Alignment(horizontal='center' if col in [2, 6] else 'left', vertical='center')
+                
+                if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.','').replace(',','').isdigit()):
+                    if col in [3, 4, 5]:  # Money columns
+                        cell.number_format = '#,##0.00'
+                        cell.alignment = Alignment(horizontal='right', vertical='center')
+            
+            ws_summary.row_dimensions[current_row].height = 25
+            current_row += 1
+            
+            grand_total_count += count
+            grand_total_salary += total_salary
+            grand_total_accrued += total_accrued
+            grand_total_paid += total_paid
+    
+    # Grand total row
+    current_row += 1
+    grand_percentage = (grand_total_accrued / grand_total_salary * 100) if grand_total_salary > 0 else 0
+    grand_total_data = [
+        "🏆 UMUMIY JAMI", grand_total_count, grand_total_salary, 
+        grand_total_accrued, grand_total_paid, f"{grand_percentage:.1f}%"
+    ]
+    
+    # Grand total styling
+    for col, value in enumerate(grand_total_data, 1):
+        cell = ws_summary.cell(row=current_row, column=col)
+        cell.value = value
+        cell.font = Font(name='Calibri', bold=True, size=14, color='FFFFFF')
+        cell.fill = PatternFill(start_color='2B9348', end_color='1E6933', fill_type='solid')
+        cell.alignment = Alignment(horizontal='center' if col in [2, 6] else 'left', vertical='center')
+        
+        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.','').replace(',','').isdigit()):
+            if col in [3, 4, 5]:  # Money columns
+                cell.number_format = '#,##0.00'
+                cell.alignment = Alignment(horizontal='right', vertical='center')
+    
+    ws_summary.row_dimensions[current_row].height = 35
+    
+    # 📊 Additional Statistics Box
+    stats_start_row = current_row + 3
+    
+    # Statistics header
+    ws_summary.merge_cells(start_row=stats_start_row, start_column=1, end_row=stats_start_row, end_column=6)
+    stats_header = ws_summary.cell(row=stats_start_row, column=1)
+    stats_header.value = "📈 QO'SHIMCHA STATISTIKA"
+    stats_header.font = Font(name='Calibri', bold=True, size=14, color='FFFFFF')
+    stats_header.fill = PatternFill(start_color='6C5CE7', end_color='A29BFE', fill_type='solid')
+    stats_header.alignment = Alignment(horizontal='center', vertical='center')
+    ws_summary.row_dimensions[stats_start_row].height = 30
+    
+    # Statistics data
+    avg_salary = grand_total_salary / grand_total_count if grand_total_count > 0 else 0
+    efficiency = (grand_total_paid / grand_total_accrued * 100) if grand_total_accrued > 0 else 0
+    debt_ratio = ((grand_total_accrued - grand_total_paid) / grand_total_accrued * 100) if grand_total_accrued > 0 else 0
+    
+    additional_stats = [
+        ["📊 Ko'rsatkich", "📈 Qiymat"],
+        ["💰 O'rtacha oylik", f"{avg_salary:,.0f} UZS"],
+        ["⚡ To'lov samaradorligi", f"{efficiency:.1f}%"],
+        ["⚠️ Qarzdorlik nisbati", f"{debt_ratio:.1f}%"],
+        ["👥 Jami xodimlar", f"{grand_total_count} kishi"],
+    ]
+    
+    for row_offset, (label, value) in enumerate(additional_stats):
+        row = stats_start_row + 1 + row_offset
+        
+        # Label
+        label_cell = ws_summary.cell(row=row, column=1)
+        label_cell.value = label
+        if row_offset == 0:  # Header
+            label_cell.font = Font(name='Calibri', bold=True, size=11, color='FFFFFF')
+            label_cell.fill = PatternFill(start_color='74B9FF', end_color='0984E3', fill_type='solid')
+        else:
+            label_cell.font = Font(name='Calibri', bold=True, size=10, color='2D3436')
+            label_cell.fill = PatternFill(start_color='DDDDDD', end_color='DDDDDD', fill_type='solid')
+        label_cell.alignment = Alignment(horizontal='left', vertical='center')
+        
+        # Value
+        value_cell = ws_summary.cell(row=row, column=2)
+        value_cell.value = value
+        if row_offset == 0:  # Header
+            value_cell.font = Font(name='Calibri', bold=True, size=11, color='FFFFFF')
+            value_cell.fill = PatternFill(start_color='74B9FF', end_color='0984E3', fill_type='solid')
+        else:
+            value_cell.font = Font(name='Calibri', bold=True, size=10, color='2D3436')
+            # Color coding based on value
+            if "%" in str(value):
+                percentage_val = float(str(value).replace('%',''))
+                if percentage_val >= 80:
+                    value_cell.fill = PatternFill(start_color='D1F2EB', end_color='D1F2EB', fill_type='solid')
+                elif percentage_val >= 60:
+                    value_cell.fill = PatternFill(start_color='FDEAA7', end_color='FDEAA7', fill_type='solid')
+                else:
+                    value_cell.fill = PatternFill(start_color='FAB1A0', end_color='FAB1A0', fill_type='solid')
+            else:
+                value_cell.fill = PatternFill(start_color='F8F9FA', end_color='F8F9FA', fill_type='solid')
+        value_cell.alignment = Alignment(horizontal='right', vertical='center')
+        
+        ws_summary.row_dimensions[row].height = 22
+    
+    # 🎨 Professional column widths for summary
+    summary_widths = [30, 12, 20, 22, 20, 12]
+    for col, width in enumerate(summary_widths, 1):
+        ws_summary.column_dimensions[get_column_letter(col)].width = width
+    
+    # 🖼️ Advanced borders for summary
+    thick_border = Side(border_style="thick", color="2B9348")
+    medium_border = Side(border_style="medium", color="1E6933")
+    thin_border = Side(border_style="thin", color="BDC3C7")
+    
+    # Logo area borders
+    for row in range(1, 4):
+        for col in range(1, 7):
+            cell = ws_summary.cell(row=row, column=col)
+            cell.border = Border(
+                top=thick_border if row == 1 else thin_border,
+                bottom=thick_border if row == 3 else thin_border,
+                left=thick_border if col == 1 else thin_border,
+                right=thick_border if col == 6 else thin_border
+            )
+    
+    # Main table borders
+    for row in range(5, current_row + 1):
+        for col in range(1, 7):
+            cell = ws_summary.cell(row=row, column=col)
+            if row == 5:  # Headers
+                cell.border = Border(top=medium_border, bottom=medium_border, left=thin_border, right=thin_border)
+            elif row == current_row:  # Grand total
+                cell.border = Border(top=thick_border, bottom=thick_border, left=thin_border, right=thin_border)
+            else:  # Data rows
+                cell.border = Border(top=thin_border, bottom=thin_border, left=thin_border, right=thin_border)
+    
+    # Statistics box borders
+    for row in range(stats_start_row, stats_start_row + 6):
+        for col in range(1, 3):
+            cell = ws_summary.cell(row=row, column=col)
+            cell.border = Border(top=thin_border, bottom=thin_border, left=thin_border, right=thin_border)
+    
+    # ❄️ Freeze panes for summary
+    ws_summary.freeze_panes = 'A6'
+    
+    # Agar 15 kunlik xodimlar yo'q bo'lsa, birinchi sheetni o'chirish
+    if not half_stats and len(wb.worksheets) > 1:
+        wb.remove(wb.active)
+    
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    filename = f"salary_statistics_{year}_{month:02d}.xlsx"
-    response['Content-Disposition'] = f'attachment; filename={filename}'
+    filename = f"💰_ISOMER_OIL_Oylik_Statistika_{year}_{month:02d}_Professional.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
     return response
 
