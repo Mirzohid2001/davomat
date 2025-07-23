@@ -38,7 +38,11 @@
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
             <td>
                 <span class="badge 
-                    {% if stat.employee.employee_type == 'office' %}bg-info{% elif stat.employee.employee_type == 'half' %}bg-warning{% else %}bg-success{% endif %} text-dark">
+                    {% if stat.employee.employee_type == 'office' %}bg-info
+                    {% elif stat.employee.employee_type == 'half' %}bg-warning
+                    {% elif stat.employee.employee_type == 'weekly' %}bg-secondary
+                    {% elif stat.employee.employee_type == 'guard' %}bg-danger
+                    {% else %}bg-success{% endif %} text-dark">
                     {{ stat.employee.get_employee_type_display }}
                 </span>
             </td>
@@ -102,7 +106,8 @@
 <div class="mt-3">
     <small class="text-muted">
         <strong>*Ишчи кунлар:</strong> Фақат тўлиқ ставка ходимлар учун ҳисобга олинади (якшанба ва байрам кунлари чиқарилган). 
-        15 кунлик ишчилар ҳар куни ишлайди, офис ходимлари эса давоматсиз тўлиқ ойлик олади.
+        15 кунлик ишчилар ҳар куни ишлайди, ҳафтада 1 кун келадиган ходимлар учун ойда 4 кун оптимал, қоровуллар учун ойда 10 кун оптимал. 
+        Офис ходимлари эса давоматсиз тўлиқ ойлик олади.
     </small>
 </div>
 

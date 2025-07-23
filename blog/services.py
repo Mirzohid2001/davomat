@@ -41,12 +41,12 @@ def calculate_monthly_stats(year, month):
             manual_salary = (employee.employee_type == 'office')
         penalty = Decimal('0')
         
-        # Ishlangan kunlar hisoblash
+        # Ishlangan kunlar hisoblash (kelganlar VA kasal bo'lganlar)
         worked_days = Attendance.objects.filter(
             employee=employee,
             date__year=year,
             date__month=month,
-            status='present'
+            status__in=['present', 'sick']
         ).count()
         
         # Hisoblangan summa - turi bo'yicha
@@ -62,6 +62,25 @@ def calculate_monthly_stats(year, month):
                 accrued = (salary + bonus - penalty) * proportion
             else:
                 accrued = Decimal('0')
+        elif employee.employee_type == 'weekly':
+            # Haftada 1 kun ishlaydigan xodimlar (to'liq stavka)
+            # Optimal holat: oyda 4 kun
+            optimal_days = 4  # Bir oyda taxminan 4 hafta
+            # Ishlagan kunlarni optimal kunlarga proporsional hisoblash
+            proportion = Decimal(str(worked_days)) / Decimal(str(optimal_days))
+            # Agar xodim kerakli kundan ko'p ishlasa, to'liq stavka berish
+            if proportion > Decimal('1'):
+                proportion = Decimal('1')
+            accrued = (salary + bonus - penalty) * proportion
+        elif employee.employee_type == 'guard':
+            # Qorovullar (oyda 10 kun ishlashi optimal)
+            optimal_days = 10
+            # Ishlagan kunlarni optimal kunlarga proporsional hisoblash
+            proportion = Decimal(str(worked_days)) / Decimal(str(optimal_days))
+            # Agar xodim kerakli kundan ko'p ishlasa, to'liq stavka berish
+            if proportion > Decimal('1'):
+                proportion = Decimal('1')
+            accrued = (salary + bonus - penalty) * proportion
         else:
             # To'liq stavka xodimlar uchun (full) - faqat ишчи kunlarga proporsional
             # Yakshanbalar va bayramlarni hisobga olib

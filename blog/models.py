@@ -17,6 +17,8 @@ class Employee(models.Model):
         ('full', 'To‘liq stavka'),
         ('half', '15 kunlik/yarim stavka'),
         ('office', 'Ofis xodimi (davomatsiz)'),
+        ('weekly', 'Haftada 1 kun (to‘liq stavka)'),
+        ('guard', 'Qorovul (oyda 10 kun)'),
     ]
     
     first_name = models.CharField("Ismi", max_length=64)
