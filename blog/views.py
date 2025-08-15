@@ -1097,7 +1097,13 @@ def edit_salary_stat(request, stat_id):
     if request.method == 'POST':
         form = SalaryStatEditForm(request.POST, instance=stat)
         if form.is_valid():
+            # Save the form first
             form.save()
+            
+            # Recalculate accrued amount with new salary/bonus values
+            from .services import calculate_monthly_stats
+            calculate_monthly_stats(stat.year, stat.month)
+            
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
     else:
         form = SalaryStatEditForm(instance=stat)

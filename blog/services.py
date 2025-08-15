@@ -34,9 +34,25 @@ def calculate_monthly_stats(year, month):
             bonus = stat.bonus
             paid = stat.paid
             manual_salary = stat.manual_salary
+            currency = stat.currency
         else:
-            salary = Decimal('1000')
-            bonus = Decimal('0')
+            # Oldingi oyning ma'lumotlarini olish
+            prev_stat = MonthlyEmployeeStat.objects.filter(
+                employee=employee,
+                year=year if month > 1 else year-1,
+                month=month-1 if month > 1 else 12
+            ).first()
+            
+            # Agar oldingi oy ma'lumoti mavjud bo'lsa, undan oylikni va valyutani olish
+            if prev_stat:
+                salary = prev_stat.salary
+                bonus = Decimal('0')  # Yangi oy uchun bonus 0 dan boshlanadi
+                currency = prev_stat.currency  # Valyutani ham oldingi oydan olish
+            else:
+                salary = Decimal('1000')  # Faqat birinchi marta
+                bonus = Decimal('0')
+                currency = 'UZS'  # Birinchi marta uchun default valyuta
+            
             paid = Decimal('0')
             manual_salary = (employee.employee_type == 'office')
         penalty = Decimal('0')
@@ -52,16 +68,19 @@ def calculate_monthly_stats(year, month):
         # Hisoblangan summa - turi bo'yicha
         if employee.employee_type == 'office' or manual_salary:
             # Ofis xodimlari to'liq oylik oladi (davomati umuman hisobga olinmaydi)
+            # Bonus to'liq beriladi, oylik ham to'liq
             accrued = salary + bonus - penalty
         elif employee.employee_type == 'half':
             # 15 kunlik xodimlar har kuni ishlaydi, ularga dam olish yo'q (maksimal 15 kun)
             max_days = 15  # Har doim 15 kun
             effective_worked_days = min(worked_days, max_days)
             if max_days > 0:
-                proportion = Decimal(str(effective_worked_days)) / Decimal(str(max_days))
-                accrued = (salary + bonus - penalty) * proportion
+                # Oylik proporsional hisoblanadi, bonus to'liq beriladi
+                salary_proportion = Decimal(str(effective_worked_days)) / Decimal(str(max_days))
+                accrued_salary = salary * salary_proportion
+                accrued = accrued_salary + bonus - penalty
             else:
-                accrued = Decimal('0')
+                accrued = bonus - penalty  # Faqat bonus
         elif employee.employee_type == 'weekly':
             # Haftada 1 kun ishlaydigan xodimlar (to'liq stavka)
             # Optimal holat: oyda 4 kun
@@ -71,7 +90,9 @@ def calculate_monthly_stats(year, month):
             # Agar xodim kerakli kundan ko'p ishlasa, to'liq stavka berish
             if proportion > Decimal('1'):
                 proportion = Decimal('1')
-            accrued = (salary + bonus - penalty) * proportion
+            # Oylik proporsional hisoblanadi, bonus to'liq beriladi
+            accrued_salary = salary * proportion
+            accrued = accrued_salary + bonus - penalty
         elif employee.employee_type == 'guard':
             # Qorovullar (oyda 10 kun ishlashi optimal)
             optimal_days = 10
@@ -80,15 +101,19 @@ def calculate_monthly_stats(year, month):
             # Agar xodim kerakli kundan ko'p ishlasa, to'liq stavka berish
             if proportion > Decimal('1'):
                 proportion = Decimal('1')
-            accrued = (salary + bonus - penalty) * proportion
+            # Oylik proporsional hisoblanadi, bonus to'liq beriladi
+            accrued_salary = salary * proportion
+            accrued = accrued_salary + bonus - penalty
         else:
             # To'liq stavka xodimlar uchun (full) - faqat ишчи kunlarga proporsional
             # Yakshanbalar va bayramlarni hisobga olib
             if working_days_in_month > 0:
-                proportion = Decimal(str(worked_days)) / Decimal(str(working_days_in_month))
-                accrued = (salary + bonus - penalty) * proportion
+                # Oylik proporsional hisoblanadi, bonus to'liq beriladi
+                salary_proportion = Decimal(str(worked_days)) / Decimal(str(working_days_in_month))
+                accrued_salary = salary * salary_proportion
+                accrued = accrued_salary + bonus - penalty
             else:
-                accrued = Decimal('0')
+                accrued = bonus - penalty  # Faqat bonus
         
         # Oldingi oy oxiridagi qarzdorlik
         prev_stat = MonthlyEmployeeStat.objects.filter(
@@ -114,6 +139,7 @@ def calculate_monthly_stats(year, month):
                     'debt_start': debt_start,
                     'debt_end': debt_end,
                     'manual_salary': manual_salary,
+                    'currency': currency,
                 }
             )
             if not created:
@@ -127,4 +153,5 @@ def calculate_monthly_stats(year, month):
                 stat_obj.debt_start = debt_start
                 stat_obj.debt_end = debt_end
                 stat_obj.manual_salary = manual_salary
+                stat_obj.currency = currency
                 stat_obj.save() 
