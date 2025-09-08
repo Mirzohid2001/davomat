@@ -28,5 +28,8 @@ urlpatterns = [
     path('statistics/salary/', views.salary_statistics_view, name='salary_statistics'),
     path('statistics/salary/export/', views.export_salary_statistics_excel, name='salary_statistics_export'),
     path('statistics/salary/edit/<int:stat_id>/', views.edit_salary_stat, name='edit_salary_stat'),
+    path('statistics/employee/<int:employee_id>/', views.individual_employee_statistics, name='individual_employee_statistics'),
+    path('attendance/edit-history/', views.edit_attendance_history, name='edit_attendance_history'),
+    path('attendance/history/<int:employee_id>/', views.employee_attendance_history, name='employee_attendance_history'),
     path('dashboard/', views.dashboard, name='dashboard'),
 ]

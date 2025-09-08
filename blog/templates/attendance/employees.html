@@ -38,9 +38,11 @@
             <td>{{ e.phone_number }}</td>
             <td>{% if e.is_active %}<span class="badge bg-success">Aktiv</span>{% else %}<span class="badge bg-danger">Noaktiv</span>{% endif %}</td>
             <td>
-                <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-success btn-sm" title="Davomat kiritish"><i class="bi bi-calendar-check"></i></a>
-                <a href="{% url 'employee_update' e.id %}" class="btn btn-warning btn-sm" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
-                <a href="{% url 'employee_delete' e.id %}" class="btn btn-danger btn-sm" title="O'chirish"><i class="bi bi-trash"></i></a>
+                <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-success btn-sm" title="Davomat kiritish">📅</a>
+                <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-primary btn-sm" title="Davomat tarixi">📊</a>
+                <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-info btn-sm" title="Statistika">📈</a>
+                <a href="{% url 'employee_update' e.id %}" class="btn btn-warning btn-sm" title="Tahrirlash">✏️</a>
+                <a href="{% url 'employee_delete' e.id %}" class="btn btn-danger btn-sm" title="O'chirish">🗑️</a>
             </td>
         </tr>
     {% empty %}

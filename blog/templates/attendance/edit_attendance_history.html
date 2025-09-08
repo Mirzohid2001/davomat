@@ -1,0 +1,194 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Davomat tahrirlash{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="animate__animated animate__fadeInLeft">
+        <i class="bi bi-pencil-square me-2"></i>Davomat tahrirlash
+    </h2>
+    <a href="{% url 'attendance_statistics' %}" class="btn btn-secondary animate__animated animate__fadeInRight">
+        <i class="bi bi-arrow-left me-2"></i>Orqaga
+    </a>
+</div>
+
+<!-- Filtrlash formasi -->
+<div class="card mb-4 animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtrlash</h5>
+    </div>
+    <div class="card-body">
+        <form class="row g-3" method="get">
+            <div class="col-md-3">
+                <label class="form-label">Sana dan:</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sana gacha:</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Xodim:</label>
+                <select name="employee" class="form-select">
+                    <option value="">Barcha xodimlar</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+                        {{ emp.last_name }} {{ emp.first_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Bo'lim:</label>
+                <select name="department" class="form-select">
+                    <option value="">Barcha bo'limlar</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept }}" {% if selected_department == dept %}selected{% endif %}>
+                        {{ dept }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>Qidirish
+                </button>
+                <a href="{% url 'edit_attendance_history' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Davomat ma'lumotlari -->
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-calendar-check me-2"></i>Davomat ma'lumotlari
+            <span class="badge bg-primary ms-2">{{ attendances|length }} ta</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if attendances %}
+        <form method="post">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="15%">Sana</th>
+                            <th width="20%">Xodim</th>
+                            <th width="15%">Holat</th>
+                            <th width="30%">Izoh</th>
+                            <th width="10%">O'chirish</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                {{ form.date }}
+                                {% if form.date.errors %}
+                                    <div class="text-danger small">{{ form.date.errors.0 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.employee }}
+                                {% if form.employee.errors %}
+                                    <div class="text-danger small">{{ form.employee.errors.0 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.comment }}
+                                {% if form.comment.errors %}
+                                    <div class="text-danger small">{{ form.comment.errors.0 }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {{ form.DELETE }}
+                                <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">
+                                    <i class="bi bi-trash text-danger"></i>
+                                </label>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-2"></i>Saqlash
+                    </button>
+                    <a href="{% url 'attendance_statistics' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Bekor qilish
+                    </a>
+                </div>
+                <div class="text-muted">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        O'chirish uchun checkbox'ni belgilang
+                    </small>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">Davomat ma'lumotlari topilmadi</h4>
+            <p class="text-muted">Filtrlash parametrlarini o'zgartiring yoki yangi davomat qo'shing</p>
+            <a href="{% url 'select_employee_attendance' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Yangi davomat
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const deleteCheckboxes = document.querySelectorAll('input[name$="-DELETE"]:checked');
+            if (deleteCheckboxes.length > 0) {
+                if (!confirm(`${deleteCheckboxes.length} ta davomat yozuvini o'chirishni tasdiqlaysizmi?`)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+    
+    // Auto-save warning
+    let hasChanges = false;
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            hasChanges = true;
+        });
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (hasChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -295,6 +295,12 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn animate__faster" aria-labelledby="navbarDropdown">
               <li>
+                <a class="dropdown-item" href="{% url 'edit_attendance_history' %}">
+                  <i class="bi bi-pencil-square me-2"></i> Davomat tahrirlash
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
                 <a class="dropdown-item" href="{% url 'attendance_import' %}">
                   <i class="bi bi-upload me-2"></i> Import
                 </a>

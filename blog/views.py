@@ -551,6 +551,7 @@ def individual_attendance_create(request, employee_id=None):
 @login_required
 def attendance_statistics(request):
     period = request.GET.get('period', 'month')
+    employee_id = request.GET.get('employee')
     today = timezone.now().date()
     date_from, date_to = None, None
 
@@ -593,7 +594,10 @@ def attendance_statistics(request):
         date_from = today.replace(day=1)
         date_to = today
 
+    # Xodim filtri qo'shish
     attendances = Attendance.objects.filter(date__range=[date_from, date_to])
+    if employee_id:
+        attendances = attendances.filter(employee_id=employee_id)
 
     stats_by_status = attendances.values('status').annotate(count=Count('id')).order_by('status')
     
@@ -694,6 +698,9 @@ def attendance_statistics(request):
             count = next((item['count'] for item in trend_list if item['date'] == date_obj and item['status'] == status), 0)
             trend_data[status].append(count)
     
+    # Xodimlar ro'yxati
+    employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    
     context = {
         'date_from': date_from,
         'date_to': date_to,
@@ -704,6 +711,8 @@ def attendance_statistics(request):
         'trend': trend_list,
         'stats_by_date': stats_by_date,
         'period': period,
+        'employees': employees,
+        'selected_employee': employee_id,
         'location_choices': dict(Employee.LOCATION_CHOICES),
         # JSON-serialized data for charts
         'status_labels': json.dumps(status_labels),
@@ -1108,3 +1117,396 @@ def edit_salary_stat(request, stat_id):
     else:
         form = SalaryStatEditForm(instance=stat)
     return render(request, 'attendance/edit_salary_stat.html', {'form': form, 'stat': stat})
+
+@login_required
+def individual_employee_statistics(request, employee_id):
+    """Har bir xodimning individual davomat statistikasi"""
+    employee = get_object_or_404(Employee, pk=employee_id)
+    
+    # Filtrlash parametrlari
+    year = request.GET.get('year', date.today().year)
+    month = request.GET.get('month', date.today().month)
+    
+    try:
+        year = int(year)
+        month = int(month)
+    except (ValueError, TypeError):
+        year = date.today().year
+        month = date.today().month
+    
+    # Oyning boshidan oxirigacha
+    from calendar import monthrange
+    start_date = date(year, month, 1)
+    end_date = date(year, month, monthrange(year, month)[1])
+    
+    # Xodimning davomat ma'lumotlari
+    attendances = Attendance.objects.filter(
+        employee=employee,
+        date__range=[start_date, end_date]
+    ).order_by('date')
+    
+    # Yopiq kunlar
+    dayoffs = DayOff.objects.filter(
+        date__range=[start_date, end_date]
+    ).values_list('date', flat=True)
+    
+    # Kunlik ma'lumotlar yaratish
+    daily_data = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        # Yakshanba tekshirish
+        is_sunday = current_date.weekday() == 6
+        is_dayoff = current_date in dayoffs
+        
+        # Bu kun uchun davomat ma'lumoti
+        attendance = attendances.filter(date=current_date).first()
+        
+        if attendance:
+            status = attendance.status
+            comment = attendance.comment or ""
+        elif is_sunday:
+            status = "sunday"
+            comment = "Yakshanba"
+        elif is_dayoff:
+            status = "dayoff"
+            comment = "Yopiq kun"
+        else:
+            status = "unknown"
+            comment = "Ma'lumot yo'q"
+        
+        daily_data.append({
+            'date': current_date,
+            'status': status,
+            'comment': comment,
+            'is_sunday': is_sunday,
+            'is_dayoff': is_dayoff,
+        })
+        
+        current_date += timedelta(days=1)
+    
+    # Statistikalar
+    total_days = len(daily_data)
+    present = len([d for d in daily_data if d['status'] == 'present'])
+    absent = len([d for d in daily_data if d['status'] == 'absent'])
+    late = len([d for d in daily_data if d['status'] == 'late'])
+    sick = len([d for d in daily_data if d['status'] == 'sick'])
+    vacation = len([d for d in daily_data if d['status'] == 'vacation'])
+    business = len([d for d in daily_data if d['status'] == 'business'])
+    sunday = len([d for d in daily_data if d['status'] == 'sunday'])
+    dayoff = len([d for d in daily_data if d['status'] == 'dayoff'])
+    unknown = len([d for d in daily_data if d['status'] == 'unknown'])
+    
+    # Foiz hisoblash
+    working_days = total_days - sunday - dayoff
+    present_percentage = (present / working_days * 100) if working_days > 0 else 0
+    absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
+    late_percentage = (late / working_days * 100) if working_days > 0 else 0
+    sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
+    vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
+    business_percentage = (business / working_days * 100) if working_days > 0 else 0
+    sunday_percentage = (sunday / total_days * 100) if total_days > 0 else 0
+    unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
+    
+    # Oy navigatsiyasi
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
+    
+    # Oy nomlari
+    months = [
+        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr')
+    ]
+    
+    context = {
+        'employee': employee,
+        'daily_data': daily_data,
+        'year': year,
+        'month': month,
+        'prev_year': prev_year,
+        'prev_month': prev_month,
+        'next_year': next_year,
+        'next_month': next_month,
+        'months': months,
+        'stats': {
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'sick': sick,
+            'vacation': vacation,
+            'business': business,
+            'sunday': sunday,
+            'dayoff': dayoff,
+            'unknown': unknown,
+            'total_days': total_days,
+            'working_days': working_days,
+            'present_percentage': round(present_percentage, 1),
+            'absent_percentage': round(absent_percentage, 1),
+            'late_percentage': round(late_percentage, 1),
+            'sick_percentage': round(sick_percentage, 1),
+            'vacation_percentage': round(vacation_percentage, 1),
+            'business_percentage': round(business_percentage, 1),
+            'sunday_percentage': round(sunday_percentage, 1),
+            'unknown_percentage': round(unknown_percentage, 1),
+        }
+    }
+    
+    return render(request, 'attendance/individual_employee_statistics.html', context)
+
+@login_required
+def edit_attendance_history(request):
+    """Avvalgi davomatlarni tahrirlash"""
+    # Filtrlash parametrlari
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    employee_id = request.GET.get('employee')
+    department = request.GET.get('department')
+    
+    # Default qiymatlar
+    if not date_from:
+        date_from = (date.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+    if not date_to:
+        date_to = date.today().strftime('%Y-%m-%d')
+    
+    # Filtrlash
+    filters = {}
+    if date_from and date_to:
+        try:
+            date_from_obj = date.fromisoformat(date_from)
+            date_to_obj = date.fromisoformat(date_to)
+            filters['date__range'] = (date_from_obj, date_to_obj)
+        except ValueError:
+            messages.error(request, "Sana formati noto'g'ri!")
+            date_from = (date.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+            date_to = date.today().strftime('%Y-%m-%d')
+            filters['date__range'] = (date.today() - timedelta(days=30), date.today())
+    
+    if employee_id:
+        filters['employee_id'] = employee_id
+    if department:
+        filters['employee__department'] = department
+    
+    # Davomat ma'lumotlarini olish
+    attendances = Attendance.objects.filter(**filters).select_related('employee').order_by('-date', 'employee__last_name')
+    
+    # Formset uchun tayyorlash
+    AttendanceFormSet = modelformset_factory(
+        Attendance, 
+        form=AttendanceForm, 
+        can_delete=True,
+        extra=0,
+        fields=['employee', 'date', 'status', 'comment']
+    )
+    
+    if request.method == 'POST':
+        formset = AttendanceFormSet(request.POST, queryset=attendances)
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, "Davomat ma'lumotlari yangilandi!")
+            return redirect('edit_attendance_history')
+    else:
+        formset = AttendanceFormSet(queryset=attendances)
+    
+    # Filtrlash uchun ma'lumotlar
+    employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    departments = Employee.objects.values_list('department', flat=True).distinct().exclude(department__isnull=True).exclude(department='')
+    
+    context = {
+        'formset': formset,
+        'employees': employees,
+        'departments': departments,
+        'date_from': date_from,
+        'date_to': date_to,
+        'selected_employee': employee_id,
+        'selected_department': department,
+        'attendances': attendances,
+    }
+    
+    return render(request, 'attendance/edit_attendance_history.html', context)
+
+def employee_attendance_history(request, employee_id):
+    """Xodimning kunlik davomat tarixini ko'rsatish"""
+    employee = get_object_or_404(Employee, id=employee_id, is_active=True)
+    
+    # Filtrlash parametrlari
+    year = request.GET.get('year', date.today().year)
+    month = request.GET.get('month', date.today().month)
+    
+    try:
+        year = int(year)
+        month = int(month)
+    except (ValueError, TypeError):
+        year = date.today().year
+        month = date.today().month
+    
+    # Oyning boshidan oxirigacha
+    from calendar import monthrange
+    start_date = date(year, month, 1)
+    end_date = date(year, month, monthrange(year, month)[1])
+    
+    # Xodimning bu oydagi davomat ma'lumotlari
+    attendance_records = Attendance.objects.filter(
+        employee=employee,
+        date__range=[start_date, end_date]
+    ).order_by('date')
+    
+    # Yopiq kunlar
+    dayoffs = DayOff.objects.filter(
+        date__range=[start_date, end_date]
+    ).values_list('date', flat=True)
+    
+    # Kalendar kunlari yaratish (7x7 grid uchun)
+    calendar_days = []
+    current_date = start_date
+    
+    # Oyning birinchi kunidan oldingi bo'sh kunlar
+    first_weekday = start_date.weekday()  # 0 = Dushanba, 6 = Yakshanba
+    for i in range(first_weekday):
+        calendar_days.append({
+            'day': '',
+            'status': 'empty',
+            'status_class': 'empty',
+            'status_text': '',
+            'comment': '',
+            'date': None
+        })
+    
+    # Oy kunlari
+    while current_date <= end_date:
+        # Yakshanba tekshirish
+        is_sunday = current_date.weekday() == 6
+        is_dayoff = current_date in dayoffs
+        
+        # Bu kun uchun davomat ma'lumoti
+        attendance = attendance_records.filter(date=current_date).first()
+        
+        if attendance:
+            status = attendance.status
+            comment = attendance.comment or ""
+        elif is_sunday:
+            status = "sunday"
+            comment = "Yakshanba"
+        elif is_dayoff:
+            status = "dayoff"
+            comment = "Yopiq kun"
+        else:
+            status = "unknown"
+            comment = "Ma'lumot yo'q"
+        
+        # Status class va text
+        status_class = status
+        status_text = get_status_text(status)
+        
+        calendar_days.append({
+            'day': current_date.day,
+            'status': status,
+            'status_class': status_class,
+            'status_text': status_text,
+            'comment': comment,
+            'date': current_date
+        })
+        
+        current_date += timedelta(days=1)
+    
+    # Oyning oxiridan keyingi bo'sh kunlar
+    last_weekday = end_date.weekday()
+    remaining_days = 6 - last_weekday
+    for i in range(remaining_days):
+        calendar_days.append({
+            'day': '',
+            'status': 'empty',
+            'status_class': 'empty',
+            'status_text': '',
+            'comment': '',
+            'date': None
+        })
+    
+    # Statistikalar
+    total_days = len([d for d in calendar_days if d['date']])
+    present = len([d for d in calendar_days if d['status'] == 'present'])
+    absent = len([d for d in calendar_days if d['status'] == 'absent'])
+    late = len([d for d in calendar_days if d['status'] == 'late'])
+    sick = len([d for d in calendar_days if d['status'] == 'sick'])
+    vacation = len([d for d in calendar_days if d['status'] == 'vacation'])
+    business = len([d for d in calendar_days if d['status'] == 'business'])
+    sunday = len([d for d in calendar_days if d['status'] == 'sunday'])
+    dayoff = len([d for d in calendar_days if d['status'] == 'dayoff'])
+    unknown = len([d for d in calendar_days if d['status'] == 'unknown'])
+    
+    # Foiz hisoblash
+    working_days = total_days - sunday - dayoff
+    present_percentage = (present / working_days * 100) if working_days > 0 else 0
+    absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
+    late_percentage = (late / working_days * 100) if working_days > 0 else 0
+    sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
+    vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
+    business_percentage = (business / working_days * 100) if working_days > 0 else 0
+    sunday_percentage = (sunday / total_days * 100) if total_days > 0 else 0
+    unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
+    
+    # Oy navigatsiyasi
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
+    
+    # Oy nomlari
+    months = [
+        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr')
+    ]
+    
+    context = {
+        'employee': employee,
+        'calendar_days': calendar_days,
+        'year': year,
+        'month': month,
+        'prev_year': prev_year,
+        'prev_month': prev_month,
+        'next_year': next_year,
+        'next_month': next_month,
+        'months': months,
+        'stats': {
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'sick': sick,
+            'vacation': vacation,
+            'business': business,
+            'sunday': sunday,
+            'dayoff': dayoff,
+            'unknown': unknown,
+            'total_days': total_days,
+            'working_days': working_days,
+            'present_percentage': round(present_percentage, 1),
+            'absent_percentage': round(absent_percentage, 1),
+            'late_percentage': round(late_percentage, 1),
+            'sick_percentage': round(sick_percentage, 1),
+            'vacation_percentage': round(vacation_percentage, 1),
+            'business_percentage': round(business_percentage, 1),
+            'sunday_percentage': round(sunday_percentage, 1),
+            'unknown_percentage': round(unknown_percentage, 1),
+        }
+    }
+    
+    return render(request, 'attendance/employee_attendance_history.html', context)
+
+def get_status_text(status):
+    """Status matnini olish"""
+    status_map = {
+        'present': 'Keldi',
+        'absent': 'Kelmadi',
+        'late': 'Kechikdi',
+        'sick': 'Kasal',
+        'vacation': 'Ta\'til',
+        'business': 'Ish safari',
+        'sunday': 'Yakshanba',
+        'dayoff': 'Yopiq kun',
+        'unknown': 'Ma\'lumot yo\'q',
+        'empty': ''
+    }
+    return status_map.get(status, 'Noma\'lum')

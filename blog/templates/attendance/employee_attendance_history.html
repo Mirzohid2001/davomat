@@ -1,0 +1,597 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}{{ employee.first_name }} {{ employee.last_name }} - Davomat Tarixi{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+    <div class="container">
+        <!-- Xodim ma'lumotlari -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                    <div class="card-body text-center text-white py-5">
+                        <h1 class="display-4 fw-bold mb-3">{{ employee.first_name }} {{ employee.last_name }}</h1>
+                        <div class="row justify-content-center">
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.employee_type|default:"Texnik" }}</span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.department|default:"Ishlab chiqarish" }}</span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2">{{ employee.location|default:"Zavod" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oy navigatsiyasi -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-danger btn-lg px-4">
+                                    ← Oldingi oy
+                                </a>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h2 class="display-6 fw-bold text-primary mb-0">{{ year }} yil {{ month }} oy</h2>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-danger btn-lg px-4">
+                                    Keyingi oy →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtrlash -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <h4 class="card-title mb-0 text-white text-center">
+                            <i class="bi bi-funnel"></i> Filtrlash va Qidirish
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="get" class="row g-4">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="bi bi-calendar-year"></i> Yil
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="bi bi-calendar3"></i>
+                                    </span>
+                                    <input type="number" name="year" value="{{ year }}" 
+                                           class="form-control border-primary" 
+                                           min="2020" max="2030" 
+                                           placeholder="Yilni kiriting">
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="bi bi-calendar-month"></i> Oy
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="bi bi-calendar-date"></i>
+                                    </span>
+                                    <select name="month" class="form-select border-primary">
+                                        <option value="">Oy tanlang</option>
+                                        {% for m in months %}
+                                            <option value="{{ m.0 }}" {% if m.0 == month %}selected{% endif %}>
+                                                {{ m.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="bi bi-lightning"></i> Tezkor tanlov
+                                </label>
+                                <div class="d-grid">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-primary" onclick="setCurrentMonth()">
+                                            <i class="bi bi-calendar-check"></i> Joriy oy
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary" onclick="setPreviousMonth()">
+                                            <i class="bi bi-arrow-left"></i> O'tgan oy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 d-flex align-items-end">
+                                <div class="d-grid w-100">
+                                    <button type="submit" class="btn btn-danger btn-lg">
+                                        <i class="bi bi-search"></i> Ko'rsatish
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Qo'shimcha filtrlash -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted mb-3">
+                                            <i class="bi bi-sliders"></i> Qo'shimcha filtrlash
+                                        </h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold text-secondary">Davomat holati</label>
+                                                <select class="form-select" id="statusFilter">
+                                                    <option value="">Barcha holatlar</option>
+                                                    <option value="present">Keldi</option>
+                                                    <option value="absent">Kelmadi</option>
+                                                    <option value="late">Kechikdi</option>
+                                                    <option value="sick">Kasal</option>
+                                                    <option value="vacation">Ta'til</option>
+                                                    <option value="business">Ish safari</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold text-secondary">Hafta kuni</label>
+                                                <select class="form-select" id="weekdayFilter">
+                                                    <option value="">Barcha kunlar</option>
+                                                    <option value="1">Dushanba</option>
+                                                    <option value="2">Seshanba</option>
+                                                    <option value="3">Chorshanba</option>
+                                                    <option value="4">Payshanba</option>
+                                                    <option value="5">Juma</option>
+                                                    <option value="6">Shanba</option>
+                                                    <option value="0">Yakshanba</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold text-secondary">Amallar</label>
+                                                <div class="d-grid">
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                                                        <i class="bi bi-arrow-clockwise"></i> Tozalash
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistikalar -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success mb-2">
+                            <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-success">{{ stats.present }}</h3>
+                        <p class="fs-5 text-muted">Keldi</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-danger mb-2">
+                            <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
+                        <p class="fs-5 text-muted">Kelmadi</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-clock-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-warning">{{ stats.late }}</h3>
+                        <p class="fs-5 text-muted">Kechikdi</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-info mb-2">
+                            <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
+                        <p class="fs-5 text-muted">Kasal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-primary mb-2">
+                            <i class="bi bi-umbrella-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-primary">{{ stats.vacation }}</h3>
+                        <p class="fs-5 text-muted">Ta'til</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success mb-2">
+                            <i class="bi bi-airplane-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-success">{{ stats.business }}</h3>
+                        <p class="fs-5 text-muted">Ish safari</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
+                        <p class="fs-5 text-muted">Yakshanba</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-secondary mb-2">
+                            <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-secondary">{{ stats.unknown }}</h3>
+                        <p class="fs-5 text-muted">Ma'lumot yo'q</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kalendar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0 text-center">
+                            <i class="bi bi-calendar3"></i> Kunlik Davomat Kalendari
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Hafta kunlari -->
+                            <div class="col-12 mb-3">
+                                <div class="row g-1">
+                                    <div class="col text-center fw-bold text-muted">Dushanba</div>
+                                    <div class="col text-center fw-bold text-muted">Seshanba</div>
+                                    <div class="col text-center fw-bold text-muted">Chorshanba</div>
+                                    <div class="col text-center fw-bold text-muted">Payshanba</div>
+                                    <div class="col text-center fw-bold text-muted">Juma</div>
+                                    <div class="col text-center fw-bold text-muted">Shanba</div>
+                                    <div class="col text-center fw-bold text-muted">Yakshanba</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Kalendar kunlari -->
+                            <div class="col-12">
+                                <div class="row g-1">
+                                    {% for day_data in calendar_days %}
+                                        {% if day_data.status == 'empty' %}
+                                            <div class="col p-2">
+                                                <div class="card h-100 border-0 bg-transparent">
+                                                    <div class="card-body text-center p-2">
+                                                        <h6 class="card-title mb-1 fw-bold text-muted"></h6>
+                                                        <span class="badge bg-transparent"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="col p-2">
+                                                <div class="card h-100 border-0 shadow-sm day-card" 
+                                                     data-day="{{ day_data.day }}" 
+                                                     data-status="{{ day_data.status }}"
+                                                     data-comment="{{ day_data.comment|default:'' }}"
+                                                     style="cursor: pointer; transition: all 0.3s ease;">
+                                                    <div class="card-body text-center p-2">
+                                                        <h6 class="card-title mb-1 fw-bold">{{ day_data.day }}</h6>
+                                                        <span class="badge 
+                                                            {% if day_data.status_class == 'present' %}bg-success
+                                                            {% elif day_data.status_class == 'absent' %}bg-danger
+                                                            {% elif day_data.status_class == 'late' %}bg-warning
+                                                            {% elif day_data.status_class == 'sick' %}bg-info
+                                                            {% elif day_data.status_class == 'vacation' %}bg-primary
+                                                            {% elif day_data.status_class == 'business' %}bg-success
+                                                            {% elif day_data.status_class == 'sunday' %}bg-warning
+                                                            {% elif day_data.status_class == 'dayoff' %}bg-secondary
+                                                            {% else %}bg-secondary{% endif %}">
+                                                            {{ day_data.status_text }}
+                                                        </span>
+                                                        {% if day_data.comment %}
+                                                            <small class="text-muted d-block mt-1">{{ day_data.comment|truncatechars:10 }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="card-title mb-0 text-center">
+                            <i class="bi bi-palette"></i> Davomat Holatlari
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Keldi</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-danger me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Kelmadi</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Kechikdi</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Kasal</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Ta'til</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Ish safari</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Yakshanba</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-secondary me-2" style="width: 20px; height: 20px;"></span>
+                                    <span>Ma'lumot yo'q</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kalendar kunlariga click effekt
+    const dayCards = document.querySelectorAll('.day-card');
+    
+    dayCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const day = this.getAttribute('data-day');
+            const status = this.getAttribute('data-status');
+            const comment = this.getAttribute('data-comment');
+            
+            if (day && status) {
+                const statusText = getStatusText(status);
+                let message = `${day} - kun: ${statusText}`;
+                if (comment) {
+                    message += `\nIzoh: ${comment}`;
+                }
+                alert(message);
+            }
+        });
+        
+        // Hover effekt
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Status matnini olish
+    function getStatusText(status) {
+        const statusMap = {
+            'present': 'Keldi',
+            'absent': 'Kelmadi',
+            'late': 'Kechikdi',
+            'sick': 'Kasal',
+            'vacation': 'Ta\'til',
+            'business': 'Ish safari',
+            'sunday': 'Yakshanba',
+            'dayoff': 'Yopiq kun',
+            'unknown': 'Ma\'lumot yo\'q'
+        };
+        return statusMap[status] || 'Noma\'lum';
+    }
+    
+    // Filtrlash funksiyalari
+    const statusFilter = document.getElementById('statusFilter');
+    const weekdayFilter = document.getElementById('weekdayFilter');
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            filterCalendar();
+        });
+    }
+    
+    if (weekdayFilter) {
+        weekdayFilter.addEventListener('change', function() {
+            filterCalendar();
+        });
+    }
+});
+
+// Tezkor tanlov funksiyalari
+function setCurrentMonth() {
+    const now = new Date();
+    const yearInput = document.querySelector('input[name="year"]');
+    const monthSelect = document.querySelector('select[name="month"]');
+    
+    if (yearInput) yearInput.value = now.getFullYear();
+    if (monthSelect) monthSelect.value = now.getMonth() + 1;
+}
+
+function setPreviousMonth() {
+    const now = new Date();
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+    const yearInput = document.querySelector('input[name="year"]');
+    const monthSelect = document.querySelector('select[name="month"]');
+    
+    if (yearInput) yearInput.value = prevMonth.getFullYear();
+    if (monthSelect) monthSelect.value = prevMonth.getMonth() + 1;
+}
+
+// Filtrlash funksiyasi
+function filterCalendar() {
+    const statusFilter = document.getElementById('statusFilter');
+    const weekdayFilter = document.getElementById('weekdayFilter');
+    const dayCards = document.querySelectorAll('.day-card');
+    
+    const selectedStatus = statusFilter ? statusFilter.value : '';
+    const selectedWeekday = weekdayFilter ? weekdayFilter.value : '';
+    
+    dayCards.forEach(card => {
+        let show = true;
+        
+        // Status bo'yicha filtrlash
+        if (selectedStatus) {
+            const cardStatus = card.getAttribute('data-status');
+            if (cardStatus !== selectedStatus) {
+                show = false;
+            }
+        }
+        
+        // Hafta kuni bo'yicha filtrlash
+        if (selectedWeekday && show) {
+            const day = parseInt(card.getAttribute('data-day'));
+            if (day) {
+                const date = new Date({{ year }}, {{ month|add:"-1" }}, day);
+                const weekday = date.getDay();
+                
+                if (weekday.toString() !== selectedWeekday) {
+                    show = false;
+                }
+            }
+        }
+        
+        // Ko'rsatish/yashirish
+        if (show) {
+            card.style.display = 'block';
+            card.style.opacity = '1';
+            card.style.transform = 'scale(1)';
+        } else {
+            card.style.display = 'none';
+            card.style.opacity = '0.3';
+            card.style.transform = 'scale(0.8)';
+        }
+    });
+    
+    // Filtrlash natijalarini ko'rsatish
+    const visibleCards = document.querySelectorAll('.day-card[style*="display: block"]');
+    const totalCards = document.querySelectorAll('.day-card');
+    
+    if (selectedStatus || selectedWeekday) {
+        showFilterResults(visibleCards.length, totalCards.length);
+    } else {
+        hideFilterResults();
+    }
+}
+
+// Filtrlash natijalarini ko'rsatish
+function showFilterResults(visible, total) {
+    let resultsDiv = document.getElementById('filter-results');
+    if (!resultsDiv) {
+        resultsDiv = document.createElement('div');
+        resultsDiv.id = 'filter-results';
+        resultsDiv.className = 'alert alert-info mt-3';
+        document.querySelector('.calendar-card .card-body').appendChild(resultsDiv);
+    }
+    
+    resultsDiv.innerHTML = `
+        <i class="bi bi-info-circle"></i> 
+        Filtrlash natijasi: ${visible} ta kun ko'rsatilmoqda (jami ${total} ta kundan)
+    `;
+}
+
+// Filtrlash natijalarini yashirish
+function hideFilterResults() {
+    const resultsDiv = document.getElementById('filter-results');
+    if (resultsDiv) {
+        resultsDiv.remove();
+    }
+}
+
+// Filtrlarni tozalash
+function clearFilters() {
+    const statusFilter = document.getElementById('statusFilter');
+    const weekdayFilter = document.getElementById('weekdayFilter');
+    const dayCards = document.querySelectorAll('.day-card');
+    
+    if (statusFilter) statusFilter.value = '';
+    if (weekdayFilter) weekdayFilter.value = '';
+    
+    // Barcha kunlarni ko'rsatish
+    dayCards.forEach(card => {
+        card.style.display = 'block';
+        card.style.opacity = '1';
+    });
+}
+</script>
+{% endblock %}

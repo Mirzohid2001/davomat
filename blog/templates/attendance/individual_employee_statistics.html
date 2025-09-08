@@ -1,0 +1,355 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block title %}{{ employee.first_name }} {{ employee.last_name }} - Individual Statistika{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+    <div class="container">
+        <!-- Xodim ma'lumotlari -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                    <div class="card-body text-center text-white py-5">
+                        <h1 class="display-4 fw-bold mb-3">{{ employee.first_name }} {{ employee.last_name }}</h1>
+                        <div class="row justify-content-center">
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.employee_type|default:"Texnik" }}</span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.department|default:"Ishlab chiqarish" }}</span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark fs-6 px-3 py-2">{{ employee.location|default:"Zavod" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oy navigatsiyasi -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-danger btn-lg px-4">
+                                    ← Oldingi oy
+                                </a>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h2 class="display-6 fw-bold text-primary mb-0">{{ year }} yil {{ month }} oy</h2>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-danger btn-lg px-4">
+                                    Keyingi oy →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtrlash -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Yil</label>
+                                <input type="number" name="year" value="{{ year }}" class="form-control form-control-lg" min="2020" max="2030">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Oy</label>
+                                <select name="month" class="form-select form-select-lg">
+                                    {% for m in months %}
+                                        <option value="{{ m.0 }}" {% if m.0 == month %}selected{% endif %}>{{ m.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-danger btn-lg w-100">
+                                    <i class="bi bi-search"></i> Ko'rsatish
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Umumiy statistikalar -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success mb-2">
+                            <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-success">{{ stats.present }}</h3>
+                        <p class="fs-5 text-muted">Keldi</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: {{ stats.present_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.present_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-danger mb-2">
+                            <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
+                        <p class="fs-5 text-muted">Kelmadi</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-danger" style="width: {{ stats.absent_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.absent_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-clock-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-warning">{{ stats.late }}</h3>
+                        <p class="fs-5 text-muted">Kechikdi</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" style="width: {{ stats.late_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.late_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-info mb-2">
+                            <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
+                        <p class="fs-5 text-muted">Kasal</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" style="width: {{ stats.sick_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.sick_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Qo'shimcha statistikalar -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-primary mb-2">
+                            <i class="bi bi-umbrella-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-primary">{{ stats.vacation }}</h3>
+                        <p class="fs-5 text-muted">Ta'til</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-primary" style="width: {{ stats.vacation_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.vacation_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-success mb-2">
+                            <i class="bi bi-airplane-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-success">{{ stats.business }}</h3>
+                        <p class="fs-5 text-muted">Ish safari</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: {{ stats.business_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.business_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
+                        <p class="fs-5 text-muted">Yakshanba</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" style="width: {{ stats.sunday_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.sunday_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body text-center">
+                        <div class="text-secondary mb-2">
+                            <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="display-4 fw-bold text-secondary">{{ stats.unknown }}</h3>
+                        <p class="fs-5 text-muted">Ma'lumot yo'q</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-secondary" style="width: {{ stats.unknown_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ stats.unknown_percentage }}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Umumiy ma'lumotlar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="card-title mb-0 text-center">
+                            <i class="bi bi-graph-up"></i> Umumiy Ma'lumotlar
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-3 text-center">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-primary">{{ stats.total_days }}</h5>
+                                    <p class="text-muted mb-0">Jami kunlar</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-success">{{ stats.working_days }}</h5>
+                                    <p class="text-muted mb-0">Ishchi kunlar</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-warning">{{ stats.sunday }}</h5>
+                                    <p class="text-muted mb-0">Yakshanba</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-info">{{ stats.dayoff }}</h5>
+                                    <p class="text-muted mb-0">Yopiq kunlar</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kunlik davomat jadvali -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0 text-center">
+                            <i class="bi bi-calendar3"></i> Kunlik Davomat Jadvali
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Sana</th>
+                                        <th>Hafta kuni</th>
+                                        <th>Holat</th>
+                                        <th>Izoh</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for day_data in daily_data %}
+                                        <tr>
+                                            <td>{{ day_data.date|date:"d.m.Y" }}</td>
+                                            <td>
+                                                {% if day_data.date.weekday == 0 %}Dushanba
+                                                {% elif day_data.date.weekday == 1 %}Seshanba
+                                                {% elif day_data.date.weekday == 2 %}Chorshanba
+                                                {% elif day_data.date.weekday == 3 %}Payshanba
+                                                {% elif day_data.date.weekday == 4 %}Juma
+                                                {% elif day_data.date.weekday == 5 %}Shanba
+                                                {% elif day_data.date.weekday == 6 %}Yakshanba
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if day_data.status == 'present' %}bg-success
+                                                    {% elif day_data.status == 'absent' %}bg-danger
+                                                    {% elif day_data.status == 'late' %}bg-warning
+                                                    {% elif day_data.status == 'sick' %}bg-info
+                                                    {% elif day_data.status == 'vacation' %}bg-primary
+                                                    {% elif day_data.status == 'business' %}bg-success
+                                                    {% elif day_data.status == 'sunday' %}bg-warning
+                                                    {% elif day_data.status == 'dayoff' %}bg-secondary
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {% if day_data.status == 'present' %}Keldi
+                                                    {% elif day_data.status == 'absent' %}Kelmadi
+                                                    {% elif day_data.status == 'late' %}Kechikdi
+                                                    {% elif day_data.status == 'sick' %}Kasal
+                                                    {% elif day_data.status == 'vacation' %}Ta'til
+                                                    {% elif day_data.status == 'business' %}Ish safari
+                                                    {% elif day_data.status == 'sunday' %}Yakshanba
+                                                    {% elif day_data.status == 'dayoff' %}Yopiq kun
+                                                    {% else %}Ma'lumot yo'q{% endif %}
+                                                </span>
+                                            </td>
+                                            <td>{{ day_data.comment|default:"-" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Progress bar animatsiyasi
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach((bar, index) => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, index * 200);
+    });
+    
+    // Statistikalar animatsiyasi
+    const statNumbers = document.querySelectorAll('.display-4');
+    statNumbers.forEach((number, index) => {
+        const finalValue = parseInt(number.textContent);
+        let currentValue = 0;
+        const increment = finalValue / 50;
+        
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                currentValue = finalValue;
+                clearInterval(timer);
+            }
+            number.textContent = Math.floor(currentValue);
+        }, 30);
+    });
+});
+</script>
+{% endblock %}
