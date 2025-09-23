@@ -1,5 +1,87 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Yopiq kunni o‘chirish{% endblock %}
+{% block title %}Yopiq kunni o'chirish{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Dayoff delete confirmation responsive styles */
+@media (max-width: 768px) {
+  .row.justify-content-center {
+    margin: 0;
+  }
+  
+  .col-md-6 {
+    padding: 0 10px;
+  }
+  
+  .card {
+    padding: 20px 15px !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  p {
+    font-size: 0.9rem;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .ms-2 {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .card {
+    padding: 15px 10px !important;
+  }
+  
+  p {
+    font-size: 0.85rem;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .card {
+    padding: 12px 8px !important;
+  }
+  
+  p {
+    font-size: 0.8rem;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6 col-lg-5">

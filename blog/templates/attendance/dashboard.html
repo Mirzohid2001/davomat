@@ -4,6 +4,132 @@
 {% block extra_head %}
 {% load static %}
 <link href="{% static 'css/dashboard-styles.css' %}" rel="stylesheet">
+<style>
+/* Dashboard responsive styles */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 15px 10px;
+    text-align: center;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .dashboard-header p {
+    font-size: 0.9rem;
+  }
+  
+  .action-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  
+  .stats-card {
+    margin-bottom: 15px;
+  }
+  
+  .stats-number {
+    font-size: 2rem;
+  }
+  
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    margin: 2px;
+  }
+  
+  .employee-list {
+    padding-left: 15px;
+  }
+  
+  .employee-list li {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .list-group-item {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-header {
+    padding: 10px 5px;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .action-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .stats-number {
+    font-size: 1.8rem;
+  }
+  
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    margin: 1px;
+  }
+  
+  .card-header {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .card-body {
+    padding: 12px;
+  }
+  
+  .employee-list li {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+  
+  .list-group-item {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .list-group-item i {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .dashboard-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .stats-number {
+    font-size: 1.6rem;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+  }
+  
+  .card-header {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+  
+  .card-body {
+    padding: 10px;
+  }
+}
+</style>
 {% endblock %}
 
 {% block content %}

@@ -23,6 +23,51 @@ def calculate_working_days_in_month(year, month):
     
     return working_days, total_days
 
+def update_future_months_salary(employee, new_salary, new_currency, current_year, current_month):
+    """Oylik o'zgartirilganda keyingi oylarga yangi oylikni o'tkazish"""
+    from datetime import date
+    from calendar import monthrange
+    
+    # Keyingi oylarni topish
+    next_month = current_month + 1
+    next_year = current_year
+    
+    if next_month > 12:
+        next_month = 1
+        next_year += 1
+    
+    # Hozirgi sanadan keyingi barcha oylarni yangilash
+    current_date = date(next_year, next_month, 1)
+    today = date.today()
+    
+    # Keyingi 12 oyga qarab tekshirish
+    for i in range(12):
+        check_year = current_date.year
+        check_month = current_date.month
+        
+        # Bu oy uchun stat mavjudmi?
+        future_stat = MonthlyEmployeeStat.objects.filter(
+            employee=employee,
+            year=check_year,
+            month=check_month
+        ).first()
+        
+        if future_stat:
+            # Agar bu oy uchun stat mavjud bo'lsa, oylik va valyutani yangilash
+            future_stat.salary = new_salary
+            future_stat.currency = new_currency
+            future_stat.save()
+        
+        # Keyingi oyga o'tish
+        if current_date.month == 12:
+            current_date = current_date.replace(year=current_date.year + 1, month=1)
+        else:
+            current_date = current_date.replace(month=current_date.month + 1)
+        
+        # Agar kelajakdagi sana hozirgi sanadan katta bo'lsa, to'xtash
+        if current_date > today.replace(day=1):
+            break
+
 def calculate_monthly_stats(year, month):
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
     employees = Employee.objects.filter(is_active=True)

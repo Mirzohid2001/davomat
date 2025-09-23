@@ -1,0 +1,143 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Xodimni o'chirish{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Delete confirmation responsive styles */
+@media (max-width: 768px) {
+  .delete-container {
+    padding: 20px 15px;
+  }
+  
+  .delete-card {
+    padding: 20px 15px !important;
+  }
+  
+  .delete-header h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .delete-info {
+    font-size: 0.9rem;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .delete-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .delete-card {
+    padding: 15px 10px !important;
+  }
+  
+  .delete-info {
+    font-size: 0.85rem;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .delete-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .delete-card {
+    padding: 12px 8px !important;
+  }
+  
+  .delete-info {
+    font-size: 0.8rem;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card delete-card shadow-lg border-0">
+        <div class="delete-header text-center mb-4">
+          <h2 class="text-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Xodimni o'chirish
+          </h2>
+        </div>
+        
+        <div class="delete-info text-center mb-4">
+          <div class="alert alert-warning" role="alert">
+            <i class="bi bi-warning-fill"></i>
+            <strong>Diqqat!</strong> Bu amalni qaytarib bo'lmaydi.
+          </div>
+          
+          <p class="mb-3">
+            <strong>{{ employee.first_name }} {{ employee.last_name }}</strong> 
+            xodimini rostdan ham o'chirmoqchimisiz?
+          </p>
+          
+          <div class="employee-details">
+            <div class="row">
+              <div class="col-6">
+                <strong>Lavozimi:</strong><br>
+                <span class="text-muted">{{ employee.position }}</span>
+              </div>
+              <div class="col-6">
+                <strong>Bo'limi:</strong><br>
+                <span class="text-muted">{{ employee.department }}</span>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-6">
+                <strong>Telefon:</strong><br>
+                <span class="text-muted">{{ employee.phone_number }}</span>
+              </div>
+              <div class="col-6">
+                <strong>Holati:</strong><br>
+                {% if employee.is_active %}
+                  <span class="badge bg-success">Aktiv</span>
+                {% else %}
+                  <span class="badge bg-danger">Noaktiv</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <form method="post" class="text-center">
+          {% csrf_token %}
+          <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash-fill"></i> Ha, o'chirish
+            </button>
+            <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+              <i class="bi bi-x-circle"></i> Bekor qilish
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -471,9 +471,20 @@ def individual_attendance_create(request, employee_id=None):
         # Form ma'lumotlarini olish
         status = request.POST.get('status')
         comment = request.POST.get('comment', '')
+        date_from_form = request.POST.get('date')
+        
+        # Agar sana form orqali kelsa, uni ishlatish
+        if date_from_form:
+            try:
+                date_val = date.fromisoformat(date_from_form)
+            except ValueError:
+                date_val = date.today()
         
         # Validatsiya
         if not status:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'message': 'Davomat holatini tanlang!'})
             messages.error(request, "Davomat holatini tanlang!")
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': 'present'})
             return render(request, 'attendance/individual_attendance_form.html', {
@@ -485,6 +496,9 @@ def individual_attendance_create(request, employee_id=None):
         
         # Agar status absent, sick yoki vacation bo'lsa, izoh majburiy
         if status in ['absent', 'sick', 'vacation'] and not comment.strip():
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'message': 'Izoh/sabab kiritish majburiy!'})
             messages.error(request, "Izoh/sabab kiritish majburiy!")
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': status})
             return render(request, 'attendance/individual_attendance_form.html', {
@@ -510,6 +524,14 @@ def individual_attendance_create(request, employee_id=None):
                     comment=comment
                 )
             
+            # AJAX request uchun JSON response qaytarish
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': True,
+                    'message': f'{employee} uchun davomat saqlandi!'
+                })
+            
             messages.success(request, f"{employee} uchun davomat saqlandi!")
             
             # Keyingi xodimga o'tish yoki ro'yxatga qaytish
@@ -533,6 +555,9 @@ def individual_attendance_create(request, employee_id=None):
             return redirect('attendance_list')
             
         except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'message': f'Xatolik yuz berdi: {str(e)}'})
             messages.error(request, f"Xatolik yuz berdi: {str(e)}")
     
     # GET so'rovi uchun forma tayyorlash
@@ -1106,12 +1131,30 @@ def edit_salary_stat(request, stat_id):
     if request.method == 'POST':
         form = SalaryStatEditForm(request.POST, instance=stat)
         if form.is_valid():
+            # Eski oylik va valyutani saqlash
+            old_salary = stat.salary
+            old_currency = stat.currency
+            
             # Save the form first
             form.save()
+            
+            # Agar oylik yoki valyuta o'zgargan bo'lsa, keyingi oylarga o'tkazish
+            if stat.salary != old_salary or stat.currency != old_currency:
+                from .services import update_future_months_salary
+                update_future_months_salary(stat.employee, stat.salary, stat.currency, stat.year, stat.month)
             
             # Recalculate accrued amount with new salary/bonus values
             from .services import calculate_monthly_stats
             calculate_monthly_stats(stat.year, stat.month)
+            
+            # AJAX request uchun JSON response qaytarish
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Ma\'lumotlar muvaffaqiyatli saqlandi va keyingi oylarga o\'tkazildi!',
+                    'redirect_url': request.GET.get('next', '/statistics/salary/')
+                })
             
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
     else:

@@ -55,11 +55,10 @@ class EmployeeForm(forms.ModelForm):
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:
         model = MonthlyEmployeeStat
-        fields = ['salary', 'currency', 'paid', 'bonus', 'manual_salary']
+        fields = ['salary', 'currency', 'paid', 'bonus']
         widgets = {
             'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-            'manual_salary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

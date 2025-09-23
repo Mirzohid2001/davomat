@@ -1,4 +1,176 @@
 {% extends 'attendance/base.html' %}
+
+{% block extra_head %}
+<style>
+/* Salary statistics responsive styles */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .d-flex.flex-wrap {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 10px;
+  }
+  
+  .d-flex.flex-wrap > div {
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .table th:nth-child(3),
+  .table td:nth-child(3),
+  .table th:nth-child(4),
+  .table td:nth-child(4),
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(6),
+  .table td:nth-child(6),
+  .table th:nth-child(7),
+  .table td:nth-child(7),
+  .table th:nth-child(8),
+  .table td:nth-child(8),
+  .table th:nth-child(9),
+  .table td:nth-child(9),
+  .table th:nth-child(10),
+  .table td:nth-child(10),
+  .table th:nth-child(11),
+  .table td:nth-child(11),
+  .table th:nth-child(12),
+  .table td:nth-child(12),
+  .table th:nth-child(13),
+  .table td:nth-child(13) {
+    display: none;
+  }
+  
+  .btn-group .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .table th, .table td {
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+  
+  .table th:nth-child(2),
+  .table td:nth-child(2) {
+    display: none;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .btn-group .btn {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    width: 100%;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .table th, .table td {
+    padding: 4px 2px;
+    font-size: 0.75rem;
+  }
+  
+  .btn-group .btn {
+    padding: 2px 4px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Mobile card layout for very small screens */
+@media (max-width: 320px) {
+  .table-responsive {
+    display: none;
+  }
+  
+  .mobile-cards {
+    display: block;
+  }
+  
+  .mobile-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-card-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .mobile-card-body {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-card-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  
+  .mobile-card-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-card-label {
+    font-weight: bold;
+  }
+}
+
+@media (min-width: 321px) {
+  .mobile-cards {
+    display: none;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <h2 class="mb-4">Oylik xodim statistikasi ({{ year }}-{{ month }})</h2>
 <form method="get" class="mb-3 d-flex flex-wrap align-items-end gap-2">
@@ -47,7 +219,7 @@
                 </span>
             </td>
             <td>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</td>
-            <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">✎</button></td>
             <td>{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
@@ -58,7 +230,7 @@
                 </span>
             </td>
             <td>{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</td>
-            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} {{ stat.currency }} <a href="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-link btn-sm p-0">✎</a></td>
+            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">✎</button></td>
             <td class="{% if stat.debt_start < 0 %}table-danger{% endif %}">{{ stat.debt_start|floatformat:0 }} {{ stat.currency }}</td>
             <td class="{% if stat.debt_end < 0 %}table-danger{% endif %}">{{ stat.debt_end|floatformat:0 }} {{ stat.currency }}</td>
         </tr>
@@ -98,10 +270,140 @@
     </tfoot>
 </table>
 </div>
+
+<!-- Mobile cards layout for very small screens -->
+<div class="mobile-cards">
+    {% for stat in stats %}
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="mobile-card-name">{{ stat.employee.first_name }} {{ stat.employee.last_name }}</div>
+                <span class="badge bg-{{ stat.employee.employee_type|yesno:'primary,success' }}">
+                    {{ stat.employee.employee_type|yesno:'Ofis,Ishchi' }}
+                </span>
+            </div>
+            <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Oylik:</span>
+                    <span>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Mukofot:</span>
+                    <span>{{ stat.bonus|floatformat:0 }} {{ stat.currency }}</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Ishlangan kunlar:</span>
+                    <span>{{ stat.worked_days }}</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">Hisoblangan:</span>
+                    <span>{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</span>
+                </div>
+                <div class="mobile-card-row">
+                    <span class="mobile-card-label">To'langan:</span>
+                    <span>{{ stat.paid|floatformat:0 }} {{ stat.currency }}</span>
+                </div>
+            </div>
+            <div class="mobile-card-actions">
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">
+                    ✏️ Tahrirlash
+                </button>
+            </div>
+        </div>
+    {% empty %}
+        <div class="mobile-card text-center text-danger">
+            Ma'lumotlar topilmadi
+        </div>
+    {% endfor %}
+</div>
 <style>
 .table thead th { font-size: 1rem; letter-spacing: 0.5px; }
 .table tfoot td { font-size: 1rem; font-weight: 600; }
 .table td, .table th { vertical-align: middle !important; }
+
+/* Modal styling */
+.modal-content {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: none;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 20px 25px;
+    background-color: #f8f9fa;
+    border-radius: 0 0 15px 15px;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #20bf55, #01baef);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(32, 191, 85, 0.4);
+}
+
+.btn-secondary {
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-weight: 500;
+}
+
+/* Loading state */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Toast notifications */
+.toast {
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.toast-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+}
 </style>
 <div class="mt-3">
     <small class="text-muted">
@@ -111,4 +413,123 @@
     </small>
 </div>
 
+<!-- Modal oynalar -->
+{% for stat in stats %}
+<div class="modal fade" id="editModal{{ stat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ stat.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel{{ stat.id }}">
+                    Xodim: {{ stat.employee.last_name }} {{ stat.employee.first_name }} ({{ stat.year }}-{{ stat.month }})
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_salary_{{ stat.id }}" class="form-label">Oylik:</label>
+                            <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control" id="id_salary_{{ stat.id }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_currency_{{ stat.id }}" class="form-label">Valyuta:</label>
+                            <select name="currency" class="form-select" id="id_currency_{{ stat.id }}">
+                                <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>So'm</option>
+                                <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>Dollar</option>
+                                <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>Yevro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_paid_{{ stat.id }}" class="form-label">To'langan:</label>
+                        <input type="number" name="paid" value="{{ stat.paid|floatformat:2 }}" step="any" class="form-control" id="id_paid_{{ stat.id }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_bonus_{{ stat.id }}" class="form-label">Mukofot:</label>
+                        <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control" id="id_bonus_{{ stat.id }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-success">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Har bir modal uchun form submit handler
+    {% for stat in stats %}
+    const form{{ stat.id }} = document.querySelector('#editModal{{ stat.id }} form');
+    if (form{{ stat.id }}) {
+        form{{ stat.id }}.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Loading state
+            submitBtn.textContent = 'Saqlanmoqda...';
+            submitBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success message
+                    const toast = document.createElement('div');
+                    toast.className = 'toast show position-fixed top-0 end-0 p-3';
+                    toast.style.zIndex = '9999';
+                    toast.innerHTML = `
+                        <div class="toast-header">
+                            <strong class="me-auto">Muvaffaqiyat</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body text-success">
+                            ${data.message}
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    
+                    // Modal yopish
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal{{ stat.id }}'));
+                    modal.hide();
+                    
+                    // Sahifani yangilash
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Xatolik yuz berdi: ' + (data.message || 'Noma\'lum xatolik'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Xatolik yuz berdi: ' + error.message);
+            })
+            .finally(() => {
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    {% endfor %}
+});
+</script>
 {% endblock %} 

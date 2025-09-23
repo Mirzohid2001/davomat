@@ -1,5 +1,157 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Xodimlar{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Employees page responsive styles */
+@media (max-width: 768px) {
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .d-flex.justify-content-between h2 {
+    margin-bottom: 15px;
+  }
+  
+  .btn-success {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+  
+  .btn-group .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 576px) {
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+  
+  .table th, .table td {
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .btn-group .btn {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    width: 100%;
+  }
+  
+  .form-control {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .table th:nth-child(4),
+  .table td:nth-child(4),
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+  
+  .table th, .table td {
+    padding: 4px 2px;
+    font-size: 0.75rem;
+  }
+  
+  .btn-group .btn {
+    padding: 2px 4px;
+    font-size: 0.7rem;
+  }
+  
+  .badge {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+}
+
+/* Mobile card layout for very small screens */
+@media (max-width: 320px) {
+  .table-responsive {
+    display: none;
+  }
+  
+  .mobile-cards {
+    display: block;
+  }
+  
+  .mobile-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-card-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .mobile-card-body {
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .mobile-card-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 5px;
+  }
+}
+
+@media (min-width: 321px) {
+  .mobile-cards {
+    display: none;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="animate__animated animate__fadeInLeft">Xodimlar</h2>
@@ -52,5 +204,37 @@
     {% endfor %}
     </tbody>
 </table>
+</div>
+
+<!-- Mobile cards layout for very small screens -->
+<div class="mobile-cards">
+    {% for e in employees %}
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="mobile-card-name">{{ e.first_name }} {{ e.last_name }}</div>
+                {% if e.is_active %}
+                    <span class="badge bg-success">Aktiv</span>
+                {% else %}
+                    <span class="badge bg-danger">Noaktiv</span>
+                {% endif %}
+            </div>
+            <div class="mobile-card-body">
+                <div><strong>Lavozimi:</strong> {{ e.position }}</div>
+                <div><strong>Bo'limi:</strong> {{ e.department }}</div>
+                <div><strong>Telefon:</strong> {{ e.phone_number }}</div>
+            </div>
+            <div class="mobile-card-actions">
+                <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-success btn-sm" title="Davomat kiritish">📅</a>
+                <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-primary btn-sm" title="Davomat tarixi">📊</a>
+                <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-info btn-sm" title="Statistika">📈</a>
+                <a href="{% url 'employee_update' e.id %}" class="btn btn-warning btn-sm" title="Tahrirlash">✏️</a>
+                <a href="{% url 'employee_delete' e.id %}" class="btn btn-danger btn-sm" title="O'chirish">🗑️</a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="mobile-card text-center text-danger">
+            Xodimlar topilmadi
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

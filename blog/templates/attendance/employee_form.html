@@ -1,5 +1,88 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Xodim formasi{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Form responsive styles */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .row.justify-content-center {
+    margin: 0;
+  }
+  
+  .col-md-7 {
+    padding: 0 10px;
+  }
+  
+  .card {
+    padding: 20px 15px !important;
+    margin: 0;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .card {
+    padding: 15px 10px !important;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .card {
+    padding: 12px 8px !important;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+  
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <h2 class="mb-3">{% if employee %}Xodimni tahrirlash{% else %}Yangi xodim{% endif %}</h2>
 <div class="row justify-content-center">
