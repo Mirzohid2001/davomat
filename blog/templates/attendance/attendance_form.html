@@ -101,7 +101,7 @@
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-        <div class="mt-4 d-flex gap-2">
+        <div class="mt-4 d-grid gap-2">
           <button class="btn btn-success" type="submit">Saqlash</button>
           <a href="{% url 'attendance_list' %}" class="btn btn-secondary">Bekor qilish</a>
         </div>

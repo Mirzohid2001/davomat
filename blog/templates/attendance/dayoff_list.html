@@ -1,12 +1,117 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Yopiq kunlar{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Dayoff list responsive */
+@media (max-width: 768px) {
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+  
+  .btn-success {
+    width: 100%;
+  }
+  
+  .table th, .table td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-sm {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .table th {
+    font-size: 0.8rem;
+  }
+}
+
+/* Mobile cards for very small screens */
+@media (max-width: 480px) {
+  .table-responsive {
+    display: none;
+  }
+  
+  .mobile-cards {
+    display: block;
+  }
+  
+  .mobile-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .mobile-card-date {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark-color);
+  }
+  
+  .mobile-card-reason {
+    font-size: 0.95rem;
+    color: #495057;
+    margin-bottom: 10px;
+  }
+  
+  .mobile-card-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .mobile-card-actions .btn {
+    flex: 1;
+  }
+}
+
+@media (min-width: 481px) {
+  .mobile-cards {
+    display: none;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h2>Yopiq kunlar (bayram va dam olish)</h2>
   <a href="{% url 'dayoff_create' %}" class="btn btn-success">+ Yangi yopiq kun</a>
 </div>
+
 <div class="table-responsive">
-<table class="table table-bordered table-striped align-middle">
+<table class="table table-bordered table-striped align-middle shadow-sm">
   <thead class="table-primary">
     <tr>
       <th>#</th>
@@ -27,10 +132,35 @@
       </tr>
     {% empty %}
       <tr>
-        <td colspan="4" class="text-center text-danger">Yopiq kunlar yo‘q</td>
+        <td colspan="4" class="text-center text-danger py-4">
+          <i class="bi bi-calendar-x" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+          Yopiq kunlar yo'q
+        </td>
       </tr>
     {% endfor %}
   </tbody>
 </table>
+</div>
+
+<!-- Mobile cards layout -->
+<div class="mobile-cards">
+  {% for day in days %}
+    <div class="mobile-card">
+      <div class="mobile-card-header">
+        <div class="mobile-card-date">{{ day.date }}</div>
+        <a href="{% url 'dayoff_delete' day.id %}" class="btn btn-danger btn-sm">
+          <i class="bi bi-trash"></i> O'chirish
+        </a>
+      </div>
+      <div class="mobile-card-reason">
+        <strong>Sabab:</strong> {{ day.reason }}
+      </div>
+    </div>
+  {% empty %}
+    <div class="mobile-card text-center text-danger py-4">
+      <i class="bi bi-calendar-x" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+      Yopiq kunlar yo'q
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}

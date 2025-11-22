@@ -229,116 +229,65 @@
         background-color: rgba(255, 255, 255, 0.95);
       }
       
-      /* Responsive adjustments */
-      @media (max-width: 1200px) {
-        .container-fluid { padding: 10px; }
-        .card { margin-bottom: 15px; }
-      }
-      
+      /* Enhanced Mobile Navigation */
       @media (max-width: 992px) {
         .navbar-collapse {
           background-color: rgba(58, 12, 163, 0.98);
           border-radius: 10px;
-          padding: 10px;
-          margin-top: 10px;
-        }
-        
-        .table-responsive {
-          font-size: 0.9rem;
-        }
-        
-        .btn-group-vertical .btn {
-          margin-bottom: 5px;
-        }
-        
-        .card-body {
           padding: 15px;
+          margin-top: 15px;
+          box-shadow: var(--shadow-md);
+          backdrop-filter: blur(10px);
+        }
+        
+        .navbar-nav {
+          width: 100%;
+        }
+        
+        .nav-link {
+          padding: 10px 15px;
+          margin: 3px 0;
+          border-radius: 8px;
+          display: block;
+          width: 100%;
+        }
+        
+        .dropdown-menu {
+          width: 100%;
+          margin-top: 5px;
+          background-color: rgba(255, 255, 255, 0.95);
+        }
+        
+        .dropdown-item {
+          padding: 10px 15px;
         }
       }
       
-      @media (max-width: 768px) {
-        .navbar-brand { font-size: 1.1rem; }
-        .nav-link { padding: 6px 12px; font-size: 0.9rem; }
-        
-        .table th, .table td {
-          padding: 8px 6px;
-          font-size: 0.85rem;
-        }
-        
-        .btn {
-          padding: 6px 12px;
-          font-size: 0.9rem;
-        }
-        
-        .form-control, .form-select {
-          padding: 8px 12px;
-          font-size: 0.9rem;
-        }
-        
-        .card-header {
-          padding: 10px 12px;
-          font-size: 0.9rem;
-        }
-        
-        .modal-dialog {
-          margin: 10px;
-          max-width: calc(100% - 20px);
-        }
-      }
-      
+      /* Toast positioning for mobile */
       @media (max-width: 576px) {
-        .navbar-brand { font-size: 1rem; }
-        .footer { font-size: 0.8rem; }
-        .card-header { padding: 8px 10px; }
-        .btn { padding: 5px 10px; font-size: 0.85rem; }
-        
-        .table th, .table td {
-          padding: 6px 4px;
-          font-size: 0.8rem;
+        .position-fixed.top-0.end-0 {
+          top: 60px !important;
+          right: 10px !important;
+          left: 10px !important;
+          padding: 0 !important;
         }
         
-        .form-control, .form-select {
-          padding: 6px 10px;
-          font-size: 0.85rem;
-        }
-        
-        .card-body {
-          padding: 10px;
-        }
-        
-        .modal-dialog {
-          margin: 5px;
-          max-width: calc(100% - 10px);
-        }
-        
-        .btn-group .btn {
-          padding: 4px 8px;
-          font-size: 0.8rem;
-        }
-        
-        .badge {
-          font-size: 0.7rem;
-          padding: 4px 6px;
+        .toast {
+          max-width: 100%;
+          margin: 0 0 10px 0;
         }
       }
       
-      @media (max-width: 400px) {
-        .navbar-brand { font-size: 0.9rem; }
-        .nav-link { padding: 4px 8px; font-size: 0.8rem; }
-        
-        .table th, .table td {
-          padding: 4px 2px;
-          font-size: 0.75rem;
+      /* Container improvements */
+      @media (max-width: 768px) {
+        .container {
+          padding-left: 10px;
+          padding-right: 10px;
         }
         
-        .btn {
-          padding: 4px 8px;
-          font-size: 0.8rem;
-        }
-        
-        .form-control, .form-select {
-          padding: 4px 8px;
-          font-size: 0.8rem;
+        .container-fluid {
+          padding-left: 10px;
+          padding-right: 10px;
         }
       }
     </style>
@@ -462,3 +411,4 @@
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+

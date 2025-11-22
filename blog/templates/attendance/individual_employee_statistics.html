@@ -3,6 +3,121 @@
 
 {% block title %}{{ employee.first_name }} {{ employee.last_name }} - Individual Statistika{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Individual employee statistics responsive */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 15px 10px !important;
+  }
+  
+  .display-4 {
+    font-size: 2rem !important;
+  }
+  
+  .card-body.text-center.py-5 {
+    padding: 20px 15px !important;
+  }
+  
+  .row.justify-content-center {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .col-auto {
+    width: 100%;
+  }
+  
+  .badge {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .row.align-items-center {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .col-md-4 {
+    width: 100%;
+  }
+  
+  .btn-lg {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+  
+  .display-6 {
+    font-size: 1.5rem !important;
+  }
+  
+  .row.g-3 {
+    margin: 0;
+  }
+  
+  .col-md-4 {
+    margin-bottom: 15px;
+    padding: 0 7.5px;
+  }
+  
+  .form-control-lg, .form-select-lg {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+  
+  .col-lg-3, .col-md-6 {
+    margin-bottom: 15px;
+  }
+  
+  .display-4.fw-bold {
+    font-size: 2rem !important;
+  }
+  
+  .fs-5 {
+    font-size: 1rem !important;
+  }
+  
+  i[style*="font-size: 3rem"] {
+    font-size: 2rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .display-4 {
+    font-size: 1.5rem !important;
+  }
+  
+  .card-body.text-center.py-5 {
+    padding: 15px 12px !important;
+  }
+  
+  .display-6 {
+    font-size: 1.3rem !important;
+  }
+  
+  .btn-lg {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .form-control-lg, .form-select-lg {
+    font-size: 0.95rem;
+    padding: 8px 12px;
+  }
+  
+  .display-4.fw-bold {
+    font-size: 1.5rem !important;
+  }
+  
+  i[style*="font-size: 3rem"] {
+    font-size: 1.5rem !important;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <div class="container">

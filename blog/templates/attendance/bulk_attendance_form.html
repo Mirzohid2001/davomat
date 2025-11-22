@@ -52,26 +52,154 @@
         </tbody>
       </table>
     </div>
-    <div class="mt-3">
-      <button class="btn btn-success px-4" type="submit">Saqlash</button>
-      <a href="{% url 'attendance_list' %}" class="btn btn-secondary ms-2 px-4">Bekor qilish</a>
+    <div class="mt-3 d-grid gap-2">
+      <button class="btn btn-success" type="submit">Saqlash</button>
+      <a href="{% url 'attendance_list' %}" class="btn btn-secondary">Bekor qilish</a>
     </div>
 </form>
 <style>
+/* Bulk attendance form responsive */
+.form-select,
+.form-control {
+  min-width: 90px;
+  max-width: 100%;
+}
+
+textarea.form-control {
+  min-height: 38px;
+  max-height: 80px;
+  resize: vertical;
+}
+
+input[type="file"].form-control {
+  padding: 2px 4px;
+  font-size: 0.95em;
+  height: 32px;
+}
+
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .alert {
+    font-size: 0.9rem;
+    padding: 12px 15px;
+  }
+  
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .table {
+    min-width: 700px;
+    font-size: 0.9rem;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .table th {
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
   .form-select,
   .form-control {
-    min-width: 90px;
-    max-width: 100%;
+    font-size: 0.85rem;
+    padding: 6px 8px;
+    min-width: 80px;
   }
+  
   textarea.form-control {
-    min-height: 38px;
-    max-height: 80px;
-    resize: vertical;
+    min-height: 35px;
+    max-height: 70px;
+    font-size: 0.85rem;
   }
+  
   input[type="file"].form-control {
+    font-size: 0.8rem;
+    height: 30px;
     padding: 2px 4px;
-    font-size: 0.95em;
-    height: 32px;
   }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .mt-3 {
+    margin-top: 15px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .table {
+    min-width: 600px;
+    font-size: 0.85rem;
+  }
+  
+  .table th, .table td {
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+  
+  .table th {
+    font-size: 0.75rem;
+  }
+  
+  .form-select,
+  .form-control {
+    font-size: 0.8rem;
+    padding: 5px 6px;
+    min-width: 70px;
+  }
+  
+  textarea.form-control {
+    min-height: 32px;
+    max-height: 60px;
+    font-size: 0.8rem;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .table {
+    min-width: 550px;
+    font-size: 0.8rem;
+  }
+  
+  .table th, .table td {
+    padding: 5px 3px;
+    font-size: 0.75rem;
+  }
+  
+  .form-select,
+  .form-control {
+    font-size: 0.75rem;
+    padding: 4px 5px;
+    min-width: 60px;
+  }
+}
 </style>
 {% endblock %}

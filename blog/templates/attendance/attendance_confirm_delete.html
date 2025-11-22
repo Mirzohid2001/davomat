@@ -90,8 +90,10 @@
       <p>Bu yozuvni rostdan ham o‘chirmoqchimisiz?</p>
       <form method="post">
         {% csrf_token %}
-        <button class="btn btn-danger">Ha, o‘chirish</button>
-        <a href="{% url 'attendance_list' %}" class="btn btn-secondary ms-2">Bekor qilish</a>
+        <div class="d-grid gap-2">
+          <button class="btn btn-danger">Ha, o'chirish</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
       </form>
     </div>
   </div>

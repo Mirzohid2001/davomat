@@ -249,12 +249,37 @@
   .list-header {
     flex-direction: column;
     align-items: flex-start;
+    padding: 1rem;
+  }
+  
+  .list-header h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
   }
   
   .list-header .btn-group {
     margin-top: 0.75rem;
     width: 100%;
     justify-content: space-between;
+  }
+  
+  .list-header .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .list-filter {
+    padding: 0.75rem;
+  }
+  
+  .list-filter .row {
+    margin: 0;
+  }
+  
+  .list-filter .col-md-4,
+  .list-filter .col-md-5,
+  .list-filter .col-md-3 {
+    margin-bottom: 0.75rem;
   }
   
   .list-table {
@@ -273,5 +298,139 @@
   .list-table .btn-sm {
     padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
+  }
+  
+  /* Mobile card layout for tables */
+  .table-responsive {
+    position: relative;
+  }
+  
+  /* Hide table on very small screens, show cards instead */
+  @media (max-width: 480px) {
+    .table-responsive .table {
+      display: none;
+    }
+  }
+}
+
+/* Mobile card styles for table data */
+.mobile-cards {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .mobile-cards {
+    display: block;
+  }
+  
+  .mobile-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+  
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .mobile-card-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark-color);
+  }
+  
+  .mobile-card-body {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .mobile-card-body > div {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .mobile-card-body strong {
+    min-width: 80px;
+    color: var(--dark-color);
+    margin-right: 8px;
+  }
+  
+  .mobile-card-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .mobile-card-actions .btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 481px) {
+  .mobile-cards {
+    display: none !important;
+  }
+}
+
+/* Enhanced table responsiveness */
+@media (max-width: 768px) {
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    border-radius: var(--border-radius);
+  }
+  
+  .table {
+    min-width: 600px;
+  }
+  
+  /* Hide less important columns on tablets */
+  .table th:nth-child(n+5),
+  .table td:nth-child(n+5) {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .table {
+    min-width: 500px;
+  }
+  
+  /* Hide more columns on phones */
+  .table th:nth-child(n+4),
+  .table td:nth-child(n+4) {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .table {
+    min-width: 450px;
+  }
+  
+  /* Show only essential columns */
+  .table th:nth-child(n+3),
+  .table td:nth-child(n+3) {
+    display: none;
   }
 }

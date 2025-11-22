@@ -1,5 +1,112 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Davomat export qilish{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Export page responsive */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .row.justify-content-center {
+    margin: 0;
+  }
+  
+  .col-md-8, .col-lg-6 {
+    padding: 0 10px;
+  }
+  
+  .card.p-4 {
+    padding: 20px 15px !important;
+  }
+  
+  h5 {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  
+  .row.mb-3 {
+    margin: 0;
+  }
+  
+  .col-md-6 {
+    margin-bottom: 15px;
+    padding: 0 7.5px;
+  }
+  
+  .col-md-6:last-child {
+    margin-bottom: 0;
+  }
+  
+  .form-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .bg-light {
+    padding: 15px !important;
+    margin-top: 20px !important;
+  }
+  
+  h6 {
+    font-size: 1rem;
+  }
+  
+  .small {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .card.p-4 {
+    padding: 15px 12px !important;
+  }
+  
+  h5 {
+    font-size: 1.1rem;
+  }
+  
+  .form-control, .form-select {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .bg-light {
+    padding: 12px !important;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <h2 class="mb-4" data-aos="fade-right" data-aos-duration="600">Excel export qilish</h2>
 

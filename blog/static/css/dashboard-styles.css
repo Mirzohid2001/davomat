@@ -361,7 +361,11 @@
   border-radius: 10px;
 }
 
-/* Responsive adjustments */
+/* ============================================
+   RESPONSIVE ADJUSTMENTS - DASHBOARD
+   ============================================ */
+
+/* Large devices (desktops, 992px and up) */
 @media (max-width: 992px) {
   .dashboard-header {
     padding: 1.25rem;
@@ -370,8 +374,26 @@
   .stats-card {
     margin-bottom: 1rem;
   }
+  
+  .stats-card .card-header {
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+  }
+  
+  .stats-card .card-body {
+    padding: 1.2rem;
+  }
+  
+  .stats-number {
+    font-size: 2rem;
+  }
+  
+  .stats-icon {
+    font-size: 2.5rem;
+  }
 }
 
+/* Medium devices (tablets, 768px and up) */
 @media (max-width: 768px) {
   .dashboard-header {
     padding: 1rem;
@@ -382,10 +404,18 @@
     font-size: 1.5rem;
   }
   
+  .dashboard-header p {
+    font-size: 0.9rem;
+  }
+  
   .dashboard-header .d-flex {
     flex-direction: column;
     align-items: flex-start !important;
     gap: 15px;
+  }
+  
+  .dashboard-header .d-flex > div:last-child {
+    width: 100%;
   }
   
   .action-btn {
@@ -393,9 +423,24 @@
     font-size: 0.9rem;
     width: 100%;
     justify-content: center;
+    margin-top: 10px;
   }
   
   .stats-card {
+    margin-bottom: 15px;
+  }
+  
+  .stats-card .card-header {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .stats-card .card-header i {
+    font-size: 1.1rem;
+    margin-right: 8px;
+  }
+  
+  .stats-card .card-body {
     padding: 1rem;
   }
   
@@ -403,10 +448,25 @@
     width: 40px;
     height: 40px;
     font-size: 1.25rem;
+    margin-bottom: 0.75rem;
   }
   
   .stats-card .card-value {
     font-size: 1.5rem;
+  }
+  
+  .stats-number {
+    font-size: 1.8rem;
+  }
+  
+  .stats-icon {
+    font-size: 2rem;
+  }
+  
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    margin: 3px;
   }
   
   .timeline {
@@ -415,24 +475,270 @@
   
   .timeline-item:before {
     left: -1.5rem;
+    width: 10px;
+    height: 10px;
+  }
+  
+  .timeline-content {
+    padding: 0.85rem;
+  }
+  
+  .employee-list li {
+    padding: 8px 0;
+    font-size: 0.9rem;
+  }
+  
+  .not-filled-container {
+    max-height: 180px;
+  }
+  
+  .quick-actions {
+    padding: 1rem;
+  }
+  
+  .quick-actions h5 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
   }
 }
 
+/* Small devices (landscape phones, 576px and up) */
 @media (max-width: 576px) {
+  .dashboard-header {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .dashboard-header p {
+    font-size: 0.85rem;
+  }
+  
   .dashboard-header .d-flex {
-    text-align: center;
+    text-align: left;
+    gap: 12px;
   }
   
   .action-btn {
     font-size: 0.85rem;
     padding: 8px 16px;
+    width: 100%;
+  }
+  
+  .action-btn i {
+    font-size: 1em;
+    margin-right: 6px;
+  }
+  
+  .stats-card {
+    margin-bottom: 12px;
+  }
+  
+  .stats-card .card-header {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .stats-card .card-header i {
+    font-size: 1rem;
+    margin-right: 6px;
+  }
+  
+  .stats-card .card-body {
+    padding: 0.8rem;
+  }
+  
+  .stats-card .card-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stats-card .card-value {
+    font-size: 1.3rem;
+  }
+  
+  .stats-card .card-title {
+    font-size: 0.8rem;
+  }
+  
+  .stats-number {
+    font-size: 1.5rem;
+  }
+  
+  .stats-icon {
+    font-size: 1.8rem;
+    bottom: 8px;
+    right: 8px;
   }
   
   .stats-card .card-bg-icon {
     font-size: 4rem;
+    bottom: -10px;
+    right: -10px;
+  }
+  
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 5px 8px;
+    margin: 2px;
+  }
+  
+  .timeline {
+    padding-left: 1.2rem;
+  }
+  
+  .timeline-item {
+    padding-bottom: 1rem;
+  }
+  
+  .timeline-item:before {
+    left: -1.2rem;
+    width: 8px;
+    height: 8px;
   }
   
   .timeline-content {
     padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .timeline-title {
+    font-size: 0.95rem;
+  }
+  
+  .timeline-time {
+    font-size: 0.75rem;
+  }
+  
+  .employee-list li {
+    padding: 6px 0;
+    font-size: 0.85rem;
+  }
+  
+  .not-filled-container {
+    max-height: 150px;
+  }
+  
+  .not-filled-container .badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+  
+  .quick-actions {
+    padding: 0.85rem;
+  }
+  
+  .quick-actions h5 {
+    font-size: 0.95rem;
+  }
+  
+  .list-group-item {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .list-group-item i {
+    font-size: 0.9rem;
+    margin-right: 6px;
+  }
+}
+
+/* Extra small devices (portrait phones, less than 400px) */
+@media (max-width: 400px) {
+  .dashboard-header {
+    padding: 12px;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .dashboard-header p {
+    font-size: 0.8rem;
+  }
+  
+  .action-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .stats-card .card-header {
+    padding: 0.7rem;
+    font-size: 0.85rem;
+  }
+  
+  .stats-card .card-body {
+    padding: 0.7rem;
+  }
+  
+  .stats-card .card-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+  
+  .stats-card .card-value {
+    font-size: 1.2rem;
+  }
+  
+  .stats-number {
+    font-size: 1.3rem;
+  }
+  
+  .stats-icon {
+    font-size: 1.5rem;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+    margin: 1px;
+  }
+  
+  .timeline-content {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .employee-list li {
+    font-size: 0.8rem;
+    padding: 5px 0;
+  }
+  
+  .not-filled-container {
+    max-height: 120px;
+  }
+  
+  .quick-actions {
+    padding: 0.75rem;
+  }
+  
+  .list-group-item {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .dashboard-header {
+    padding: 10px 15px;
+  }
+  
+  .stats-card .card-body {
+    padding: 0.75rem;
+  }
+  
+  .stats-number {
+    font-size: 1.4rem;
+  }
+  
+  .not-filled-container {
+    max-height: 100px;
   }
 }

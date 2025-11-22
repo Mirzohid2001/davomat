@@ -1,5 +1,103 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Davomat import qilish{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Import page responsive */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .row.justify-content-center {
+    margin: 0;
+  }
+  
+  .col-md-6, .col-lg-5 {
+    padding: 0 10px;
+  }
+  
+  .card {
+    margin: 0;
+  }
+  
+  .card.p-4 {
+    padding: 20px 15px !important;
+  }
+  
+  .form-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .form-control {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .btn i {
+    margin-right: 5px;
+  }
+  
+  hr {
+    margin: 20px 0;
+  }
+  
+  small {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  
+  code {
+    font-size: 0.8rem;
+    padding: 8px;
+    display: block;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-top: 8px;
+    word-break: break-all;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .card.p-4 {
+    padding: 15px 12px !important;
+  }
+  
+  .form-control {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  code {
+    font-size: 0.75rem;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <h2 class="mb-4">Excel/CSV dan import qilish</h2>
 <div class="row justify-content-center">
@@ -11,14 +109,18 @@
           <label class="form-label">Faylni tanlang (Excel yoki CSV)</label>
           {{ form.file }}
         </div>
-        <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Import qilish</button>
-        <a href="{% url 'attendance_list' %}" class="btn btn-secondary ms-2">Ortga</a>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Import qilish</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-secondary">Ortga</a>
+        </div>
       </form>
       <hr>
-      <small class="text-muted">
-        <b>Namuna (header):</b><br>
-        <code>last_name,first_name,date,status,comment</code>
-      </small>
+      <div class="mt-3">
+        <small class="text-muted">
+          <b>Namuna (header):</b><br>
+          <code>last_name,first_name,date,status,comment</code>
+        </small>
+      </div>
     </div>
   </div>
 </div>

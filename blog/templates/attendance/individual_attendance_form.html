@@ -3,6 +3,113 @@
 
 {% block title %}Davomat kiritish - {{ employee }}{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Individual attendance form responsive */
+@media (max-width: 768px) {
+  .container.mt-4 {
+    padding: 0 10px;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+  
+  .badge {
+    display: block;
+    width: fit-content;
+    margin: 5px 0;
+  }
+  
+  .card-header .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  
+  .card-header .btn-sm {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .card-body .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .card-body .d-flex.justify-content-between > div {
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .form-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .form-select, .form-control {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+  
+  textarea.form-control {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+  
+  .card-header {
+    padding: 12px 15px;
+  }
+  
+  .card-body {
+    padding: 15px 12px;
+  }
+  
+  .form-select, .form-control {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .form-select, .form-control {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">

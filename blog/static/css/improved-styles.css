@@ -370,7 +370,19 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
   box-shadow: 0 5px 10px rgba(0,0,0,0.1);
 }
 
-/* Responsive adjustments */
+/* ============================================
+   RESPONSIVE DESIGN - MAXIMUM ADAPTIVITY
+   ============================================ */
+
+/* Extra Large devices (large desktops, 1200px and up) */
+@media (max-width: 1400px) {
+  .container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
 @media (max-width: 1200px) {
   .stats-number {
     font-size: 1.8rem;
@@ -379,73 +391,383 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
   .stats-icon {
     font-size: 2.5rem;
   }
+  
+  .container-fluid {
+    padding: 10px 15px;
+  }
+  
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .table th, .table td {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
 }
 
+/* Medium devices (tablets, 768px and up) */
 @media (max-width: 992px) {
+  /* Navigation improvements */
   .navbar-collapse {
     background-color: rgba(58, 12, 163, 0.98);
     border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
+    padding: 15px;
+    margin-top: 15px;
     box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
   }
   
+  .navbar-nav {
+    width: 100%;
+  }
+  
+  .nav-link {
+    padding: 10px 15px;
+    margin: 3px 0;
+    border-radius: 8px;
+    display: block;
+  }
+  
+  .nav-link i {
+    width: 20px;
+    text-align: center;
+  }
+  
+  .dropdown-menu {
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  /* Cards */
   .stats-card .card-header {
     padding: 1rem 1.2rem;
+    font-size: 1rem;
   }
   
   .stats-card .card-body {
     padding: 1.2rem;
   }
   
+  .card-body {
+    padding: 15px;
+  }
+  
+  /* Charts */
   .chart-container {
     height: 240px;
   }
-}
-
-@media (max-width: 768px) {
-  .navbar-brand {
-    font-size: 1.3rem;
+  
+  /* Tables */
+  .table-responsive {
+    font-size: 0.9rem;
+    -webkit-overflow-scrolling: touch;
   }
   
+  .table th, .table td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+  
+  /* Buttons */
+  .btn-group-vertical .btn {
+    margin-bottom: 5px;
+    width: 100%;
+  }
+  
+  /* Forms */
+  .form-control, .form-select {
+    font-size: 0.95rem;
+  }
+  
+  /* Headers */
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (max-width: 768px) {
+  /* Navigation */
+  .navbar {
+    padding: 10px 0;
+  }
+  
+  .navbar-brand {
+    font-size: 1.1rem;
+    padding: 5px 0;
+  }
+  
+  .navbar-toggler {
+    padding: 4px 8px;
+    font-size: 1rem;
+  }
+  
+  .nav-link {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  /* Headers */
   .stats-header {
-    padding: 20px;
+    padding: 20px 15px;
     margin-bottom: 20px;
   }
   
-  .filter-form {
+  .stats-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .attendance-header {
     padding: 15px;
+  }
+  
+  .attendance-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .form-header {
+    padding: 15px;
+  }
+  
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  /* Cards */
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .stats-card .card-body {
+    padding: 1rem;
   }
   
   .stats-number {
     font-size: 1.5rem;
   }
   
-  .table th, .table td {
-    padding: 10px 12px;
+  .stats-icon {
+    font-size: 2rem;
   }
   
-  .card-header {
-    padding: 12px 15px;
+  /* Tables */
+  .table-responsive {
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .table {
+    min-width: 600px;
+    font-size: 0.85rem;
+  }
+  
+  .table th, .table td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .table th {
+    font-size: 0.8rem;
+    padding: 8px 6px;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .btn-group {
+    flex-wrap: wrap;
+  }
+  
+  .btn-group .btn {
+    margin: 2px;
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  
+  /* Forms */
+  .filter-form {
+    padding: 15px;
+  }
+  
+  .form-control, .form-select {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  /* Charts */
+  .chart-container {
+    height: 220px;
+    padding: 10px;
+  }
+  
+  /* Modals */
+  .modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .modal-content {
+    border-radius: 10px;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+  
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    margin: 3px;
+  }
+  
+  /* Footer */
+  .footer {
+    padding: 15px 0;
+    font-size: 0.85rem;
+  }
+  
+  /* Flex utilities */
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  
+  .d-flex.justify-content-between > * {
+    width: 100%;
+  }
+  
+  /* Grid improvements */
+  .row {
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+  
+  .row > * {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* Spacing */
+  .mb-3, .mb-4, .mb-5 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mt-3, .mt-4, .mt-5 {
+    margin-top: 1rem !important;
   }
 }
 
+/* Extra small devices (portrait phones, less than 576px) */
 @media (max-width: 576px) {
-  .navbar-brand {
-    font-size: 1.2rem;
+  /* Navigation */
+  .navbar {
+    padding: 8px 0;
   }
   
-  .footer {
+  .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  .navbar-toggler {
+    padding: 3px 6px;
+    font-size: 0.9rem;
+  }
+  
+  .nav-link {
+    padding: 8px 10px;
     font-size: 0.85rem;
-    padding: 15px 0;
+  }
+  
+  /* Headers */
+  .stats-header {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .stats-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .stats-header p {
+    font-size: 0.85rem;
+  }
+  
+  .attendance-header {
+    padding: 12px;
+  }
+  
+  .attendance-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .form-header {
+    padding: 12px;
+  }
+  
+  .form-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+  h4 { font-size: 1rem; }
+  
+  /* Cards */
+  .card {
+    margin-bottom: 12px;
   }
   
   .card-header {
-    padding: 10px 15px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
   }
   
-  .btn {
-    padding: 6px 14px;
+  .card-body {
+    padding: 12px;
+  }
+  
+  .stats-card .card-header {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .stats-card .card-body {
+    padding: 0.8rem;
   }
   
   .stats-number {
@@ -453,15 +775,303 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
   }
   
   .stats-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+  
+  /* Tables */
+  .table {
+    min-width: 500px;
+    font-size: 0.8rem;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .table th {
+    font-size: 0.75rem;
+    padding: 6px 4px;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-group {
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    flex: 1;
+    margin: 2px;
+  }
+  
+  .action-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+  
+  /* Forms */
+  .filter-form {
+    padding: 12px;
+  }
+  
+  .form-control, .form-select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  
+  .form-label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  
+  .input-group-text {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  
+  /* Charts */
+  .chart-container {
+    height: 200px;
+    padding: 8px;
+  }
+  
+  /* Modals */
+  .modal-dialog {
+    margin: 5px;
+    max-width: calc(100% - 10px);
+  }
+  
+  .modal-header {
+    padding: 10px 12px;
+  }
+  
+  .modal-body {
+    padding: 12px;
+  }
+  
+  .modal-footer {
+    padding: 10px 12px;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+  
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 5px 8px;
+    margin: 2px;
+  }
+  
+  /* Footer */
+  .footer {
+    font-size: 0.8rem;
+    padding: 12px 0;
+  }
+  
+  .footer p {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  
+  /* Container */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  /* Spacing */
+  .mb-3 { margin-bottom: 0.75rem !important; }
+  .mb-4 { margin-bottom: 1rem !important; }
+  .mb-5 { margin-bottom: 1.25rem !important; }
+  
+  .mt-3 { margin-top: 0.75rem !important; }
+  .mt-4 { margin-top: 1rem !important; }
+  .mt-5 { margin-top: 1.25rem !important; }
+  
+  /* Toast */
+  .toast {
+    max-width: calc(100% - 20px);
+    margin: 10px;
+  }
+  
+  /* Empty states */
+  .empty-state {
+    padding: 30px 15px;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+  }
+  
+  .empty-state p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Very small devices (less than 400px) */
+@media (max-width: 400px) {
+  /* Navigation */
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
+  
+  .nav-link {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .nav-link i {
+    font-size: 0.9rem;
+    margin-right: 4px;
+  }
+  
+  /* Headers */
+  .stats-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .attendance-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .form-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 1rem; }
+  
+  /* Cards */
+  .card-header {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .card-body {
+    padding: 10px;
+  }
+  
+  .stats-number {
+    font-size: 1.2rem;
+  }
+  
+  .stats-icon {
+    font-size: 1.5rem;
+  }
+  
+  /* Tables */
+  .table {
+    min-width: 450px;
+    font-size: 0.75rem;
+  }
+  
+  .table th, .table td {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+  
+  .table th {
+    font-size: 0.7rem;
+    padding: 5px 3px;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  
+  /* Forms */
+  .form-control, .form-select {
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .form-label {
+    font-size: 0.8rem;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+  
+  /* Footer */
+  .footer {
+    font-size: 0.75rem;
+    padding: 10px 0;
+  }
+  
+  /* Container */
+  .container {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .navbar {
+    padding: 5px 0;
+  }
+  
+  .stats-header {
+    padding: 12px;
+  }
+  
+  .card-header {
+    padding: 10px;
   }
   
   .chart-container {
-    height: 200px;
+    height: 180px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar, .footer, .btn, .action-btn {
+    display: none !important;
   }
   
-  .table-responsive {
-    border-radius: var(--border-radius);
-    overflow: hidden;
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .table {
+    font-size: 0.8rem;
   }
 }

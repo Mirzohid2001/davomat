@@ -138,12 +138,37 @@
     margin-bottom: 1.2rem;
   }
   
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .form-card {
+    margin-bottom: 1rem;
+  }
+  
   .form-card form {
     padding: 1.2rem;
   }
   
   .form-card .btn {
     padding: 0.7rem 1.3rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-card .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .form-card .btn-group .btn {
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .form-card input,
+  .form-card select,
+  .form-card textarea {
+    font-size: 0.95rem;
   }
 }
 
@@ -154,7 +179,7 @@
   }
   
   .form-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   
   .form-card form {
@@ -163,16 +188,95 @@
   
   .form-card .btn {
     padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-card .btn:last-child {
+    margin-bottom: 0;
   }
   
   .form-card input,
   .form-card select,
   .form-card textarea {
     padding: 0.6rem 0.8rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    width: 100%;
   }
   
   .form-group {
     margin-bottom: 1rem;
+  }
+  
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .form-check {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .form-check-input {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  
+  .form-check-label {
+    font-size: 0.9rem;
+  }
+  
+  .input-group {
+    flex-direction: column;
+  }
+  
+  .input-group-text {
+    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+  }
+  
+  .input-group .form-control {
+    border-radius: 0 0 10px 10px;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .d-flex.justify-content-between > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .form-header {
+    padding: 0.75rem;
+  }
+  
+  .form-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .form-card form {
+    padding: 0.75rem;
+  }
+  
+  .form-card .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .form-card input,
+  .form-card select,
+  .form-card textarea {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  
+  .form-label {
+    font-size: 0.85rem;
   }
 }
