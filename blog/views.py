@@ -858,6 +858,7 @@ def export_salary_statistics_excel(request):
     office_stats = [s for s in stats if s.employee.employee_type == 'office']
     weekly_stats = [s for s in stats if s.employee.employee_type == 'weekly']
     guard_stats = [s for s in stats if s.employee.employee_type == 'guard']
+    non_office_stats = [s for s in stats if s.employee.employee_type != 'office']
     
     # Chegara va ramkalar stili
     thin_border = Border(
@@ -1080,44 +1081,253 @@ def export_salary_statistics_excel(request):
         # ❄️ Freeze panes
         worksheet.freeze_panes = 'A5'
     
-    # Xodim turlariga qarab worksheetlar yaratish
-    # Avval default worksheet o'chirish
+    # Guruhlash bilan worksheet yaratish funksiyasi (BARCHA XODIMLAR uchun)
+    def create_grouped_worksheet(worksheet, title, all_stats, color_bg='2C3E50', color_accent='34495E'):
+        # Sarlavha
+        worksheet.merge_cells('A1:H2')
+        title_cell = worksheet.cell(row=1, column=1)
+        title_cell.value = f"ISOMER OIL - {title} ({year}-{month:02d})"
+        title_cell.font = Font(name='Arial', bold=True, size=14, color='FFFFFF')
+        title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        title_cell.fill = PatternFill(start_color=color_bg, end_color=color_bg, fill_type='solid')
+        
+        # Sarlavha uchun ramka
+        for col in range(1, 9):
+            for row in range(1, 3):
+                cell = worksheet.cell(row=row, column=col)
+                cell.fill = PatternFill(start_color=color_bg, end_color=color_bg, fill_type='solid')
+                cell.border = Border(
+                    left=Side(style='thin', color='000000'),
+                    right=Side(style='thin', color='000000'),
+                    top=Side(style='thin', color='000000'),
+                    bottom=Side(style='thin', color='000000')
+                )
+        
+        # Ustun sarlavhalari
+        headers = [
+            "Xodim", "Oylik", "Valyuta", "Kelgan/Jami", 
+            "Foiz", "Hisoblangan", "To'langan", "Bonus"
+        ]
+        
+        for col, header in enumerate(headers, 1):
+            cell = worksheet.cell(row=4, column=col)
+            cell.value = header
+            cell.font = Font(name='Arial', bold=True, size=11, color='000000')
+            cell.fill = PatternFill(start_color='E8E8E8', end_color='E8E8E8', fill_type='solid')
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = Border(
+                left=Side(style='thin', color='000000'),
+                right=Side(style='thin', color='000000'),
+                top=Side(style='thin', color='000000'),
+                bottom=Side(style='thin', color='000000')
+            )
+        
+        # Xodimlarni turlariga qarab guruhlash
+        employee_type_groups = {
+            'full': ('To\'liq stavka xodimlar', '3D5A80'),
+            'half': ('15 kunlik xodimlar', 'FF6B35'),
+            'weekly': ('Haftada 1 kun xodimlar', '6C757D'),
+            'guard': ('Qorovul xodimlar', 'DC3545'),
+            'office': ('Ofis xodimlari', '7209B7'),
+        }
+        
+        current_row = 5
+        all_currency_totals = {}
+        
+        # Har bir guruh uchun
+        for emp_type, (group_title, group_color) in employee_type_groups.items():
+            group_stats = [s for s in all_stats if s.employee.employee_type == emp_type]
+            
+            if not group_stats:
+                continue
+            
+            # Guruh sarlavhasi
+            worksheet.merge_cells(f'A{current_row}:H{current_row}')
+            group_header = worksheet.cell(row=current_row, column=1)
+            group_header.value = group_title.upper()
+            group_header.font = Font(name='Arial', bold=True, size=12, color='FFFFFF')
+            group_header.fill = PatternFill(start_color=group_color, end_color=group_color, fill_type='solid')
+            group_header.alignment = Alignment(horizontal='center', vertical='center')
+            group_header.border = Border(
+                left=Side(style='thin', color='000000'),
+                right=Side(style='thin', color='000000'),
+                top=Side(style='thin', color='000000'),
+                bottom=Side(style='thin', color='000000')
+            )
+            current_row += 1
+            
+            # Guruh xodimlari
+            for stat in group_stats:
+                # Kelish foizini hisoblash
+                if hasattr(stat, 'working_days_in_month') and stat.working_days_in_month > 0:
+                    percentage = (stat.worked_days / stat.working_days_in_month) * 100
+                else:
+                    percentage = 0
+                
+                # Ma'lumotlarni formatlash
+                row_data = [
+                    f"{stat.employee.last_name} {stat.employee.first_name}",
+                    float(stat.salary),
+                    stat.currency.upper() if stat.currency else 'UZS',
+                    f"{stat.worked_days}/{stat.working_days_in_month}",
+                    f"{percentage:.1f}%",
+                    float(stat.accrued),
+                    float(stat.paid),
+                    float(stat.bonus) if stat.bonus else 0
+                ]
+                
+                for col, value in enumerate(row_data, 1):
+                    cell = worksheet.cell(row=current_row, column=col)
+                    cell.value = value
+                    
+                    # Ramka
+                    cell.border = Border(
+                        left=Side(style='thin', color='000000'),
+                        right=Side(style='thin', color='000000'),
+                        top=Side(style='thin', color='000000'),
+                        bottom=Side(style='thin', color='000000')
+                    )
+                    
+                    # Stillar
+                    if col == 1:  # Ism
+                        cell.font = Font(name='Arial', size=10)
+                        cell.alignment = Alignment(horizontal='left', vertical='center')
+                    elif col == 3:  # Valyuta
+                        cell.font = Font(name='Arial', bold=True, size=10)
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                    elif col == 4:  # Kelgan/Jami
+                        cell.font = Font(name='Arial', size=10)
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                    elif col == 5:  # Foiz
+                        cell.font = Font(name='Arial', bold=True, size=10)
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                        # Foiz uchun rang
+                        if percentage >= 80:
+                            cell.fill = PatternFill(start_color='E8F5E8', end_color='E8F5E8', fill_type='solid')
+                        elif percentage >= 60:
+                            cell.fill = PatternFill(start_color='FFF8DC', end_color='FFF8DC', fill_type='solid')
+                        else:
+                            cell.fill = PatternFill(start_color='FFE4E1', end_color='FFE4E1', fill_type='solid')
+                    elif col in [2, 6, 7, 8]:  # Pul ustunlari
+                        cell.font = Font(name='Arial', size=10)
+                        cell.alignment = Alignment(horizontal='right', vertical='center')
+                        
+                        # Raqam formati
+                        currency = stat.currency.upper() if stat.currency else 'UZS'
+                        if currency == 'USD':
+                            cell.number_format = '"$" #,##0'
+                        elif currency in ['UZS', 'SUM']:
+                            cell.number_format = '#,##0 "so\'m"'
+                        else:
+                            cell.number_format = f'#,##0 "{currency}"'
+                
+                # Umumiy valyuta hisob-kitobiga qo'shish
+                currency = stat.currency.upper() if stat.currency else 'UZS'
+                if currency not in all_currency_totals:
+                    all_currency_totals[currency] = {'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0, 'bonus': 0}
+                all_currency_totals[currency]['count'] += 1
+                all_currency_totals[currency]['salary'] += float(stat.salary)
+                all_currency_totals[currency]['accrued'] += float(stat.accrued)
+                all_currency_totals[currency]['paid'] += float(stat.paid)
+                all_currency_totals[currency]['bonus'] += float(stat.bonus) if stat.bonus else 0
+                
+                # Zebra chiziqlar
+                if current_row % 2 == 0:
+                    for col in range(1, 9):
+                        cell = worksheet.cell(row=current_row, column=col)
+                        if not cell.fill or cell.fill.start_color.rgb == '00000000':
+                            cell.fill = PatternFill(start_color='F8F8F8', end_color='F8F8F8', fill_type='solid')
+                
+                current_row += 1
+            
+            # Guruhlar orasida bo'sh qator
+            current_row += 1
+        
+        # Ustun kengliklari
+        column_widths = [25, 15, 10, 15, 12, 18, 15, 12]
+        for col, width in enumerate(column_widths, 1):
+            column_letter = get_column_letter(col)
+            worksheet.column_dimensions[column_letter].width = width
+        
+        # Umumiy valyuta hisob-kitobi (oxirida)
+        if all_currency_totals:
+            summary_start_row = current_row + 1
+            worksheet.merge_cells(f'A{summary_start_row}:H{summary_start_row}')
+            summary_header = worksheet.cell(row=summary_start_row, column=1)
+            summary_header.value = "VALYUTA BO'YICHA JAMI (BARCHA XODIMLAR)"
+            summary_header.font = Font(name='Arial', bold=True, size=12, color='FFFFFF')
+            summary_header.fill = PatternFill(start_color=color_bg, end_color=color_bg, fill_type='solid')
+            summary_header.alignment = Alignment(horizontal='center', vertical='center')
+            summary_header.border = Border(
+                left=Side(style='thin', color='000000'),
+                right=Side(style='thin', color='000000'),
+                top=Side(style='thin', color='000000'),
+                bottom=Side(style='thin', color='000000')
+            )
+            
+            # Valyuta sarlavhalari
+            headers = ["Valyuta", "Soni", "Jami oylik", "Hisoblangan", "To'langan", "Bonus", "Qarzdorlik", ""]
+            
+            header_row = summary_start_row + 1
+            for col, header in enumerate(headers, 1):
+                cell = worksheet.cell(row=header_row, column=col)
+                cell.value = header
+                cell.font = Font(name='Arial', bold=True, size=10, color='000000')
+                cell.fill = PatternFill(start_color='D0D0D0', end_color='D0D0D0', fill_type='solid')
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.border = Border(
+                    left=Side(style='thin', color='000000'),
+                    right=Side(style='thin', color='000000'),
+                    top=Side(style='thin', color='000000'),
+                    bottom=Side(style='thin', color='000000')
+                )
+            
+            # Har bir valyuta uchun ma'lumotlar
+            current_summary_row = header_row + 1
+            for currency, totals in sorted(all_currency_totals.items()):
+                debt_amount = totals['accrued'] - totals['paid']
+                
+                currency_data = [
+                    currency, totals['count'], totals['salary'], totals['accrued'],
+                    totals['paid'], totals['bonus'], debt_amount, ""
+                ]
+                
+                for col, value in enumerate(currency_data, 1):
+                    cell = worksheet.cell(row=current_summary_row, column=col)
+                    cell.value = value
+                    cell.font = Font(name='Arial', size=10)
+                    cell.alignment = Alignment(
+                        horizontal='center' if col in [1, 2] else 'right' if col <= 7 else 'left', 
+                        vertical='center'
+                    )
+                    cell.border = Border(
+                        left=Side(style='thin', color='000000'),
+                        right=Side(style='thin', color='000000'),
+                        top=Side(style='thin', color='000000'),
+                        bottom=Side(style='thin', color='000000')
+                    )
+                    
+                    # Pul ustunlari uchun formatlash
+                    if col in [3, 4, 5, 6, 7] and isinstance(value, (int, float)):
+                        if currency == 'USD':
+                            cell.number_format = '"$" #,##0'
+                        elif currency in ['UZS', 'SUM']:
+                            cell.number_format = '#,##0 "so\'m"'
+                        else:
+                            cell.number_format = f'#,##0 "{currency}"'
+                
+                current_summary_row += 1
+        
+        # Freeze panes
+        worksheet.freeze_panes = 'A5'
+    
+    # Faqat bitta list yaratish - BARCHA XODIMLAR (guruhlash bilan)
+    # Default worksheetni o'chirish va yangi yaratish
     wb.remove(wb.active)
     
-    # Kerakli worksheetlarni tartib bilan yaratish
-    worksheets_to_create = []
-    
-    # 1. Umumiy ma'lumot (birinchi bo'lsin)
-    non_office_stats = [s for s in stats if s.employee.employee_type != 'office']
-    if non_office_stats:
-        worksheets_to_create.append(("Umumiy", "Umumiy ma'lumot", non_office_stats, '4A90E2', '2E5C8A'))
-    
-    # 2. Xodim turlari bo'yicha
-    if full_stats:
-        worksheets_to_create.append(("To'liq stavka", "To'liq stavka xodimlar", full_stats, '3D5A80', '293241'))
-    
-    if half_stats:
-        worksheets_to_create.append(("15 kunlik", "15 kunlik xodimlar", half_stats, 'FF6B35', 'E55D2B'))
-    
-    if weekly_stats:
-        worksheets_to_create.append(("Haftada 1 kun", "Haftada 1 kun xodimlar", weekly_stats, '6C757D', '495057'))
-    
-    if guard_stats:
-        worksheets_to_create.append(("Qorovul", "Qorovul xodimlar", guard_stats, 'DC3545', 'C82333'))
-    
-    if office_stats:
-        worksheets_to_create.append(("Ofis", "Ofis xodimlari", office_stats, '7209B7', '560BAD'))
-    
-    # Worksheetlarni yaratish
-    for i, (sheet_name, title, data, bg_color, accent_color) in enumerate(worksheets_to_create):
-        if i == 0:
-            # Birinchi worksheet uchun yangi active sheet yaratish
-            ws = wb.create_sheet(sheet_name)
-            wb.active = ws
-        else:
-            ws = wb.create_sheet(sheet_name)
-        
-        create_worksheet(ws, title, data, bg_color, accent_color)
+    if stats:
+        ws_all = wb.create_sheet("BARCHA XODIMLAR")
+        create_grouped_worksheet(ws_all, "Barcha xodimlar (umumiy)", stats, '2C3E50', '34495E')
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     filename = f"💰_ISOMER_OIL_Oylik_Statistika_{year}_{month:02d}_Professional.xlsx"
