@@ -480,6 +480,18 @@ def individual_attendance_create(request, employee_id=None):
             except ValueError:
                 date_val = date.today()
         
+        # Yopiq kun yoki yakshanba tekshirish (POST uchun ham)
+        is_dayoff = DayOff.objects.filter(date=date_val).exists()
+        is_sunday = date_val.weekday() == 6
+        if is_dayoff or is_sunday:
+            dayoff_reason = DayOff.objects.filter(date=date_val).first()
+            reason = dayoff_reason.reason if dayoff_reason else "Yakshanba"
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'message': f'{date_val.strftime("%d.%m.%Y")} - {reason} kunida davomat o\'zgartirib bo\'lmaydi!'})
+            messages.error(request, f"{date_val.strftime('%d.%m.%Y')} - {reason} kunida davomat o'zgartirib bo'lmaydi!")
+            return redirect('dashboard')
+        
         # Validatsiya
         if not status:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -1747,6 +1759,43 @@ def employee_attendance_history(request, employee_id):
     }
     
     return render(request, 'attendance/employee_attendance_history.html', context)
+
+@login_required
+def get_attendance_data_ajax(request, employee_id):
+    """AJAX orqali davomat ma'lumotlarini olish"""
+    from django.http import JsonResponse
+    
+    employee = get_object_or_404(Employee, id=employee_id, is_active=True)
+    date_str = request.GET.get('date')
+    
+    if not date_str:
+        return JsonResponse({'success': False, 'message': 'Sana ko\'rsatilmagan'})
+    
+    try:
+        date_val = date.fromisoformat(date_str)
+    except ValueError:
+        return JsonResponse({'success': False, 'message': 'Noto\'g\'ri sana formati'})
+    
+    # Davomat ma'lumotini olish
+    attendance = Attendance.objects.filter(employee=employee, date=date_val).first()
+    
+    # Yopiq kun yoki yakshanba tekshirish
+    is_dayoff = DayOff.objects.filter(date=date_val).exists()
+    is_sunday = date_val.weekday() == 6
+    
+    data = {
+        'success': True,
+        'employee_id': employee.id,
+        'employee_name': f"{employee.last_name} {employee.first_name}",
+        'date': date_str,
+        'status': attendance.status if attendance else '',
+        'comment': attendance.comment if attendance else '',
+        'is_dayoff': is_dayoff,
+        'is_sunday': is_sunday,
+        'dayoff_reason': DayOff.objects.filter(date=date_val).first().reason if is_dayoff else None
+    }
+    
+    return JsonResponse(data)
 
 def get_status_text(status):
     """Status matnini olish"""

@@ -31,5 +31,6 @@ urlpatterns = [
     path('statistics/employee/<int:employee_id>/', views.individual_employee_statistics, name='individual_employee_statistics'),
     path('attendance/edit-history/', views.edit_attendance_history, name='edit_attendance_history'),
     path('attendance/history/<int:employee_id>/', views.employee_attendance_history, name='employee_attendance_history'),
+    path('attendance/get-data/<int:employee_id>/', views.get_attendance_data_ajax, name='get_attendance_data_ajax'),
     path('dashboard/', views.dashboard, name='dashboard'),
 ]

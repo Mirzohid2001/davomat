@@ -428,13 +428,13 @@
                                             </div>
                                         {% else %}
                                             <div class="col p-2">
-                                                <a href="{% url 'individual_attendance_create' employee.id %}?date={{ day_data.date|date:'Y-m-d' }}&next={{ request.get_full_path|urlencode }}" class="text-decoration-none">
-                                                    <div class="card h-100 border-0 shadow-sm day-card" 
-                                                         data-day="{{ day_data.day }}" 
-                                                         data-status="{{ day_data.status }}"
-                                                         data-comment="{{ day_data.comment|default:'' }}"
-                                                         data-date="{{ day_data.date|date:'Y-m-d' }}"
-                                                         style="cursor: pointer; transition: all 0.3s ease;">
+                                                <div class="card h-100 border-0 shadow-sm day-card" 
+                                                     data-day="{{ day_data.day }}" 
+                                                     data-status="{{ day_data.status }}"
+                                                     data-comment="{{ day_data.comment|default:'' }}"
+                                                     data-date="{{ day_data.date|date:'Y-m-d' }}"
+                                                     style="cursor: pointer; transition: all 0.3s ease;"
+                                                     onclick="openAttendanceModal('{{ employee.id }}', '{{ day_data.date|date:'Y-m-d' }}')">
                                                     <div class="card-body text-center p-2">
                                                         <h6 class="card-title mb-1 fw-bold">{{ day_data.day }}</h6>
                                                         <span class="badge 
@@ -454,7 +454,6 @@
                                                         {% endif %}
                                                     </div>
                                                 </div>
-                                                </a>
                                             </div>
                                         {% endif %}
                                     {% endfor %}
@@ -533,11 +532,201 @@
     </div>
 </div>
 
+<!-- Davomat o'zgartirish modali -->
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="attendanceModalLabel">
+                    <i class="bi bi-calendar-check"></i> Davomat o'zgartirish
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Yuklanmoqda...</span>
+                    </div>
+                </div>
+                <div id="modalContent" style="display: none;">
+                    <div id="modalAlert" class="alert alert-warning" style="display: none;"></div>
+                    <form id="attendanceForm">
+                        {% csrf_token %}
+                        <input type="hidden" id="modalEmployeeId" name="employee_id">
+                        <input type="hidden" id="modalDate" name="date">
+                        
+                        <div class="mb-3">
+                            <label for="modalStatus" class="form-label fw-bold">Davomat holati:</label>
+                            <select name="status" id="modalStatus" class="form-select" required>
+                                <option value="">-- Tanlang --</option>
+                                <option value="present">Keldi</option>
+                                <option value="absent">Kelmagan</option>
+                                <option value="late">Kechikdi</option>
+                                <option value="vacation">Ta'til</option>
+                                <option value="sick">Kasal</option>
+                                <option value="business">Ish safarida</option>
+                                <option value="offday">Ish kuni emas</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="modalComment" class="form-label fw-bold">Izoh/sabab:</label>
+                            <textarea name="comment" id="modalComment" class="form-control" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="button" class="btn btn-primary" id="saveAttendanceBtn" onclick="saveAttendance()">
+                    <i class="bi bi-save"></i> Saqlash
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_scripts %}
 <script>
+// Davomat modali funksiyalari
+function openAttendanceModal(employeeId, date) {
+    const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+    const modalContent = document.getElementById('modalContent');
+    const modalLoading = document.getElementById('modalLoading');
+    const modalAlert = document.getElementById('modalAlert');
+    
+    // Modalni ochish
+    modal.show();
+    
+    // Loading ko'rsatish
+    modalContent.style.display = 'none';
+    modalLoading.style.display = 'block';
+    modalAlert.style.display = 'none';
+    
+    // Ma'lumotlarni olish
+    fetch(`/attendance/get-data/${employeeId}/?date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            modalLoading.style.display = 'none';
+            
+            if (data.success) {
+                // Yopiq kun yoki yakshanba tekshirish
+                if (data.is_dayoff || data.is_sunday) {
+                    modalAlert.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${data.is_dayoff ? data.dayoff_reason : 'Yakshanba'} - bu kunda davomat o'zgartirib bo'lmaydi!`;
+                    modalAlert.style.display = 'block';
+                    modalContent.style.display = 'none';
+                    document.getElementById('saveAttendanceBtn').disabled = true;
+                } else {
+                    // Formani to'ldirish
+                    document.getElementById('modalEmployeeId').value = data.employee_id;
+                    document.getElementById('modalDate').value = data.date;
+                    document.getElementById('modalStatus').value = data.status || '';
+                    document.getElementById('modalComment').value = data.comment || '';
+                    
+                    // Status bo'yicha izoh majburiyatini tekshirish
+                    checkCommentRequired();
+                    
+                    modalContent.style.display = 'block';
+                    document.getElementById('saveAttendanceBtn').disabled = false;
+                }
+            } else {
+                modalAlert.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${data.message}`;
+                modalAlert.style.display = 'block';
+                modalContent.style.display = 'none';
+                document.getElementById('saveAttendanceBtn').disabled = true;
+            }
+        })
+        .catch(error => {
+            modalLoading.style.display = 'none';
+            modalAlert.innerHTML = `<i class="bi bi-exclamation-circle"></i> Xatolik yuz berdi: ${error.message}`;
+            modalAlert.style.display = 'block';
+            modalContent.style.display = 'none';
+            document.getElementById('saveAttendanceBtn').disabled = true;
+        });
+}
+
+function checkCommentRequired() {
+    const statusSelect = document.getElementById('modalStatus');
+    const commentField = document.getElementById('modalComment');
+    const selectedStatus = statusSelect.value;
+    
+    if (['absent', 'sick', 'vacation'].includes(selectedStatus)) {
+        commentField.setAttribute('required', 'required');
+        commentField.classList.add('border-warning');
+    } else {
+        commentField.removeAttribute('required');
+        commentField.classList.remove('border-warning');
+    }
+}
+
+function saveAttendance() {
+    const form = document.getElementById('attendanceForm');
+    const statusSelect = document.getElementById('modalStatus');
+    const commentField = document.getElementById('modalComment');
+    const saveBtn = document.getElementById('saveAttendanceBtn');
+    
+    // Validatsiya
+    if (!statusSelect.value) {
+        alert('Iltimos, davomat holatini tanlang!');
+        statusSelect.focus();
+        return;
+    }
+    
+    const selectedStatus = statusSelect.value;
+    if (['absent', 'sick', 'vacation'].includes(selectedStatus) && !commentField.value.trim()) {
+        alert('Iltimos, izoh/sabab kiriting!');
+        commentField.focus();
+        return;
+    }
+    
+    // FormData yaratish
+    const formData = new FormData(form);
+    formData.append('status', statusSelect.value);
+    formData.append('comment', commentField.value);
+    
+    // AJAX so'rov
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saqlanmoqda...';
+    
+    fetch(`/attendance/individual/{{ employee.id }}/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Modalni yopish
+            const modal = bootstrap.Modal.getInstance(document.getElementById('attendanceModal'));
+            modal.hide();
+            
+            // Sahifani yangilash
+            location.reload();
+        } else {
+            alert(data.message || 'Xatolik yuz berdi!');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-save"></i> Saqlash';
+        }
+    })
+    .catch(error => {
+        alert('Xatolik yuz berdi: ' + error.message);
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="bi bi-save"></i> Saqlash';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Status o'zgarganda izoh majburiyatini tekshirish
+    const modalStatus = document.getElementById('modalStatus');
+    if (modalStatus) {
+        modalStatus.addEventListener('change', checkCommentRequired);
+    }
+    
     // Kalendar kunlariga hover effekt
     const dayCards = document.querySelectorAll('.day-card');
     
