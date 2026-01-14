@@ -520,21 +520,17 @@ def individual_attendance_create(request, employee_id=None):
                 'dayoff': DayOff.objects.filter(date=date_val).first()
             })
         
-        # Davomat ma'lumotlarini saqlash
+        # Mavjud davomatni qidirish (date_val yangilanganidan keyin)
+        # update_or_create ishlatish - mavjud bo'lsa yangilaydi, yo'q bo'lsa yaratadi
         try:
-            if attendance:
-                # Mavjud davomatni yangilash
-                attendance.status = status
-                attendance.comment = comment
-                attendance.save()
-            else:
-                # Yangi davomat yaratish
-                attendance = Attendance.objects.create(
-                    employee=employee,
-                    date=date_val,
-                    status=status,
-                    comment=comment
-                )
+            attendance, created = Attendance.objects.update_or_create(
+                employee=employee,
+                date=date_val,
+                defaults={
+                    'status': status,
+                    'comment': comment
+                }
+            )
             
             # AJAX request uchun JSON response qaytarish
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
