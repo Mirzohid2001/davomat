@@ -1,22 +1,57 @@
-/* Form specific styles for the attendance system */
+/* Premium Form specific styles for the attendance system */
 :root {
-  /* Using the same variables from improved-styles.css for consistency */
-  --primary-color: #4361ee;
-  --secondary-color: #3a0ca3;
-  --accent-color: #4cc9f0;
-  --success-color: #2ecc71;
-  --warning-color: #f39c12;
-  --danger-color: #e74c3c;
-  --info-color: #3498db;
-  --light-color: #f8f9fa;
-  --dark-color: #343a40;
-  --gradient-primary: linear-gradient(135deg, var(--accent-color), var(--primary-color));
-  --gradient-secondary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
-  --shadow-md: 0 8px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
-  --border-radius: 15px;
-  --transition-speed: 0.3s;
+  /* Modern Color Palette - Premium Blue Theme */
+  --primary-color: #5B6CFF;
+  --primary-dark: #4A5AE8;
+  --secondary-color: #2D3A8B;
+  --accent-color: #00D4FF;
+  --accent-light: #6EE7FF;
+  --success-color: #10B981;
+  --success-light: #34D399;
+  --warning-color: #F59E0B;
+  --warning-light: #FBBF24;
+  --danger-color: #EF4444;
+  --danger-light: #F87171;
+  --info-color: #3B82F6;
+  --info-light: #60A5FA;
+  --light-color: #F8FAFC;
+  --light-gray: #E2E8F0;
+  --dark-color: #1E293B;
+  --dark-gray: #475569;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  
+  /* Modern Gradients */
+  --gradient-primary: linear-gradient(135deg, #5B6CFF 0%, #4A5AE8 50%, #3B4AD1 100%);
+  --gradient-secondary: linear-gradient(135deg, #2D3A8B 0%, #1E2A6B 100%);
+  --gradient-accent: linear-gradient(135deg, #00D4FF 0%, #00B8E6 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  
+  /* Enhanced Shadows */
+  --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-colored: 0 10px 30px -5px rgba(91, 108, 255, 0.3);
+  
+  /* Modern Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+  --border-radius: var(--radius-lg);
+  
+  /* Smooth Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-speed: var(--transition-base);
 }
 
 /* Form header styling */
