@@ -350,12 +350,17 @@
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
             <td>
                 <span class="badge 
-                    {% if stat.employee.employee_type == 'office' %}bg-info
+                    {% if stat.employee.role == 'nalivshik' %}bg-dark
+                    {% elif stat.employee.employee_type == 'office' %}bg-info
                     {% elif stat.employee.employee_type == 'half' %}bg-warning
                     {% elif stat.employee.employee_type == 'weekly' %}bg-secondary
                     {% elif stat.employee.employee_type == 'guard' %}bg-danger
-                    {% else %}bg-success{% endif %} text-dark">
-                    {{ stat.employee.get_employee_type_display }}
+                    {% else %}bg-success{% endif %} text-light">
+                    {% if stat.employee.role == 'nalivshik' %}
+                        Nalivshik
+                    {% else %}
+                        {{ stat.employee.get_employee_type_display }}
+                    {% endif %}
                 </span>
             </td>
             <td>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</td>
@@ -418,12 +423,17 @@
             <div class="mobile-card-header">
                 <div class="mobile-card-name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
                 <span class="badge 
-                    {% if stat.employee.employee_type == 'office' %}bg-info
+                    {% if stat.employee.role == 'nalivshik' %}bg-dark
+                    {% elif stat.employee.employee_type == 'office' %}bg-info
                     {% elif stat.employee.employee_type == 'half' %}bg-warning
                     {% elif stat.employee.employee_type == 'weekly' %}bg-secondary
                     {% elif stat.employee.employee_type == 'guard' %}bg-danger
-                    {% else %}bg-success{% endif %} text-dark">
-                    {{ stat.employee.get_employee_type_display }}
+                    {% else %}bg-success{% endif %} text-light">
+                    {% if stat.employee.role == 'nalivshik' %}
+                        Nalivshik
+                    {% else %}
+                        {{ stat.employee.get_employee_type_display }}
+                    {% endif %}
                 </span>
             </div>
             <div class="mobile-card-body">

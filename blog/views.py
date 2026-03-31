@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team
 from .forms import EmployeeForm, AttendanceForm, BulkAttendanceForm, AttendanceImportForm, DayOffForm
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -14,7 +14,12 @@ from django.db import transaction
 import pandas as pd
 import openpyxl
 from django.http import HttpResponse
-from .services import calculate_monthly_stats, calculate_working_days_in_month
+from .services import (
+    calculate_monthly_stats,
+    calculate_working_days_in_month,
+    generate_nalivshik_attendance_for_day,
+    get_nalivshik_teams_for_date,
+)
 from openpyxl.utils import get_column_letter
 
 from django import forms
@@ -94,6 +99,176 @@ def dashboard(request):
         'stats': stats,
         'best_employees': best_employees,
     })
+
+
+@login_required
+def absence_quota_view(request):
+    """
+    Har bir xodim uchun yillik 21 ta ruxsat etilgan kelmagan kun
+    kvotasidan qanchasi ishlatilgani va qancha qolgani ko'rsatiladigan sahifa.
+    """
+    import datetime as _dt
+
+    today = _dt.date.today()
+    year = int(request.GET.get('year', today.year))
+
+    employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
+    data = []
+    FREE_LIMIT = 21
+
+    for emp in employees:
+        total_absent = Attendance.objects.filter(
+            employee=emp, date__year=year, status="absent"
+        ).count()
+        used = min(total_absent, FREE_LIMIT)
+        left = max(0, FREE_LIMIT - used)
+        over = max(0, total_absent - FREE_LIMIT)
+
+        data.append(
+            {
+                "employee": emp,
+                "total_absent": total_absent,
+                "used": used,
+                "left": left,
+                "over": over,
+            }
+        )
+
+    context = {
+        "year": year,
+        "rows": data,
+        "free_limit": FREE_LIMIT,
+    }
+    return render(request, "attendance/absence_quota.html", context)
+
+
+@login_required
+def absence_quota_export(request):
+    """Kelmagan kun kvotasi jadvalini Excelga eksport."""
+    import datetime as _dt
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+
+    today = _dt.date.today()
+    year = int(request.GET.get("year", today.year))
+
+    employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
+    FREE_LIMIT = 21
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Kvota_{year}"
+
+    # Header
+    headers = [
+        "№",
+        "Familiya",
+        "Ismi",
+        "Lavozim",
+        f"Jami kelmagan ({year})",
+        f"Kvotadan foydalangan (0-{FREE_LIMIT})",
+        "Qolgan kvota",
+        "Limitdan ortiq",
+    ]
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    row_idx = 2
+    for idx, emp in enumerate(employees, start=1):
+        total_absent = Attendance.objects.filter(
+            employee=emp, date__year=year, status="absent"
+        ).count()
+        used = min(total_absent, FREE_LIMIT)
+        left = max(0, FREE_LIMIT - used)
+        over = max(0, total_absent - FREE_LIMIT)
+
+        ws.cell(row=row_idx, column=1, value=idx)
+        ws.cell(row=row_idx, column=2, value=emp.last_name)
+        ws.cell(row=row_idx, column=3, value=emp.first_name)
+        ws.cell(row=row_idx, column=4, value=emp.position)
+        ws.cell(row=row_idx, column=5, value=total_absent)
+        ws.cell(row=row_idx, column=6, value=used)
+        ws.cell(row=row_idx, column=7, value=left)
+        ws.cell(row=row_idx, column=8, value=over)
+        row_idx += 1
+
+    # Autosize columns
+    from openpyxl.utils import get_column_letter
+
+    for col in range(1, len(headers) + 1):
+        max_len = 0
+        col_letter = get_column_letter(col)
+        for cell in ws[col_letter]:
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max_len + 2
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = f"Kelmagan_kun_kvotasi_{year}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response
+
+
+@login_required
+def nalivshik_schedule_view(request):
+    """Nalivshik komandalarining oy bo‘yicha kun/tun jadvali."""
+    import datetime as _dt
+    from calendar import monthrange
+
+    today = _dt.date.today()
+    month_param = request.GET.get('month')
+
+    if month_param:
+        try:
+            year, month = map(int, month_param.split('-'))
+        except ValueError:
+            year, month = today.year, today.month
+    else:
+        year, month = today.year, today.month
+
+    # Komanda nomlarini code bo'yicha olish
+    team_names = {t.code: t.name for t in Team.objects.all()}
+
+    # Hafta kunlari nomlari (uzbekcha)
+    weekday_names_uz = {
+        0: "Dushanba",
+        1: "Seshanba",
+        2: "Chorshanba",
+        3: "Payshanba",
+        4: "Juma",
+        5: "Shanba",
+        6: "Yakshanba",
+    }
+
+    # Oyning barcha kunlari uchun jadval tayyorlash
+    days = []
+    total_days = monthrange(year, month)[1]
+    for d in range(1, total_days + 1):
+        current_date = _dt.date(year, month, d)
+        day_team, night_team = get_nalivshik_teams_for_date(current_date)
+
+        weekday_name = weekday_names_uz.get(current_date.weekday(), "")
+
+        days.append({
+            'date': current_date,
+            'weekday_name': weekday_name,
+            'day_team': day_team,
+            'night_team': night_team,
+            'day_team_name': team_names.get(day_team, f"{day_team}-komanda"),
+            'night_team_name': team_names.get(night_team, f"{night_team}-komanda"),
+        })
+
+    context = {
+        'year': year,
+        'month': month,
+        'days': days,
+    }
+    return render(request, 'attendance/nalivshik_schedule.html', context)
 
 @login_required
 def employee_list(request):
@@ -195,6 +370,11 @@ def bulk_attendance_create(request):
                                     initial=initial_data)
         if formset.is_valid():
             formset.save()
+
+            # Nalivshiklar uchun komanda bo'yicha avtomatik davomat
+            # (faqat umumiy kunlik bulk kiritishdan keyin, yopiq kun/yakshanba emas kunlarda)
+            generate_nalivshik_attendance_for_day(date_val)
+
             messages.success(request, "Davomat muvaffaqiyatli saqlandi!")
             return redirect('attendance_list')
     else:
@@ -777,9 +957,15 @@ def salary_statistics_view(request):
     # Ишчи кунларни ҳисоблаш
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
     
-    # Ҳар бир stat объектига ишчи кунлар сонини қўшиш
+    # Ҳар бир stat объектига "rejadagi ish kunlari" ni qo'shamiz:
+    # - oddiy xodimlar uchun ishchi kunlar (yakshanbasiz)
+    # - nalivshiklar uchun esa o'z komandasi bo'yicha navbatchilik kunlari soni.
+    from .services import calculate_nalivshik_planned_days
     for stat in stats:
-        stat.working_days_in_month = working_days_in_month
+        if stat.employee.role == 'nalivshik':
+            stat.working_days_in_month = calculate_nalivshik_planned_days(year, month, stat.employee)
+        else:
+            stat.working_days_in_month = working_days_in_month
     # Kelmagan kunlar soni va sanalari
     absent_days = {}
     for stat in stats:

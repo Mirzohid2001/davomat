@@ -2,8 +2,32 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.conf import settings
 
+
 def attendance_attachment_path(instance, filename):
     return f"attendance_attachments/{instance.employee.id}/{instance.date}/{filename}"
+
+
+class Team(models.Model):
+    """Nalivshiklar uchun 3 ta komanda (1-kom, 2-kom, 3-kom)."""
+
+    CODE_CHOICES = [
+        (1, "1-komanda"),
+        (2, "2-komanda"),
+        (3, "3-komanda"),
+    ]
+
+    code = models.PositiveSmallIntegerField("Komanda raqami", choices=CODE_CHOICES, unique=True)
+    name = models.CharField("Nomi", max_length=64)
+    description = models.TextField("Izoh", blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Komanda"
+        verbose_name_plural = "Komandalar"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name or f"{self.get_code_display()}"
+
 
 class Employee(models.Model):
     LOCATION_CHOICES = [
@@ -20,7 +44,11 @@ class Employee(models.Model):
         ('weekly', 'Haftada 1 kun (to‘liq stavka)'),
         ('guard', 'Qorovul (oyda 10 kun)'),
     ]
-    
+    ROLE_CHOICES = [
+        ('nalivshik', "Nalivshik"),
+        ('other', "Boshqa"),
+    ]
+
     first_name = models.CharField("Ismi", max_length=64)
     last_name = models.CharField("Familiyasi", max_length=64)
     position = models.CharField("Lavozimi", max_length=128)
@@ -37,6 +65,15 @@ class Employee(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     employee_type = models.CharField("Xodim turi", max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
+    role = models.CharField("Lavozim turi", max_length=32, choices=ROLE_CHOICES, default='other')
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="employees",
+        verbose_name="Komanda",
+    )
 
     class Meta:
         verbose_name = "Xodim"

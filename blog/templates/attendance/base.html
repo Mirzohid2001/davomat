@@ -587,6 +587,11 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'nalivshik_schedule' %}active{% endif %}" href="{% url 'nalivshik_schedule' %}">
+              <i class="bi bi-diagram-3-fill"></i> Nalivshik jadvali
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link {% if 'dayoff' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dayoff_list' %}">
               <i class="bi bi-calendar-x-fill"></i> Yopiq kunlar
             </a>
@@ -599,6 +604,11 @@
               <li>
                 <a class="dropdown-item" href="{% url 'edit_attendance_history' %}">
                   <i class="bi bi-pencil-square me-2"></i> Davomat tahrirlash
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'absence_quota' %}">
+                  <i class="bi bi-calendar-minus me-2"></i> Kelmagan kun kvotasi
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>

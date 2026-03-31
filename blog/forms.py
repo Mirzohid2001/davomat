@@ -50,7 +50,18 @@ class DayOffForm(forms.ModelForm):
 class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
-        fields = ['first_name', 'last_name', 'position', 'department', 'location', 'phone_number', 'is_active', 'employee_type']
+        fields = [
+            'first_name',
+            'last_name',
+            'position',
+            'department',
+            'location',
+            'phone_number',
+            'is_active',
+            'employee_type',
+            'role',
+            'team',
+        ]
 
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:
