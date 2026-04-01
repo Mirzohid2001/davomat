@@ -8,6 +8,7 @@ from .models import (
     AttendanceImportLog,
     Team,
     MonthlyEmployeeStat,
+    NalivshikShiftOverride,
 )
 
 
@@ -71,4 +72,8 @@ class MonthlyEmployeeStatAdmin(ImportExportModelAdmin):
     list_filter = ("year", "month", "currency", "employee__department", "employee__employee_type")
     search_fields = ("employee__first_name", "employee__last_name")
 
-# Add admin for EmployeeType
+@admin.register(NalivshikShiftOverride)
+class NalivshikShiftOverrideAdmin(admin.ModelAdmin):
+    list_display = ("date", "day_team", "night_team", "comment")
+    list_filter = ("day_team", "night_team")
+    search_fields = ("comment",)

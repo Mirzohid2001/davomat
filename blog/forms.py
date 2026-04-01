@@ -1,5 +1,5 @@
 from django import forms
-from .models import Attendance, Employee, DayOff
+from .models import Attendance, Employee, DayOff, NalivshikShiftOverride, Team
 import datetime
 import os
 from .models import MonthlyEmployeeStat
@@ -62,6 +62,18 @@ class EmployeeForm(forms.ModelForm):
             'role',
             'team',
         ]
+
+
+class NalivshikShiftOverrideForm(forms.ModelForm):
+    class Meta:
+        model = NalivshikShiftOverride
+        fields = ["date", "day_team", "night_team", "comment"]
+        widgets = {
+            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "day_team": forms.Select(attrs={"class": "form-select"}),
+            "night_team": forms.Select(attrs={"class": "form-select"}),
+            "comment": forms.TextInput(attrs={"class": "form-control"}),
+        }
 
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:

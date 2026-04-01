@@ -83,6 +83,42 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.position})"
 
+
+class NalivshikShiftOverride(models.Model):
+    """
+    Nalivshiklar uchun avtomatik smena siklini ma'lum sana uchun qo'lda
+    o'zgartirish (override) modeli.
+    """
+
+    date = models.DateField("Sana", unique=True)
+    day_team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        related_name="day_overrides",
+        null=True,
+        blank=True,
+        verbose_name="Kunduzgi komanda",
+    )
+    night_team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        related_name="night_overrides",
+        null=True,
+        blank=True,
+        verbose_name="Tungi komanda",
+    )
+    comment = models.CharField("Izoh", max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Nalivshik smena override"
+        verbose_name_plural = "Nalivshik smena override'lari"
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.date} - kunduzgi: {self.day_team} / tungi: {self.night_team}"
+
 class DayOff(models.Model):
     date = models.DateField(unique=True)
     reason = models.CharField(max_length=128)

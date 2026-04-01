@@ -3,7 +3,7 @@ from calendar import monthrange
 from decimal import Decimal
 from django.db import transaction
 
-from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team
+from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride
 
 
 def calculate_working_days_in_month(year, month):
@@ -75,6 +75,24 @@ def get_nalivshik_teams_for_date(day: date):
 
     Natija: (day_team_code, night_team_code) -> (1/2/3, 1/2/3)
     """
+    # Avval qo'lda kiritilgan override mavjudmi, tekshiramiz
+    override = NalivshikShiftOverride.objects.filter(date=day).select_related("day_team", "night_team").first()
+    if override:
+        day_team_code = override.day_team.code if override.day_team else None
+        night_team_code = override.night_team.code if override.night_team else None
+        # Agar faqat bittasi to'ldirilgan bo'lsa, qolganini avtomatik sikldan olamiz
+        if day_team_code is not None and night_team_code is not None:
+            return day_team_code, night_team_code
+
+        day_start = datetime.combine(day, datetime.min.time()) + timedelta(hours=9)   # 09:00
+        night_start = datetime.combine(day, datetime.min.time()) + timedelta(hours=21)  # 21:00
+
+        auto_day = get_nalivshik_team_for_datetime(day_start)
+        auto_night = get_nalivshik_team_for_datetime(night_start)
+
+        return day_team_code or auto_day, night_team_code or auto_night
+
+    # Override bo'lmasa, avtomatik sikl bo'yicha hisoblaymiz
     day_start = datetime.combine(day, datetime.min.time()) + timedelta(hours=9)   # 09:00
     night_start = datetime.combine(day, datetime.min.time()) + timedelta(hours=21)  # 21:00
 

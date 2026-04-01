@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride
 from .forms import EmployeeForm, AttendanceForm, BulkAttendanceForm, AttendanceImportForm, DayOffForm
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -231,8 +231,90 @@ def nalivshik_schedule_view(request):
     else:
         year, month = today.year, today.month
 
+    # POST orqali ma'lum sana uchun override saqlash
+    if request.method == "POST":
+        date_str = request.POST.get("date")
+        day_team_id = request.POST.get("day_team")
+        night_team_id = request.POST.get("night_team")
+        comment = request.POST.get("comment", "").strip() or None
+
+        try:
+            override_date = _dt.date.fromisoformat(date_str)
+        except Exception:
+            messages.error(request, "Sana formati noto‘g‘ri.")
+        else:
+            day_team = Team.objects.filter(id=day_team_id).first() if day_team_id else None
+            night_team = Team.objects.filter(id=night_team_id).first() if night_team_id else None
+
+            if not day_team and not night_team:
+                messages.error(request, "Hech bo‘lmaganda bitta komanda tanlang.")
+            else:
+                # Tanlangan kun uchun override saqlash
+                NalivshikShiftOverride.objects.update_or_create(
+                    date=override_date,
+                    defaults={
+                        "day_team": day_team,
+                        "night_team": night_team,
+                        "comment": comment,
+                    },
+                )
+
+                # Shu kundan keyingi kunlarni avtomatik tarzda qayta hisoblash
+                # 3 ta komanda mavjud: 1, 2, 3 — har kuni ikkita komanda ishlaydi.
+                # Qoidaga ko‘ra:
+                #   keyingi kun kunduzgi komanda = hozirgi kunda ishlamagan komanda
+                #   keyingi kun tungi komanda = hozirgi kundagi kunduzgi komanda
+                if day_team and night_team and day_team != night_team:
+                    # Komanda kodlari bo‘yicha mapping
+                    all_codes = {1, 2, 3}
+                    teams_by_code = {t.code: t for t in Team.objects.filter(code__in=list(all_codes))}
+
+                    current_day_team = day_team
+                    current_night_team = night_team
+
+                    # Shu oydagi oxirgi sanani topamiz
+                    end_day = monthrange(override_date.year, override_date.month)[1]
+
+                    current_date = override_date
+                    # Faqat shu oydagi keyingi kunlar uchun
+                    while current_date.day < end_day:
+                        current_date = current_date + _dt.timedelta(days=1)
+
+                        used_codes = {current_day_team.code, current_night_team.code}
+                        remaining_codes = list(all_codes - used_codes)
+                        if not remaining_codes:
+                            break  # Noto‘g‘ri kombinatsiya, to‘xtatamiz
+
+                        next_day_code = remaining_codes[0]
+                        next_day_team = teams_by_code.get(next_day_code)
+                        if not next_day_team:
+                            break
+
+                        next_night_team = current_day_team
+
+                        NalivshikShiftOverride.objects.update_or_create(
+                            date=current_date,
+                            defaults={
+                                "day_team": next_day_team,
+                                "night_team": next_night_team,
+                                "comment": comment,
+                            },
+                        )
+
+                        # Keyingi iteratsiya uchun yangilash
+                        current_day_team = next_day_team
+                        current_night_team = next_night_team
+
+                messages.success(
+                    request,
+                    f"{override_date.strftime('%d.%m.%Y')} sanadan boshlab keyingi kunlar jadvali yangilandi!",
+                )
+                # Redirect GET so'rovga qaytish uchun (F5 bosilganda qayta POST bo'lmasin)
+                return redirect(f"{request.path}?month={year}-{month:02d}")
+
     # Komanda nomlarini code bo'yicha olish
-    team_names = {t.code: t.name for t in Team.objects.all()}
+    teams = Team.objects.all()
+    team_names = {t.code: t.name for t in teams}
 
     # Hafta kunlari nomlari (uzbekcha)
     weekday_names_uz = {
@@ -254,19 +336,27 @@ def nalivshik_schedule_view(request):
 
         weekday_name = weekday_names_uz.get(current_date.weekday(), "")
 
-        days.append({
-            'date': current_date,
-            'weekday_name': weekday_name,
-            'day_team': day_team,
-            'night_team': night_team,
-            'day_team_name': team_names.get(day_team, f"{day_team}-komanda"),
-            'night_team_name': team_names.get(night_team, f"{night_team}-komanda"),
-        })
+        override = NalivshikShiftOverride.objects.filter(date=current_date).select_related(
+            "day_team", "night_team"
+        ).first()
+
+        days.append(
+            {
+                "date": current_date,
+                "weekday_name": weekday_name,
+                "day_team": day_team,
+                "night_team": night_team,
+                "day_team_name": team_names.get(day_team, f"{day_team}-komanda") if day_team else "-",
+                "night_team_name": team_names.get(night_team, f"{night_team}-komanda") if night_team else "-",
+                "override": override,
+            }
+        )
 
     context = {
-        'year': year,
-        'month': month,
-        'days': days,
+        "year": year,
+        "month": month,
+        "days": days,
+        "teams": teams,
     }
     return render(request, 'attendance/nalivshik_schedule.html', context)
 

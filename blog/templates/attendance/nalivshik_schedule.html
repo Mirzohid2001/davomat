@@ -25,6 +25,7 @@
                 <th>Hafta kuni</th>
                 <th>Kunduzgi komanda (09:00–21:00)</th>
                 <th>Tungi komanda (21:00–09:00)</th>
+                <th>Tahrirlash</th>
               </tr>
             </thead>
             <tbody>
@@ -47,6 +48,43 @@
                     {% else %}bg-warning text-dark{% endif %}">
                     {{ day.night_team_name }}
                   </span>
+                </td>
+                <td>
+                  <form method="post" class="d-flex flex-wrap justify-content-center align-items-center gap-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
+                    <div class="d-flex gap-1">
+                      <select name="day_team" class="form-select form-select-sm">
+                        {% for team in teams %}
+                          <option value="{{ team.id }}"
+                            {% if day.override and day.override.day_team and team.id == day.override.day_team.id %}
+                              selected
+                            {% elif not day.override and team.code == day.day_team %}
+                              selected
+                            {% endif %}
+                          >
+                            {{ team.name }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                      <select name="night_team" class="form-select form-select-sm">
+                        {% for team in teams %}
+                          <option value="{{ team.id }}"
+                            {% if day.override and day.override.night_team and team.id == day.override.night_team.id %}
+                              selected
+                            {% elif not day.override and team.code == day.night_team %}
+                              selected
+                            {% endif %}
+                          >
+                            {{ team.name }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                      Tahrirlash
+                    </button>
+                  </form>
                 </td>
               </tr>
               {% endfor %}
