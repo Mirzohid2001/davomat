@@ -70,3 +70,5 @@ class MonthlyEmployeeStatAdmin(ImportExportModelAdmin):
     )
     list_filter = ("year", "month", "currency", "employee__department", "employee__employee_type")
     search_fields = ("employee__first_name", "employee__last_name")
+
+# Add admin for EmployeeType
