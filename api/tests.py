@@ -1,9 +1,12 @@
 from django.contrib.auth import get_user_model
+from datetime import date
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
+from blog.models import Attendance, Employee, MonthlyEmployeeStat
 
 User = get_user_model()
 
@@ -53,3 +56,44 @@ class ApiIntegrationTests(APITestCase):
         response = self.client.get(reverse("api-me"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["username"], self.user.username)
+
+    def test_salary_statistics_endpoint_requires_authentication(self):
+        response = self.client.get(reverse("api-salary-statistics"))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_salary_statistics_endpoint_returns_employees_json(self):
+        employee = Employee.objects.create(
+            first_name="Ali",
+            last_name="Valiyev",
+            position="Operator",
+            employee_type="full",
+            role="other",
+            is_active=True,
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=employee,
+            year=2026,
+            month=4,
+            salary=7000000,
+            accrued=7000000,
+            paid=5000000,
+            currency="UZS",
+        )
+        Attendance.objects.create(employee=employee, date=date(2026, 4, 1), status="present")
+        Attendance.objects.create(employee=employee, date=date(2026, 4, 2), status="absent")
+
+        token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        response = self.client.get(f"{reverse('api-salary-statistics')}?year=2026&month=4")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("employees", response.data)
+        self.assertTrue(len(response.data["employees"]) >= 1)
+        first = response.data["employees"][0]
+        self.assertIn("worker_code", first)
+        self.assertIn("full_name", first)
+        self.assertIn("present_days", first)
+        self.assertIn("absent_days", first)
+        self.assertIn("salary", first)
+        self.assertIn("currency", first)
+        self.assertIn("davomat_id", first)
