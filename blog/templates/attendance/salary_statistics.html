@@ -4,26 +4,71 @@
 <style>
 /* Salary statistics responsive styles - MAXIMUM ADAPTIVITY */
 
+/* Desktop: this page should use almost full viewport width */
+@media (min-width: 1200px) {
+  .container.pb-5 {
+    max-width: 98% !important;
+  }
+}
+
+/* Salary table desktop optimization (no horizontal swipe) */
+.salary-table-wrap {
+  width: 100%;
+}
+
+.salary-filters-card .form-label {
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+
+.salary-filters-card .form-control,
+.salary-filters-card .form-select {
+  min-height: 38px;
+}
+
+.salary-table {
+  width: 100%;
+  table-layout: auto;
+}
+
+@media (min-width: 992px) {
+  .salary-table-responsive {
+    overflow-x: visible !important;
+  }
+
+  .salary-table thead th {
+    font-size: 0.8rem;
+    padding: 10px 8px !important;
+    white-space: nowrap;
+  }
+
+  .salary-table td {
+    padding: 8px 6px !important;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+}
+
 /* Tablet and below - show table with horizontal scroll */
 @media (max-width: 992px) {
-  .table-responsive {
+  .salary-table-responsive {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
   
-  .table {
+  .salary-table {
     min-width: 1200px;
     font-size: 0.9rem;
   }
   
-  .table th, .table td {
+  .salary-table th, .salary-table td {
     padding: 10px 8px;
     white-space: nowrap;
   }
   
-  .table thead th {
+  .salary-table thead th {
     font-size: 0.85rem;
     padding: 12px 8px;
   }
@@ -38,7 +83,7 @@
   }
   
   /* Hide table on mobile */
-  .table-responsive {
+  .salary-table-responsive {
     display: none !important;
   }
   
@@ -168,6 +213,31 @@
 
 .mobile-card-actions .btn:last-child {
   margin-bottom: 0;
+}
+
+/* Office rows/cards should stand out clearly */
+.salary-table tbody tr.office-row td {
+  background: #eef8ff !important;
+  border-top: 1px solid #9fd6ff !important;
+  border-bottom: 1px solid #9fd6ff !important;
+}
+
+.salary-table tbody tr.office-row td:first-child {
+  border-left: 4px solid #0ea5e9 !important;
+}
+
+.salary-table tbody tr.office-row td:nth-child(2) {
+  font-weight: 700;
+  color: #0f4c75;
+}
+
+.mobile-card.office-card {
+  border: 2px solid #7dd3fc;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.mobile-card.office-card .mobile-card-header {
+  border-bottom-color: #7dd3fc;
 }
 
 /* Badge styling in cards */
@@ -304,27 +374,71 @@
     <div class="card-header" style="background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%); color: white;">
         <h2 class="mb-0" style="font-size: 1.5rem;">Oylik xodim statistikasi ({{ year }}-{{ month }})</h2>
     </div>
-    <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-3 col-sm-6">
+    <div class="card-body salary-filters-card">
+        <form method="get" class="row g-3 align-items-end" id="salaryFilterForm">
+            <div class="col-lg-2 col-md-3 col-sm-6">
                 <label for="id_year" class="form-label fw-semibold">{{ form.year.label }}</label>
                 {{ form.year }}
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2 col-md-3 col-sm-6">
                 <label for="id_month" class="form-label fw-semibold">{{ form.month.label }}</label>
                 {{ form.month }}
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <label for="filter_q" class="form-label fw-semibold">Qidiruv (F.I.O / lavozim / bo‘lim)</label>
+                <input type="text" id="filter_q" name="q" class="form-control" value="{{ q }}" placeholder="Masalan: Aliyev, nalivshik...">
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label for="filter_employee_type" class="form-label fw-semibold">Xodim turi</label>
+                <select id="filter_employee_type" name="employee_type" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for value, label in employee_type_choices %}
+                    <option value="{{ value }}" {% if selected_employee_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label for="filter_role" class="form-label fw-semibold">Lavozim turi</label>
+                <select id="filter_role" name="role" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for value, label in role_choices %}
+                    <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label for="filter_currency" class="form-label fw-semibold">Valyuta</label>
+                <select id="filter_currency" name="currency" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for value, label in currency_choices %}
+                    <option value="{{ value }}" {% if selected_currency == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label for="filter_location" class="form-label fw-semibold">Lokatsiya</label>
+                <select id="filter_location" name="location" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for value, label in location_choices %}
+                    <option value="{{ value }}" {% if selected_location == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
                 <button type="submit" class="btn btn-primary w-100">Ko'rsatish</button>
             </div>
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary w-100">Tozalash</a>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
                 <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success w-100">Excelga eksport</a>
             </div>
         </form>
     </div>
 </div>
-<div class="table-responsive">
-<table class="table table-bordered table-hover align-middle shadow" style="border-radius:18px; overflow:hidden;">
+<div class="salary-table-wrap">
+<div class="table-responsive salary-table-responsive">
+<table class="table salary-table table-bordered table-hover align-middle shadow" style="border-radius:18px; overflow:hidden;">
     <thead style="background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%); color:white;">
         <tr class="text-center">
             <th>№</th>
@@ -345,7 +459,7 @@
     </thead>
     <tbody>
         {% for stat in stats %}
-        <tr class="text-center">
+        <tr class="text-center {% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
             <td>{{ forloop.counter }}</td>
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
             <td>
@@ -415,11 +529,12 @@
     </tfoot>
 </table>
 </div>
+</div>
 
 <!-- Mobile cards layout for mobile devices -->
 <div class="mobile-cards">
     {% for stat in stats %}
-        <div class="mobile-card">
+        <div class="mobile-card {% if stat.employee.employee_type == 'office' %}office-card{% endif %}">
             <div class="mobile-card-header">
                 <div class="mobile-card-name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
                 <span class="badge 
@@ -677,6 +792,28 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Filterlar avtomatik ishlashi: select o'zgarsa darhol, qidiruv yozilganda debounce bilan
+    const filterForm = document.getElementById('salaryFilterForm');
+    if (filterForm) {
+        const autoSubmitFields = filterForm.querySelectorAll('select, input[name="year"], input[name="month"]');
+        autoSubmitFields.forEach((field) => {
+            field.addEventListener('change', function () {
+                filterForm.submit();
+            });
+        });
+
+        const searchInput = filterForm.querySelector('input[name="q"]');
+        if (searchInput) {
+            let searchDebounceTimer = null;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    filterForm.submit();
+                }, 450);
+            });
+        }
+    }
+
     // Har bir modal uchun form submit handler
     {% for stat in stats %}
     const form{{ stat.id }} = document.querySelector('#editModal{{ stat.id }} form');

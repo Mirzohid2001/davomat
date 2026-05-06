@@ -1039,9 +1039,32 @@ def salary_statistics_view(request):
     today = datetime.date.today()
     year = int(request.GET.get('year', today.year))
     month = int(request.GET.get('month', today.month))
+    q = request.GET.get('q', '').strip()
+    employee_type = request.GET.get('employee_type', '').strip()
+    role = request.GET.get('role', '').strip()
+    currency = request.GET.get('currency', '').strip()
+    location = request.GET.get('location', '').strip()
     # Statistikani hisoblash (agar kerak bo'lsa)
     calculate_monthly_stats(year, month)
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
+
+    # Kengaytirilgan filterlar
+    if q:
+        stats = stats.filter(
+            Q(employee__first_name__icontains=q)
+            | Q(employee__last_name__icontains=q)
+            | Q(employee__position__icontains=q)
+            | Q(employee__department__icontains=q)
+        )
+    if employee_type:
+        stats = stats.filter(employee__employee_type=employee_type)
+    if role:
+        stats = stats.filter(employee__role=role)
+    if currency:
+        stats = stats.filter(currency=currency)
+    if location:
+        stats = stats.filter(employee__location=location)
+
     form = SalaryStatFilterForm(initial={'year': year, 'month': month})
     
     # Ишчи кунларни ҳисоблаш
@@ -1098,6 +1121,15 @@ def salary_statistics_view(request):
         'form': form,
         'year': year,
         'month': month,
+        'q': q,
+        'selected_employee_type': employee_type,
+        'selected_role': role,
+        'selected_currency': currency,
+        'selected_location': location,
+        'employee_type_choices': Employee.EMPLOYEE_TYPE_CHOICES,
+        'role_choices': Employee.ROLE_CHOICES,
+        'location_choices': Employee.LOCATION_CHOICES,
+        'currency_choices': MonthlyEmployeeStat.CURRENCY_CHOICES,
         'total_salary': total_salary,
         'total_bonus': total_bonus,
         'total_penalty': total_penalty,
