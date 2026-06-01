@@ -1,0 +1,328 @@
+/**
+ * ISOMER OIL — silliq animatsiyalar (app-page)
+ */
+@keyframes appFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes appFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes appScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes appHeroShine {
+  0% { transform: translateX(-120%) skewX(-12deg); }
+  45%, 100% { transform: translateX(220%) skewX(-12deg); }
+}
+
+@keyframes appFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes appPulseSoft {
+  0%, 100% { box-shadow: 0 12px 32px rgba(67, 97, 238, 0.22); }
+  50% { box-shadow: 0 16px 40px rgba(76, 201, 240, 0.35); }
+}
+
+@keyframes appRowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes appIconPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes appGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Sahifa ochilganda ketma-ket paydo bo'lish */
+.app-page > .page-hero,
+.app-page > .app-toolbar,
+.app-page > .app-filter-card,
+.app-page > .app-panel,
+.app-page > .app-form-panel,
+.app-page > .app-confirm-panel,
+.app-page > .app-empty,
+.app-page > .row,
+.app-page > p,
+.app-page > .alert {
+  animation: appFadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.app-page > .page-hero { animation-delay: 0.04s; }
+.app-page > .app-toolbar { animation-delay: 0.1s; }
+.app-page > .app-filter-card { animation-delay: 0.14s; }
+.app-page > .app-panel { animation-delay: 0.18s; }
+.app-page > .app-form-panel { animation-delay: 0.12s; }
+.app-page > .row:nth-of-type(1) { animation-delay: 0.12s; }
+.app-page > .row:nth-of-type(2) { animation-delay: 0.2s; }
+.app-page > .row:nth-of-type(3) { animation-delay: 0.28s; }
+
+/* Scroll-reveal — sahifa animatsiyasini bekor qilish */
+.app-page > .app-reveal-on-scroll:not(.is-visible) {
+  animation: none !important;
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+/* Hero — yorug'lik va yumshoq puls */
+.page-hero:not(.page-hero--premium) {
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 200%;
+  animation: appFadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+             appPulseSoft 5s ease-in-out 0.6s infinite;
+}
+
+.page-hero--premium {
+  animation: appFadeInUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.page-hero:not(.page-hero--premium)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 65%
+  );
+  animation: appHeroShine 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.page-hero__content {
+  position: relative;
+  z-index: 1;
+}
+
+.page-hero-title i {
+  display: inline-block;
+  animation: appIconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+}
+
+/* Stagger — dashboard va grid */
+.app-stagger > [class*='col-'] {
+  animation: appFadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.app-stagger > [class*='col-']:nth-child(1) { animation-delay: 0.1s; }
+.app-stagger > [class*='col-']:nth-child(2) { animation-delay: 0.18s; }
+.app-stagger > [class*='col-']:nth-child(3) { animation-delay: 0.26s; }
+.app-stagger > [class*='col-']:nth-child(4) { animation-delay: 0.34s; }
+.app-stagger > [class*='col-']:nth-child(5) { animation-delay: 0.42s; }
+.app-stagger > [class*='col-']:nth-child(6) { animation-delay: 0.5s; }
+
+/* Panel scroll-reveal */
+.app-reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Jadval qatorlari */
+.app-panel-animated .app-table tbody tr {
+  animation: appRowIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.app-panel-animated .app-table tbody tr:nth-child(1) { animation-delay: 0.03s; }
+.app-panel-animated .app-table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+.app-panel-animated .app-table tbody tr:nth-child(3) { animation-delay: 0.09s; }
+.app-panel-animated .app-table tbody tr:nth-child(4) { animation-delay: 0.12s; }
+.app-panel-animated .app-table tbody tr:nth-child(5) { animation-delay: 0.15s; }
+.app-panel-animated .app-table tbody tr:nth-child(6) { animation-delay: 0.18s; }
+.app-panel-animated .app-table tbody tr:nth-child(7) { animation-delay: 0.21s; }
+.app-panel-animated .app-table tbody tr:nth-child(8) { animation-delay: 0.24s; }
+.app-panel-animated .app-table tbody tr:nth-child(9) { animation-delay: 0.27s; }
+.app-panel-animated .app-table tbody tr:nth-child(10) { animation-delay: 0.3s; }
+.app-panel-animated .app-table tbody tr:nth-child(n+11) { animation-delay: 0.33s; }
+
+.app-table tbody tr {
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.app-table tbody tr:hover {
+  transform: scale(1.005);
+}
+
+/* Stat kartalar */
+.app-stat-card {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+
+.app-stat-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 16px 40px rgba(67, 97, 238, 0.15);
+}
+
+.app-stat-number {
+  transition: transform 0.3s ease;
+}
+
+.app-stat-card:hover .app-stat-number {
+  transform: scale(1.05);
+}
+
+/* Tugmalar */
+.app-page .btn {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    background 0.2s ease;
+}
+
+.app-page .btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(67, 97, 238, 0.2);
+}
+
+.app-page .btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.1s;
+}
+
+/* Filter / panel hover */
+.app-filter-card,
+.app-panel {
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.app-filter-card:hover,
+.app-panel:hover {
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+
+/* Bo'sh holat ikonkasi */
+.app-empty-icon {
+  animation: appFloat 3s ease-in-out infinite;
+}
+
+/* Login */
+.app-login-card {
+  animation: appScaleIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.app-login-card .login-brand {
+  animation: appIconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+}
+
+/* Tezkor havolalar */
+.app-quick-links .list-group-item {
+  transition:
+    background 0.25s ease,
+    padding-left 0.25s ease,
+    transform 0.25s ease;
+}
+
+.app-quick-links .list-group-item:hover {
+  transform: translateX(6px);
+}
+
+/* Toast xabarlar */
+.toast.show {
+  animation: appFadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Navbar — yumshoq */
+.navbar {
+  animation: appFadeIn 0.5s ease;
+}
+
+/* Mobil karta */
+.app-mobile-card {
+  animation: appFadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.app-mobile-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+/* Statistika sahifasi (davomat) */
+.stats-page .page-hero {
+  animation: appFadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+             appPulseSoft 5s ease-in-out 0.6s infinite;
+}
+
+.stats-page .stats-summary-card,
+.stats-page .kpi-card,
+.stats-page .stats-filter-card,
+.stats-page .stats-chart-card {
+  animation: appFadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.stats-page .row.g-3 > [class*='col-']:nth-child(1) { animation-delay: 0.08s; }
+.stats-page .row.g-3 > [class*='col-']:nth-child(2) { animation-delay: 0.14s; }
+.stats-page .row.g-3 > [class*='col-']:nth-child(3) { animation-delay: 0.2s; }
+.stats-page .row.g-3 > [class*='col-']:nth-child(4) { animation-delay: 0.26s; }
+
+.stats-page .row.g-4 > [class*='col-'] {
+  animation: appFadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.stats-page .row.g-4 > [class*='col-']:nth-child(1) { animation-delay: 0.15s; }
+.stats-page .row.g-4 > [class*='col-']:nth-child(2) { animation-delay: 0.25s; }
+
+/* Kam harakat — accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .app-table tbody tr:hover,
+  .app-stat-card:hover,
+  .app-page .btn:hover {
+    transform: none;
+  }
+
+  .app-reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}

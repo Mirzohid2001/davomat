@@ -1,237 +1,72 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Dashboard{% endblock %}
 
-{% block extra_head %}
-{% load static %}
-<link href="{% static 'css/dashboard-styles.css' %}" rel="stylesheet">
-<style>
-/* Dashboard responsive styles */
-@media (max-width: 768px) {
-  .dashboard-header {
-    padding: 15px 10px;
-    text-align: center;
-  }
-  
-  .dashboard-header h2 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-  }
-  
-  .dashboard-header p {
-    font-size: 0.9rem;
-  }
-  
-  .action-btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    margin-top: 10px;
-  }
-  
-  .stats-card {
-    margin-bottom: 15px;
-  }
-  
-  .stats-number {
-    font-size: 2rem;
-  }
-  
-  .status-badge {
-    font-size: 0.8rem;
-    padding: 4px 8px;
-    margin: 2px;
-  }
-  
-  .employee-list {
-    padding-left: 15px;
-  }
-  
-  .employee-list li {
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-  }
-  
-  .list-group-item {
-    padding: 10px 15px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .dashboard-header {
-    padding: 10px 5px;
-  }
-  
-  .dashboard-header h2 {
-    font-size: 1.3rem;
-  }
-  
-  .action-btn {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    width: 100%;
-    margin-top: 10px;
-  }
-  
-  .stats-number {
-    font-size: 1.8rem;
-  }
-  
-  .status-badge {
-    font-size: 0.75rem;
-    padding: 3px 6px;
-    margin: 1px;
-  }
-  
-  .card-header {
-    padding: 10px 12px;
-    font-size: 0.9rem;
-  }
-  
-  .card-body {
-    padding: 12px;
-  }
-  
-  .employee-list li {
-    font-size: 0.85rem;
-    margin-bottom: 6px;
-  }
-  
-  .list-group-item {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-  
-  .list-group-item i {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .dashboard-header h2 {
-    font-size: 1.2rem;
-  }
-  
-  .stats-number {
-    font-size: 1.6rem;
-  }
-  
-  .status-badge {
-    font-size: 0.7rem;
-    padding: 2px 4px;
-  }
-  
-  .card-header {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-  }
-  
-  .card-body {
-    padding: 10px;
-  }
-}
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="dashboard-header animate__animated animate__fadeIn">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <h2 class="mb-0">Dashboard</h2>
-      <p class="mb-0 text-white-50">Davomat tizimi boshqaruv paneli</p>
-    </div>
-    <div>
-      <a href="{% url 'select_employee_attendance' %}" class="btn btn-light action-btn animate__animated animate__pulse animate__infinite animate__slower">
-        <i class="bi bi-person-plus-fill"></i> Individual davomat
-      </a>
-    </div>
-  </div>
+{% include 'attendance/partials/page_hero.html' with title="Dashboard" subtitle="Davomat tizimi boshqaruv paneli" icon="bi-speedometer2" meta=today_date|date:"d.m.Y" meta_label="Bugun" %}
+
+<div class="app-toolbar mb-4">
+  <a href="{% url 'select_employee_attendance' %}" class="btn btn-light border">
+    <i class="bi bi-person-plus-fill me-2"></i>Individual davomat
+  </a>
+  <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary">
+    <i class="bi bi-journal-check me-1"></i>Davomat ro'yxati
+  </a>
 </div>
 
-<div class="row g-4 mb-5">
-  <!-- Bugungi Davomat -->
+<div class="row g-4 mb-4 app-stagger">
   <div class="col-lg-4 col-md-6">
-    <div class="card stats-card animate__animated animate__fadeInUp">
-      <div class="card-header">
-        <i class="bi bi-calendar-check-fill text-primary"></i>
-        <span>Bugungi Davomat</span>
-      </div>
-      <div class="card-body">
-        <i class="bi bi-bar-chart-line stats-icon text-primary"></i>
-        <div class="text-center mb-4">
-          {% with total=stats|length %}
-            <div class="stats-number">{{ total }}</div>
-            <div class="text-muted">Umumiy holat</div>
-          {% endwith %}
-        </div>
-        
-        <div class="d-flex flex-wrap justify-content-center">
+    <div class="app-stat-card">
+      <div class="app-stat-card-head"><i class="bi bi-calendar-check me-2"></i>Bugungi davomat</div>
+      <div class="app-stat-card-body text-center">
+        <div class="app-stat-number">{{ stats|length }}</div>
+        <p class="text-muted small mb-3">Holatlar soni</p>
+        <div class="d-flex flex-wrap justify-content-center gap-1">
           {% for item in stats %}
-            <span class="status-badge bg-{{ item.status|yesno:'success,danger,warning,info,secondary,info,secondary' }}">
-              {{ item.status|title }}: {{ item.count }}
-            </span>
+          <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+            {{ item.status }}: {{ item.count }}
+          </span>
           {% empty %}
-            <p class="text-muted">Bugun uchun ma'lumot yo'q</p>
+          <p class="text-muted small mb-0">Bugun uchun yozuv yo'q</p>
           {% endfor %}
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Kiritilmaganlar -->
+
   <div class="col-lg-4 col-md-6">
-    <div class="card stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-      <div class="card-header">
-        <i class="bi bi-person-x-fill text-danger"></i>
-        <span>Kiritilmaganlar</span>
-      </div>
-      <div class="card-body">
-        <i class="bi bi-exclamation-triangle stats-icon text-danger"></i>
-        
-        <div class="text-center mb-4">
-          <div class="stats-number">{{ not_filled|length }}</div>
-          <div class="text-muted">Kiritilmagan</div>
+    <div class="app-stat-card">
+      <div class="app-stat-card-head"><i class="bi bi-person-x me-2"></i>Kiritilmaganlar</div>
+      <div class="app-stat-card-body">
+        <div class="text-center mb-3">
+          <div class="app-stat-number text-danger">{{ not_filled|length }}</div>
+          <p class="text-muted small">Davomat kiritilmagan</p>
         </div>
-        
-        <div class="not-filled-container">
-          {% for emp in not_filled %}
-            <div class="d-flex align-items-center mb-2">
-              <i class="bi bi-person-dash me-2 text-danger"></i>
-              <span class="badge bg-danger-subtle text-danger w-100 py-2 text-start ps-2">{{ emp }}</span>
-            </div>
-          {% empty %}
-            <div class="alert alert-success">
-              <i class="bi bi-check-circle-fill me-2"></i>
-              Hamma uchun kiritilgan!
-            </div>
-          {% endfor %}
+        {% for emp in not_filled %}
+        <div class="d-flex align-items-center gap-2 mb-2 small">
+          <i class="bi bi-dash-circle text-danger"></i>
+          <span class="badge bg-danger-subtle text-danger w-100 text-start py-2">{{ emp }}</span>
         </div>
+        {% empty %}
+        <div class="alert alert-success border-0 mb-0 py-2 small">
+          <i class="bi bi-check-circle-fill me-2"></i>Hamma uchun kiritilgan
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
-  
-  <!-- Eng namunali xodimlar -->
+
   <div class="col-lg-4 col-md-12">
-    <div class="card stats-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-      <div class="card-header">
-        <i class="bi bi-trophy-fill text-warning"></i>
-        <span>Eng namunali xodimlar (30 kun)</span>
-      </div>
-      <div class="card-body">
-        <i class="bi bi-star stats-icon text-warning"></i>
-        
-        <ol class="employee-list">
+    <div class="app-stat-card">
+      <div class="app-stat-card-head"><i class="bi bi-trophy me-2"></i>Top xodimlar (30 kun)</div>
+      <div class="app-stat-card-body">
+        <ol class="list-unstyled mb-0">
           {% for emp in best_employees %}
-            <li>
-              <div class="d-flex justify-content-between align-items-center">
-                <span>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
-                <span class="badge bg-success rounded-pill">{{ emp.present_count }} kun</span>
-              </div>
-            </li>
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
+            <span class="badge bg-success rounded-pill">{{ emp.present_count }} kun</span>
+          </li>
           {% empty %}
-            <div class="alert alert-info">
-              <i class="bi bi-info-circle-fill me-2"></i>
-              Ma'lumot yo'q
-            </div>
+          <p class="text-muted small mb-0">Ma'lumot yo'q</p>
           {% endfor %}
         </ol>
       </div>
@@ -239,52 +74,44 @@
   </div>
 </div>
 
-<!-- Qo'shimcha ma'lumotlar uchun bo'lim -->
-<div class="row g-4">
-  <div class="col-12">
-    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-      <div class="card-header">
-        <i class="bi bi-info-circle-fill text-info me-2"></i>
-        Tizim haqida
+<div class="app-panel app-reveal-on-scroll">
+  <div class="app-panel-header"><i class="bi bi-lightning-charge me-2"></i>Tezkor havolalar</div>
+  <div class="app-panel-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="app-quick-links list-group list-group-flush">
+          <a href="{% url 'attendance_list' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-journal-check me-2"></i>Davomat ro'yxati <i class="bi bi-chevron-right float-end"></i>
+          </a>
+          <a href="{% url 'attendance_statistics' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-bar-chart-line me-2"></i>Statistika <i class="bi bi-chevron-right float-end"></i>
+          </a>
+          <a href="{% url 'employee_list' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-people me-2"></i>Xodimlar <i class="bi bi-chevron-right float-end"></i>
+          </a>
+          <a href="{% url 'salary_statistics' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-cash-coin me-2"></i>Oylik statistika <i class="bi bi-chevron-right float-end"></i>
+          </a>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6">
-            <h5><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Tezkor harakatlar</h5>
-            <div class="list-group mt-3">
-              <a href="{% url 'attendance_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-journal-check me-2"></i>Davomat ro'yxati</span>
-                <i class="bi bi-chevron-right"></i>
-              </a>
-              <a href="{% url 'attendance_statistics' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-bar-chart-line-fill me-2"></i>Statistika</span>
-                <i class="bi bi-chevron-right"></i>
-              </a>
-              <a href="{% url 'employee_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-people-fill me-2"></i>Xodimlar</span>
-                <i class="bi bi-chevron-right"></i>
-              </a>
+      <div class="col-md-6">
+        <div class="row text-center g-3">
+          <div class="col-4">
+            <div class="p-3 rounded-3 bg-light">
+              <div class="fs-3 fw-bold text-primary">{{ today_date|date:"d" }}</div>
+              <small class="text-muted">Kun</small>
             </div>
           </div>
-          <div class="col-md-6 mt-4 mt-md-0">
-            <h5><i class="bi bi-graph-up-arrow text-success me-2"></i>Tizim statistikasi</h5>
-            <div class="card bg-light mt-3">
-              <div class="card-body">
-                <div class="row text-center">
-                  <div class="col-4">
-                    <h3 class="mb-0">{{ today_date|date:"d" }}</h3>
-                    <small class="text-muted">Sana</small>
-                  </div>
-                  <div class="col-4">
-                    <h3 class="mb-0">{{ stats|length }}</h3>
-                    <small class="text-muted">Holat</small>
-                  </div>
-                  <div class="col-4">
-                    <h3 class="mb-0">{{ not_filled|length }}</h3>
-                    <small class="text-muted">Qolgan</small>
-                  </div>
-                </div>
-              </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3 bg-light">
+              <div class="fs-3 fw-bold text-success">{{ stats|length }}</div>
+              <small class="text-muted">Holat</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3 bg-light">
+              <div class="fs-3 fw-bold text-danger">{{ not_filled|length }}</div>
+              <small class="text-muted">Qolgan</small>
             </div>
           </div>
         </div>

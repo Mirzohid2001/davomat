@@ -1,124 +1,44 @@
 {% extends 'attendance/base.html' %}
 {% block title %}Tizimga kirish{% endblock %}
-
-{% block extra_head %}
-<style>
-/* Login page responsive */
-@media (max-width: 768px) {
-  .row.justify-content-center {
-    margin: 0;
-    padding: 20px 10px;
-  }
-  
-  .col-12, .col-sm-8, .col-md-5, .col-lg-4 {
-    padding: 0;
-  }
-  
-  .card.p-4 {
-    padding: 25px 20px !important;
-  }
-  
-  .bi-person-circle {
-    font-size: 2.5rem !important;
-  }
-  
-  h3 {
-    font-size: 1.5rem;
-  }
-  
-  .form-label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-  
-  .form-control-lg {
-    font-size: 1rem;
-    padding: 12px 15px;
-  }
-  
-  .btn {
-    padding: 12px 20px;
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .card.p-4 {
-    padding: 20px 15px !important;
-  }
-  
-  .bi-person-circle {
-    font-size: 2rem !important;
-  }
-  
-  h3 {
-    font-size: 1.3rem;
-  }
-  
-  .form-control-lg {
-    font-size: 0.95rem;
-    padding: 10px 12px;
-  }
-  
-  .btn {
-    padding: 10px 18px;
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 400px) {
-  .card.p-4 {
-    padding: 15px 12px !important;
-  }
-  
-  h3 {
-    font-size: 1.2rem;
-  }
-  
-  .form-control-lg {
-    font-size: 0.9rem;
-    padding: 8px 10px;
-  }
-}
-</style>
-{% endblock %}
+{% block content_wrapper_class %}flex-grow-1 app-login-page px-2 d-flex flex-column{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 75vh;">
-  <div class="col-12 col-sm-8 col-md-5 col-lg-4 animate__animated animate__fadeInDown">
-    <div class="card p-4 shadow-lg border-0">
-      <div class="text-center mb-3">
-        <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
-        <h3 class="mt-2 mb-3 fw-bold">Tizimga kirish</h3>
+<div class="app-login-wrap">
+  <div class="app-login-card">
+    <div class="login-brand"><i class="bi bi-building-check"></i></div>
+    <h3 class="text-center fw-bold mb-1">ISOMER OIL</h3>
+    <p class="text-center text-muted mb-4">Davomat tizimiga kirish</p>
+    <form method="post" autocomplete="off" class="needs-validation" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="id_username" class="form-label">Login</label>
+        <input type="text" name="username" class="form-control form-control-lg" required id="id_username" autofocus placeholder="Foydalanuvchi nomi">
+        <div class="invalid-feedback">Login kiriting.</div>
       </div>
-      <form method="post" autocomplete="off" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_username" class="form-label">Login</label>
-            <input type="text" name="username" class="form-control form-control-lg" required id="id_username" autofocus>
-            <div class="invalid-feedback">Login kiriting.</div>
-        </div>
-        <div class="mb-3">
-            <label for="id_password" class="form-label">Parol</label>
-            <input type="password" name="password" class="form-control form-control-lg" required id="id_password">
-            <div class="invalid-feedback">Parol kiriting.</div>
-        </div>
-        <button class="btn btn-primary w-100 py-2 mt-2 animate__animated animate__pulse animate__infinite" type="submit">Kirish</button>
-      </form>
-    </div>
+      <div class="mb-4">
+        <label for="id_password" class="form-label">Parol</label>
+        <input type="password" name="password" class="form-control form-control-lg" required id="id_password" placeholder="••••••••">
+        <div class="invalid-feedback">Parol kiriting.</div>
+      </div>
+      <button class="btn btn-primary w-100 py-2" type="submit">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+      </button>
+    </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  let forms = document.getElementsByClassName('needs-validation');
-  Array.prototype.forEach.call(forms, function(form) {
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.needs-validation').forEach(function(form) {
     form.addEventListener('submit', function(event) {
       if (!form.checkValidity()) {
-        event.preventDefault(); event.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
       }
       form.classList.add('was-validated');
-    }, false);
+    });
   });
 });
 </script>

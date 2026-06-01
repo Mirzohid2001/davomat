@@ -1,380 +1,66 @@
 {% extends 'attendance/base.html' %}
+{% block content_wrapper_class %}flex-grow-1 salary-skip-app-shell container-fluid px-2 px-md-3 py-3 pb-4{% endblock %}
 
 {% block extra_head %}
-<style>
-/* Salary statistics responsive styles - MAXIMUM ADAPTIVITY */
-
-/* Desktop: this page should use almost full viewport width */
-@media (min-width: 1200px) {
-  .container.pb-5 {
-    max-width: 98% !important;
-  }
-}
-
-/* Salary table desktop optimization (no horizontal swipe) */
-.salary-table-wrap {
-  width: 100%;
-}
-
-.salary-filters-card .form-label {
-  font-size: 0.82rem;
-  margin-bottom: 4px;
-}
-
-.salary-filters-card .form-control,
-.salary-filters-card .form-select {
-  min-height: 38px;
-}
-
-.salary-table {
-  width: 100%;
-  table-layout: auto;
-}
-
-@media (min-width: 992px) {
-  .salary-table-responsive {
-    overflow-x: visible !important;
-  }
-
-  .salary-table thead th {
-    font-size: 0.8rem;
-    padding: 10px 8px !important;
-    white-space: nowrap;
-  }
-
-  .salary-table td {
-    padding: 8px 6px !important;
-    font-size: 0.88rem;
-    white-space: nowrap;
-  }
-}
-
-/* Tablet and below - show table with horizontal scroll */
-@media (max-width: 992px) {
-  .salary-table-responsive {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .salary-table {
-    min-width: 1200px;
-    font-size: 0.9rem;
-  }
-  
-  .salary-table th, .salary-table td {
-    padding: 10px 8px;
-    white-space: nowrap;
-  }
-  
-  .salary-table thead th {
-    font-size: 0.85rem;
-    padding: 12px 8px;
-  }
-}
-
-/* Mobile - show cards instead of table */
-@media (max-width: 768px) {
-  h2 {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  /* Hide table on mobile */
-  .salary-table-responsive {
-    display: none !important;
-  }
-  
-  /* Show mobile cards */
-  .mobile-cards {
-    display: block !important;
-  }
-  
-  /* Form improvements */
-  .card-header h2 {
-    font-size: 1.3rem !important;
-  }
-  
-  .card-body .row {
-    margin: 0;
-  }
-  
-  .card-body .col-md-3,
-  .card-body .col-sm-6 {
-    margin-bottom: 15px;
-    padding: 0 7.5px;
-  }
-  
-  .card-body .col-md-3:last-child,
-  .card-body .col-sm-6:last-child {
-    margin-bottom: 0;
-  }
-  
-  .form-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    font-size: 0.9rem;
-  }
-  
-  .form-control, .form-select {
-    width: 100%;
-  }
-  
-  .btn {
-    width: 100%;
-    margin-bottom: 5px;
-    padding: 10px 20px;
-  }
-  
-  .btn-sm {
-    padding: 8px 16px;
-  }
-}
-
-/* Mobile card styles */
-.mobile-cards {
-  display: none;
-}
-
-.mobile-card {
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
-.mobile-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-
-.mobile-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.mobile-card-name {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--dark-color);
-}
-
-.mobile-card-body {
-  font-size: 0.95rem;
-  color: #495057;
-  margin-bottom: 12px;
-}
-
-.mobile-card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.mobile-card-row:last-child {
-  border-bottom: none;
-}
-
-.mobile-card-label {
-  font-weight: 600;
-  color: #6c757d;
-  min-width: 140px;
-}
-
-.mobile-card-value {
-  font-weight: 500;
-  color: var(--dark-color);
-  text-align: right;
-  flex: 1;
-}
-
-.mobile-card-actions {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e9ecef;
-}
-
-.mobile-card-actions .btn {
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.mobile-card-actions .btn:last-child {
-  margin-bottom: 0;
-}
-
-/* Office rows/cards should stand out clearly */
-.salary-table tbody tr.office-row td {
-  background: #eef8ff !important;
-  border-top: 1px solid #9fd6ff !important;
-  border-bottom: 1px solid #9fd6ff !important;
-}
-
-.salary-table tbody tr.office-row td:first-child {
-  border-left: 4px solid #0ea5e9 !important;
-}
-
-.salary-table tbody tr.office-row td:nth-child(2) {
-  font-weight: 700;
-  color: #0f4c75;
-}
-
-.mobile-card.office-card {
-  border: 2px solid #7dd3fc;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-}
-
-.mobile-card.office-card .mobile-card-header {
-  border-bottom-color: #7dd3fc;
-}
-
-/* Badge styling in cards */
-.mobile-card .badge {
-  font-size: 0.85rem;
-  padding: 6px 10px;
-}
-
-/* Debt warning colors */
-.mobile-card-row.debt-warning .mobile-card-value {
-  color: var(--danger-color);
-  font-weight: 600;
-}
-
-.mobile-card-row.debt-success .mobile-card-value {
-  color: var(--success-color);
-  font-weight: 600;
-}
-
-/* Small mobile improvements */
-@media (max-width: 576px) {
-  .card-header h2 {
-    font-size: 1.2rem !important;
-  }
-  
-  .card-body {
-    padding: 15px;
-  }
-  
-  .card-body .col-md-3,
-  .card-body .col-sm-6 {
-    margin-bottom: 12px;
-    padding: 0 5px;
-  }
-  
-  .mobile-card {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-  
-  .mobile-card-name {
-    font-size: 1rem;
-  }
-  
-  .mobile-card-body {
-    font-size: 0.9rem;
-  }
-  
-  .mobile-card-label {
-    min-width: 120px;
-    font-size: 0.9rem;
-  }
-  
-  .mobile-card-value {
-    font-size: 0.9rem;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-  
-  .btn {
-    font-size: 0.9rem;
-    padding: 8px 16px;
-  }
-}
-
-@media (max-width: 400px) {
-  h2 {
-    font-size: 1.2rem;
-  }
-  
-  .mobile-card {
-    padding: 10px;
-  }
-  
-  .mobile-card-name {
-    font-size: 0.95rem;
-  }
-  
-  .mobile-card-label {
-    min-width: 100px;
-    font-size: 0.85rem;
-  }
-  
-  .mobile-card-value {
-    font-size: 0.85rem;
-  }
-}
-
-/* Explanation text responsive */
-@media (max-width: 768px) {
-  .mt-3 small {
-    font-size: 0.85rem;
-    line-height: 1.6;
-    display: block;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 3px solid var(--primary-color);
-  }
-}
-
-/* Modal responsive */
-@media (max-width: 576px) {
-  .modal-dialog {
-    margin: 10px;
-    max-width: calc(100% - 20px);
-  }
-  
-  .modal-body {
-    padding: 15px;
-  }
-  
-  .modal-body .row {
-    margin: 0;
-  }
-  
-  .modal-body .col-md-6 {
-    margin-bottom: 15px;
-    padding: 0;
-  }
-  
-  .modal-body .col-md-6:last-child {
-    margin-bottom: 0;
-  }
-}
-</style>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/salary-statistics.css' %}">
+<style>.salary-skip-app-shell { display: block; max-width: 100%; }</style>
 {% endblock %}
 
 {% block content %}
-<div class="card mb-4 shadow-sm">
-    <div class="card-header" style="background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%); color: white;">
-        <h2 class="mb-0" style="font-size: 1.5rem;">Oylik xodim statistikasi ({{ year }}-{{ month }})</h2>
+<div class="salary-page">
+
+  <header class="salary-hero">
+    <div class="salary-hero__glow" aria-hidden="true"></div>
+    <div class="salary-hero__glow salary-hero__glow--2" aria-hidden="true"></div>
+    <div class="salary-hero__grain" aria-hidden="true"></div>
+    <div class="salary-hero__inner">
+      <div class="salary-hero__main">
+        <span class="salary-hero__badge"><i class="bi bi-wallet2"></i> Oylik hisobot</span>
+        <h1 class="salary-hero__title">Oylik xodim statistikasi</h1>
+        <p class="salary-hero__sub">Ish haqi, to‘lovlar va qarzdorlik — bitta joyda</p>
+      </div>
+      <div class="salary-hero__period">
+        <div class="salary-hero__period-pill">
+          <i class="bi bi-calendar3" aria-hidden="true"></i>
+          <span class="salary-hero__period-value">{% if month == 1 %}Yanvar{% elif month == 2 %}Fevral{% elif month == 3 %}Mart{% elif month == 4 %}Aprel{% elif month == 5 %}May{% elif month == 6 %}Iyun{% elif month == 7 %}Iyul{% elif month == 8 %}Avgust{% elif month == 9 %}Sentabr{% elif month == 10 %}Oktabr{% elif month == 11 %}Noyabr{% elif month == 12 %}Dekabr{% else %}{{ month }}{% endif %} {{ year }}</span>
+        </div>
+        <span class="salary-hero__period-label">Hisobot davri</span>
+      </div>
     </div>
-    <div class="card-body salary-filters-card">
+  </header>
+
+  <div class="salary-kpi-grid">
+    <div class="salary-kpi salary-kpi--accent" style="--sal-kpi-delay: 0ms">
+      <div class="salary-kpi__icon" aria-hidden="true"><i class="bi bi-people-fill"></i></div>
+      <div class="salary-kpi__body">
+        <div class="salary-kpi__label">Xodimlar</div>
+        <div class="salary-kpi__value">{{ stats|length }}</div>
+      </div>
+    </div>
+    <div class="salary-kpi" style="--sal-kpi-delay: 40ms">
+      <div class="salary-kpi__icon salary-kpi__icon--amber" aria-hidden="true"><i class="bi bi-person-x-fill"></i></div>
+      <div class="salary-kpi__body">
+        <div class="salary-kpi__label">Kelmagan (jami)</div>
+        <div class="salary-kpi__value">{{ total_absent }}</div>
+      </div>
+    </div>
+    {% for cur, vals in currency_totals.items %}
+    <div class="salary-kpi" style="--sal-kpi-delay: {{ forloop.counter0|add:2 }}0ms">
+      <div class="salary-kpi__icon salary-kpi__icon--emerald" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
+      <div class="salary-kpi__body">
+        <div class="salary-kpi__label">Hisoblangan · {{ cur }}</div>
+        <div class="salary-kpi__value">{{ vals.accrued|floatformat:0 }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <section class="salary-filters">
+    <div class="salary-filters__head">
+      <h2 class="salary-filters__head-title"><i class="bi bi-funnel me-2"></i>Filtrlash</h2>
+    </div>
+    <div class="salary-filters__body">
         <form method="get" class="row g-3 align-items-end" id="salaryFilterForm">
             <div class="col-lg-2 col-md-3 col-sm-6">
                 <label for="id_year" class="form-label fw-semibold">{{ form.year.label }}</label>
@@ -386,7 +72,10 @@
             </div>
             <div class="col-lg-4 col-md-6 col-sm-12">
                 <label for="filter_q" class="form-label fw-semibold">Qidiruv (F.I.O / lavozim / bo‘lim)</label>
-                <input type="text" id="filter_q" name="q" class="form-control" value="{{ q }}" placeholder="Masalan: Aliyev, nalivshik...">
+                <div class="salary-input-wrap">
+                  <i class="bi bi-search" aria-hidden="true"></i>
+                  <input type="text" id="filter_q" name="q" class="form-control" value="{{ q }}" placeholder="Masalan: Aliyev, nalivshik..." autocomplete="off">
+                </div>
             </div>
             <div class="col-lg-2 col-md-3 col-sm-6">
                 <label for="filter_employee_type" class="form-label fw-semibold">Xodim turi</label>
@@ -424,25 +113,27 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <button type="submit" class="btn btn-primary w-100">Ko'rsatish</button>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" class="btn btn-outline-warning w-100" title="Davomatdan barcha oylikni qayta hisoblash">Qayta hisoblash</a>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary w-100">Tozalash</a>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success w-100">Excelga eksport</a>
+            <div class="col-12">
+              <div class="salary-filters__actions">
+                <button type="submit" class="btn salary-btn-primary">Ko'rsatish</button>
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" class="btn btn-outline-warning" title="Davomatdan barcha oylikni qayta hisoblash"><i class="bi bi-arrow-repeat me-1"></i>Qayta hisoblash</a>
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary">Tozalash</a>
+                <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport</a>
+              </div>
             </div>
         </form>
     </div>
-</div>
-<div class="salary-table-wrap">
-<div class="table-responsive salary-table-responsive">
-<table class="table salary-table table-bordered table-hover align-middle shadow" style="border-radius:18px; overflow:hidden;">
-    <thead style="background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%); color:white;">
+  </section>
+
+  <section class="salary-table-section">
+    <div class="salary-table-toolbar">
+      <p class="salary-table-toolbar__hint"><i class="bi bi-table me-1"></i>Jadvalda tahrirlash uchun ✎ tugmasini bosing</p>
+      <span class="salary-count-pill"><i class="bi bi-person-check-fill"></i> {{ stats|length }} xodim</span>
+    </div>
+    <div class="salary-table-wrap">
+    <div class="table-responsive salary-table-responsive">
+<table class="table salary-table align-middle mb-0">
+    <thead>
         <tr class="text-center">
             <th>№</th>
             <th>F I O xodim</th>
@@ -462,17 +153,17 @@
     </thead>
     <tbody>
         {% for stat in stats %}
-        <tr id="salary-row-{{ stat.id }}" class="text-center {% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
-            <td>{{ forloop.counter }}</td>
-            <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
+        <tr id="salary-row-{{ stat.id }}" class="{% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
+            <td class="salary-table__num">{{ forloop.counter }}</td>
+            <td class="salary-table__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
             <td>
-                <span class="badge 
-                    {% if stat.employee.role == 'nalivshik' %}bg-dark
-                    {% elif stat.employee.employee_type == 'office' %}bg-info
-                    {% elif stat.employee.employee_type == 'half' %}bg-warning
-                    {% elif stat.employee.employee_type == 'weekly' %}bg-secondary
-                    {% elif stat.employee.employee_type == 'guard' %}bg-danger
-                    {% else %}bg-success{% endif %} text-light">
+                <span class="salary-type-badge 
+                    {% if stat.employee.role == 'nalivshik' %}salary-type-badge--dark
+                    {% elif stat.employee.employee_type == 'office' %}salary-type-badge--sky
+                    {% elif stat.employee.employee_type == 'half' %}salary-type-badge--amber
+                    {% elif stat.employee.employee_type == 'weekly' %}salary-type-badge--slate
+                    {% elif stat.employee.employee_type == 'guard' %}salary-type-badge--rose
+                    {% else %}salary-type-badge--emerald{% endif %}">
                     {% if stat.employee.role == 'nalivshik' %}
                         Nalivshik
                     {% else %}
@@ -481,7 +172,7 @@
                 </span>
             </td>
             <td>{{ stat.salary|floatformat:0 }} {{ stat.currency }}</td>
-            <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">✎</button></td>
+            <td>{{ stat.bonus|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
             <td>{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
@@ -492,20 +183,24 @@
                 </span>
             </td>
             <td>{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</td>
-            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">✎</button></td>
+            <td class="{% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">{{ stat.paid|floatformat:0 }} {{ stat.currency }} <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
             <td class="{% if stat.debt_start < 0 %}table-danger{% endif %}">{{ stat.debt_start|floatformat:0 }} {{ stat.currency }}</td>
             <td class="{% if stat.debt_end < 0 %}table-danger{% endif %}">{{ stat.debt_end|floatformat:0 }} {{ stat.currency }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="13" class="text-center py-4">
-                <span class="badge bg-info text-dark fs-6 px-4 py-2 shadow">Ma'lumot topilmadi.</span>
+            <td colspan="14" class="salary-empty-cell">
+                <div class="salary-empty">
+                  <div class="salary-empty__icon"><i class="bi bi-inbox"></i></div>
+                  <p class="salary-empty__title">Ma'lumot topilmadi</p>
+                  <p class="salary-empty__hint">Filtrlarni o‘zgartiring yoki boshqa oy tanlang</p>
+                </div>
             </td>
         </tr>
         {% endfor %}
     </tbody>
     <tfoot>
-        <tr style="font-weight:bold; background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); color:#222;" class="text-center">
+        <tr class="text-center">
             <td colspan="9">Jami</td>
             <td>{{ total_absent }}</td>
             <td>
@@ -533,20 +228,20 @@
 </table>
 </div>
 </div>
+  </section>
 
-<!-- Mobile cards layout for mobile devices -->
-<div class="mobile-cards">
+  <div class="salary-mobile-cards">
     {% for stat in stats %}
-        <div class="mobile-card {% if stat.employee.employee_type == 'office' %}office-card{% endif %}">
-            <div class="mobile-card-header">
-                <div class="mobile-card-name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
-                <span class="badge 
-                    {% if stat.employee.role == 'nalivshik' %}bg-dark
-                    {% elif stat.employee.employee_type == 'office' %}bg-info
-                    {% elif stat.employee.employee_type == 'half' %}bg-warning
-                    {% elif stat.employee.employee_type == 'weekly' %}bg-secondary
-                    {% elif stat.employee.employee_type == 'guard' %}bg-danger
-                    {% else %}bg-success{% endif %} text-light">
+        <div class="salary-mobile-card {% if stat.employee.employee_type == 'office' %}office-card{% endif %}">
+            <div class="salary-mobile-card__head">
+                <div class="salary-mobile-card__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
+                <span class="salary-type-badge 
+                    {% if stat.employee.role == 'nalivshik' %}salary-type-badge--dark
+                    {% elif stat.employee.employee_type == 'office' %}salary-type-badge--sky
+                    {% elif stat.employee.employee_type == 'half' %}salary-type-badge--amber
+                    {% elif stat.employee.employee_type == 'weekly' %}salary-type-badge--slate
+                    {% elif stat.employee.employee_type == 'guard' %}salary-type-badge--rose
+                    {% else %}salary-type-badge--emerald{% endif %}">
                     {% if stat.employee.role == 'nalivshik' %}
                         Nalivshik
                     {% else %}
@@ -554,235 +249,152 @@
                     {% endif %}
                 </span>
             </div>
-            <div class="mobile-card-body">
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Oylik:</span>
-                    <span class="mobile-card-value">{{ stat.salary|floatformat:0 }} {{ stat.currency }}</span>
+            <div class="salary-mobile-card__body">
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Oylik:</span>
+                    <span class="salary-mobile-card__value">{{ stat.salary|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Mukofot:</span>
-                    <span class="mobile-card-value">{{ stat.bonus|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Mukofot:</span>
+                    <span class="salary-mobile-card__value">{{ stat.bonus|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Jarima:</span>
-                    <span class="mobile-card-value">{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Jarima:</span>
+                    <span class="salary-mobile-card__value">{{ stat.penalty|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Ишчи кунлар:</span>
-                    <span class="mobile-card-value">{{ stat.working_days_in_month }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Ишчи кунлар:</span>
+                    <span class="salary-mobile-card__value">{{ stat.working_days_in_month }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Ishlangan kunlar:</span>
-                    <span class="mobile-card-value">{{ stat.worked_days }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Ishlangan kunlar:</span>
+                    <span class="salary-mobile-card__value">{{ stat.worked_days }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Kelmagan kunlar:</span>
-                    <span class="mobile-card-value">{{ stat.absent_count }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Kelmagan kunlar:</span>
+                    <span class="salary-mobile-card__value">{{ stat.absent_count }}</span>
                 </div>
-                <div class="mobile-card-row">
-                    <span class="mobile-card-label">Hisoblangan:</span>
-                    <span class="mobile-card-value">{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row">
+                    <span class="salary-mobile-card__label">Hisoblangan:</span>
+                    <span class="salary-mobile-card__value">{{ stat.accrued|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row {% if stat.paid >= stat.accrued %}debt-success{% elif stat.paid == 0 %}debt-warning{% endif %}">
-                    <span class="mobile-card-label">To'langan:</span>
-                    <span class="mobile-card-value">{{ stat.paid|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row {% if stat.paid >= stat.accrued %}debt-success{% elif stat.paid == 0 %}debt-warning{% endif %}">
+                    <span class="salary-mobile-card__label">To'langan:</span>
+                    <span class="salary-mobile-card__value">{{ stat.paid|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
-                    <span class="mobile-card-label">Qarzdorlik (boshl.):</span>
-                    <span class="mobile-card-value">{{ stat.debt_start|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
+                    <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
+                    <span class="salary-mobile-card__value">{{ stat.debt_start|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
-                <div class="mobile-card-row {% if stat.debt_end < 0 %}debt-warning{% endif %}">
-                    <span class="mobile-card-label">Qarzdorlik (oxiri):</span>
-                    <span class="mobile-card-value">{{ stat.debt_end|floatformat:0 }} {{ stat.currency }}</span>
+                <div class="salary-mobile-card__row {% if stat.debt_end < 0 %}debt-warning{% endif %}">
+                    <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
+                    <span class="salary-mobile-card__value">{{ stat.debt_end|floatformat:0 }} {{ stat.currency }}</span>
                 </div>
             </div>
-            <div class="mobile-card-actions">
-                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">
-                    ✏️ Tahrirlash
+            <div class="salary-mobile-card__actions">
+                <button type="button" class="btn salary-btn-primary w-100" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">
+                    <i class="bi bi-pencil-square me-1"></i>Tahrirlash
                 </button>
             </div>
         </div>
     {% empty %}
-        <div class="mobile-card text-center text-danger py-4">
-            <i class="bi bi-info-circle" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+        <div class="salary-mobile-card text-center text-muted py-4">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
             Ma'lumotlar topilmadi
         </div>
     {% endfor %}
-    
-    <!-- Total summary for mobile -->
+
     {% if stats %}
-    <div class="mobile-card" style="background: linear-gradient(90deg, #b2f7ef 0%, #4cc9f0 100%); border: 2px solid #4cc9f0;">
-        <div class="mobile-card-header" style="border-bottom: 2px solid rgba(255,255,255,0.3);">
-            <div class="mobile-card-name" style="color: #222; font-weight: 700;">JAMI</div>
+    <div class="salary-mobile-card salary-mobile-card--total">
+        <div class="salary-mobile-card__head">
+            <div class="salary-mobile-card__name">JAMI</div>
         </div>
-        <div class="mobile-card-body">
-            <div class="mobile-card-row">
-                <span class="mobile-card-label">Kelmagan kunlar:</span>
-                <span class="mobile-card-value" style="font-weight: 700;">{{ total_absent }}</span>
+        <div class="salary-mobile-card__body">
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">Kelmagan kunlar:</span>
+                <span class="salary-mobile-card__value fw-bold">{{ total_absent }}</span>
             </div>
             {% for cur, vals in currency_totals.items %}
-            <div class="mobile-card-row" style="border-top: 2px solid rgba(255,255,255,0.3); padding-top: 10px; margin-top: 10px;">
-                <span class="mobile-card-label" style="font-weight: 700;">{{ cur }}:</span>
+            <div class="salary-mobile-card__row border-top pt-2 mt-2">
+                <span class="salary-mobile-card__label fw-bold">{{ cur }}</span>
             </div>
-            <div class="mobile-card-row">
-                <span class="mobile-card-label">Hisoblangan:</span>
-                <span class="mobile-card-value" style="font-weight: 600;">{{ vals.accrued|floatformat:0 }} {{ cur }}</span>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">Hisoblangan:</span>
+                <span class="salary-mobile-card__value">{{ vals.accrued|floatformat:0 }} {{ cur }}</span>
             </div>
-            <div class="mobile-card-row">
-                <span class="mobile-card-label">To'langan:</span>
-                <span class="mobile-card-value" style="font-weight: 600;">{{ vals.paid|floatformat:0 }} {{ cur }}</span>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">To'langan:</span>
+                <span class="salary-mobile-card__value">{{ vals.paid|floatformat:0 }} {{ cur }}</span>
             </div>
-            <div class="mobile-card-row">
-                <span class="mobile-card-label">Qarzdorlik (boshl.):</span>
-                <span class="mobile-card-value" style="font-weight: 600;">{{ vals.debt_start|floatformat:0 }} {{ cur }}</span>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
+                <span class="salary-mobile-card__value">{{ vals.debt_start|floatformat:0 }} {{ cur }}</span>
             </div>
-            <div class="mobile-card-row">
-                <span class="mobile-card-label">Qarzdorlik (oxiri):</span>
-                <span class="mobile-card-value" style="font-weight: 600;">{{ vals.debt_end|floatformat:0 }} {{ cur }}</span>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
+                <span class="salary-mobile-card__value">{{ vals.debt_end|floatformat:0 }} {{ cur }}</span>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
-</div>
-<style>
-.table thead th { font-size: 1rem; letter-spacing: 0.5px; }
-.table tfoot td { font-size: 1rem; font-weight: 600; }
-.table td, .table th { vertical-align: middle !important; }
+  </div>
 
-/* Modal styling */
-.modal-content {
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border: none;
-}
+  <aside class="salary-footnote">
+    <strong>*Ишчи кунлар:</strong> Фақат тўлиқ ставка ходимлар учун ҳисобга олинади (якшанба ва байрам кунлари чиқарилган).
+    15 кунлик ишчилар ҳар куни ишлайди, ҳафтада 1 кун келадиган ходимлар учун ойда 4 кун оптимал, қоровуллар учун ойда 10 кун оптимал.
+    Офис ходимлари эса давоматсиз тўлиқ ойлик олади.
+  </aside>
 
-.modal-header {
-    background: linear-gradient(135deg, #4361ee, #3a0ca3);
-    color: white;
-    border-radius: 15px 15px 0 0;
-    border-bottom: none;
-}
+</div><!-- .salary-page -->
 
-.modal-title {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.modal-body {
-    padding: 25px;
-}
-
-.modal-footer {
-    border-top: 1px solid #e9ecef;
-    padding: 20px 25px;
-    background-color: #f8f9fa;
-    border-radius: 0 0 15px 15px;
-}
-
-.form-label {
-    font-weight: 500;
-    color: #495057;
-    margin-bottom: 8px;
-}
-
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    padding: 10px 15px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #4361ee;
-    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #20bf55, #01baef);
-    border: none;
-    border-radius: 8px;
-    padding: 10px 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(32, 191, 85, 0.4);
-}
-
-.btn-secondary {
-    border-radius: 8px;
-    padding: 10px 25px;
-    font-weight: 500;
-}
-
-/* Loading state */
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Toast notifications */
-.toast {
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.toast-header {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border-bottom: 1px solid #dee2e6;
-}
-</style>
-<div class="mt-3">
-    <small class="text-muted">
-        <strong>*Ишчи кунлар:</strong> Фақат тўлиқ ставка ходимлар учун ҳисобга олинади (якшанба ва байрам кунлари чиқарилган). 
-        15 кунлик ишчилар ҳар куни ишлайди, ҳафтада 1 кун келадиган ходимлар учун ойда 4 кун оптимал, қоровуллар учун ойда 10 кун оптимал. 
-        Офис ходимлари эса давоматсиз тўлиқ ойлик олади.
-    </small>
-</div>
-
-<!-- Modal oynalar -->
+<!-- Modallar salary-page tashqarisida — ekran markazida ochiladi -->
 {% for stat in stats %}
-<div class="modal fade" id="editModal{{ stat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ stat.id }}" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel{{ stat.id }}">
-                    Xodim: {{ stat.employee.last_name }} {{ stat.employee.first_name }} ({{ stat.year }}-{{ stat.month }})
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="id_salary_{{ stat.id }}" class="form-label">Oylik:</label>
-                            <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control" id="id_salary_{{ stat.id }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="id_currency_{{ stat.id }}" class="form-label">Valyuta:</label>
-                            <select name="currency" class="form-select" id="id_currency_{{ stat.id }}">
-                                <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>So'm</option>
-                                <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>Dollar</option>
-                                <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>Yevro</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_paid_{{ stat.id }}" class="form-label">To'langan:</label>
-                        <input type="number" name="paid" value="{{ stat.paid|floatformat:2 }}" step="any" class="form-control" id="id_paid_{{ stat.id }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="id_bonus_{{ stat.id }}" class="form-label">Mukofot:</label>
-                        <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control" id="id_bonus_{{ stat.id }}">
+<div class="modal fade salary-modal" id="editModal{{ stat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ stat.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content salary-modal__panel">
+            <div class="modal-header salary-modal__header">
+                <div class="salary-modal__header-bg" aria-hidden="true"></div>
+                <div class="salary-modal__header-inner">
+                    <div class="salary-modal__avatar" aria-hidden="true">{{ stat.employee.first_name|slice:":1" }}{{ stat.employee.last_name|slice:":1" }}</div>
+                    <div class="salary-modal__titles">
+                        <span class="salary-modal__eyebrow">Ma'lumotlarni tahrirlash</span>
+                        <h2 class="salary-modal__name modal-title" id="editModalLabel{{ stat.id }}">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</h2>
+                        <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ stat.year }} · {{ stat.month }}</span>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-success">Saqlash</button>
+                <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+            </div>
+            <form method="post" class="salary-modal__form" action="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}">
+                {% csrf_token %}
+                <div class="modal-body salary-modal__body">
+                    <div class="salary-modal__grid">
+                        <div class="salary-modal__field">
+                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-wallet2"></i> Oylik</label>
+                            <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
+                        </div>
+                        <div class="salary-modal__field">
+                            <label for="id_currency_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-currency-exchange"></i> Valyuta</label>
+                            <select name="currency" class="form-select salary-modal__input" id="id_currency_{{ stat.id }}">
+                                <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>So'm (UZS)</option>
+                                <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>Dollar (USD)</option>
+                                <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>Yevro (EUR)</option>
+                            </select>
+                        </div>
+                        <div class="salary-modal__field salary-modal__field--wide">
+                            <label for="id_paid_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-check2-circle"></i> To'langan</label>
+                            <input type="number" name="paid" value="{{ stat.paid|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_paid_{{ stat.id }}">
+                        </div>
+                        <div class="salary-modal__field salary-modal__field--wide">
+                            <label for="id_bonus_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-gift"></i> Mukofot</label>
+                            <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
+                        </div>
+                    </div>
+                    <p class="salary-modal__hint"><i class="bi bi-info-circle"></i> Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi.</p>
+                </div>
+                <div class="modal-footer salary-modal__footer">
+                    <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn salary-modal__btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
                 </div>
             </form>
         </div>
@@ -795,6 +407,23 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Modal ochilish/yopilish animatsiyasi va blur fon
+    document.querySelectorAll('.salary-modal').forEach(function(modalEl) {
+        modalEl.addEventListener('show.bs.modal', function() {
+            document.body.classList.add('salary-modal-open');
+            const firstInput = modalEl.querySelector('.salary-modal__input');
+            modalEl.addEventListener('shown.bs.modal', function focusOnce() {
+                if (firstInput) firstInput.focus();
+                modalEl.removeEventListener('shown.bs.modal', focusOnce);
+            });
+        });
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            if (!document.querySelector('.salary-modal.show')) {
+                document.body.classList.remove('salary-modal-open');
+            }
+        });
+    });
+
     // Filterlar avtomatik ishlashi: select o'zgarsa darhol, qidiruv yozilganda debounce bilan
     const filterForm = document.getElementById('salaryFilterForm');
     if (filterForm) {
@@ -864,10 +493,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const formData = new FormData(this);
             const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
+            const originalHtml = submitBtn.innerHTML;
             
             // Loading state
-            submitBtn.textContent = 'Saqlanmoqda...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saqlanmoqda...';
             submitBtn.disabled = true;
             
             fetch(this.action, {
@@ -883,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     // Success message
                     const toast = document.createElement('div');
-                    toast.className = 'toast show position-fixed top-0 end-0 p-3';
+                    toast.className = 'toast salary-toast show position-fixed top-0 end-0 p-3';
                     toast.style.zIndex = '9999';
                     toast.innerHTML = `
                         <div class="toast-header">
@@ -912,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .finally(() => {
                 // Reset button
-                submitBtn.textContent = originalText;
+                submitBtn.innerHTML = originalHtml;
                 submitBtn.disabled = false;
             });
         });

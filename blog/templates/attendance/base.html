@@ -4,559 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}ISOMER OIL Davomat{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <!-- Bootstrap 5.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{% static 'css/improved-styles.css' %}" rel="stylesheet">
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"/>
-    <!-- Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        /* Modern Color Palette - Premium Blue Theme */
-        --primary-color: #5B6CFF;
-        --primary-dark: #4A5AE8;
-        --secondary-color: #2D3A8B;
-        --accent-color: #00D4FF;
-        --accent-light: #6EE7FF;
-        --success-color: #10B981;
-        --success-light: #34D399;
-        --warning-color: #F59E0B;
-        --warning-light: #FBBF24;
-        --danger-color: #EF4444;
-        --danger-light: #F87171;
-        --info-color: #3B82F6;
-        --info-light: #60A5FA;
-        --light-color: #F8FAFC;
-        --light-gray: #E2E8F0;
-        --dark-color: #1E293B;
-        --dark-gray: #475569;
-        --text-primary: #0F172A;
-        --text-secondary: #64748B;
-        
-        /* Modern Gradients */
-        --gradient-primary: linear-gradient(135deg, #5B6CFF 0%, #4A5AE8 50%, #3B4AD1 100%);
-        --gradient-secondary: linear-gradient(135deg, #2D3A8B 0%, #1E2A6B 100%);
-        --gradient-accent: linear-gradient(135deg, #00D4FF 0%, #00B8E6 100%);
-        --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-        --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-        --gradient-body: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
-        
-        /* Enhanced Shadows */
-        --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-sm: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        --shadow-colored: 0 10px 30px -5px rgba(91, 108, 255, 0.3);
-        
-        /* Modern Border Radius */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-        --radius-xl: 20px;
-        --radius-2xl: 24px;
-        --radius-full: 9999px;
-        --border-radius: var(--radius-lg);
-        
-        /* Smooth Transitions */
-        --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-speed: var(--transition-base);
-        
-        /* Backdrop Blur */
-        --blur-sm: blur(4px);
-        --blur-md: blur(8px);
-        --blur-lg: blur(16px);
-      }
-      
-      * {
-        box-sizing: border-box;
-      }
-      
-      body { 
-        background: var(--gradient-body);
-        background-attachment: fixed;
-        min-height: 100vh;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        color: var(--text-primary);
-        position: relative;
-        padding-bottom: 60px;
-        line-height: 1.6;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      
-      h1, h2, h3, h4, h5, h6, .navbar-brand {
-        font-family: 'Poppins', sans-serif;
-      }
-      
-      /* Modern Navbar styling */
-      .navbar {
-        background: var(--gradient-secondary) !important;
-        padding: 16px 0;
-        box-shadow: var(--shadow-lg);
-        backdrop-filter: var(--blur-md);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      
-      .navbar-brand { 
-        font-weight: 700; 
-        font-size: 1.6rem; 
-        letter-spacing: 0.5px;
-        background: linear-gradient(135deg, #ffffff 0%, #E0E7FF 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all var(--transition-base);
-      }
-      
-      .navbar-brand:hover {
-        transform: scale(1.05);
-      }
-      
-      .nav-link {
-        font-weight: 500;
-        padding: 10px 18px;
-        color: rgba(255, 255, 255, 0.9) !important;
-        position: relative;
-        transition: all var(--transition-base);
-        border-radius: var(--radius-md);
-        margin: 0 4px;
-        overflow: hidden;
-      }
-      
-      .nav-link::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: var(--gradient-glass);
-        transition: left var(--transition-base);
-        z-index: -1;
-      }
-      
-      .nav-link:hover::before {
-        left: 0;
-      }
-      
-      .nav-link:hover {
-        color: #fff !important;
-        background-color: rgba(255, 255, 255, 0.15);
-        transform: translateY(-2px);
-      }
-      
-      .nav-link.active {
-        color: #fff !important;
-        background: var(--gradient-glass);
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-      
-      .nav-link.active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 60%;
-        height: 3px;
-        background: var(--accent-color);
-        border-radius: var(--radius-full);
-      }
-      
-      .nav-link i {
-        margin-right: 8px;
-        font-size: 1.15rem;
-        transition: transform var(--transition-fast);
-      }
-      
-      .nav-link:hover i {
-        transform: scale(1.1);
-      }
-      
-      /* Premium Card styling */
-      .card {
-        border: none;
-        border-radius: var(--radius-xl) !important;
-        box-shadow: var(--shadow-md);
-        transition: all var(--transition-base);
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: var(--blur-sm);
-      }
-      
-      .card:hover {
-        box-shadow: var(--shadow-xl);
-        transform: translateY(-5px) scale(1.01);
-      }
-      
-      .card-header {
-        font-weight: 600;
-        background: var(--gradient-primary);
-        color: white;
-        border: none;
-        padding: 18px 24px;
-        position: relative;
-        overflow: hidden;
-      }
-      
-      .card-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: shimmer 3s infinite;
-      }
-      
-      @keyframes shimmer {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        50% { transform: translate(-30%, -30%) rotate(180deg); }
-      }
-      
-      /* Modern Button styling */
-      .btn {
-        border-radius: var(--radius-md);
-        font-weight: 600;
-        padding: 10px 24px;
-        transition: all var(--transition-base);
-        box-shadow: var(--shadow-sm);
-        border: none;
-        position: relative;
-        overflow: hidden;
-        letter-spacing: 0.3px;
-      }
-      
-      .btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
-      }
-      
-      .btn:hover::before {
-        width: 300px;
-        height: 300px;
-      }
-      
-      .btn-primary {
-        background: var(--gradient-primary);
-        color: white;
-        box-shadow: var(--shadow-colored);
-      }
-      
-      .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-xl), var(--shadow-colored);
-      }
-      
-      .btn-primary:active {
-        transform: translateY(-1px);
-      }
-      
-      .btn-success {
-        background: var(--gradient-success);
-        color: white;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-      }
-      
-      .btn-success:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-      }
-      
-      .btn-danger {
-        background: var(--gradient-danger);
-        color: white;
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-      }
-      
-      .btn-danger:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-      }
-      
-      .btn-warning {
-        background: var(--gradient-warning);
-        color: white;
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-      }
-      
-      .btn-info {
-        background: linear-gradient(135deg, var(--info-color), var(--info-light));
-        color: white;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-      }
-      
-      /* Modern Form controls */
-      .form-control, .form-select {
-        border-radius: var(--radius-md);
-        border: 2px solid var(--light-gray);
-        padding: 12px 18px;
-        transition: all var(--transition-base);
-        background: white;
-        font-size: 0.95rem;
-      }
-      
-      .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(91, 108, 255, 0.1), var(--shadow-md);
-        outline: none;
-        transform: translateY(-1px);
-      }
-      
-      .form-control:hover, .form-select:hover {
-        border-color: var(--primary-dark);
-      }
-      
-      /* Premium Table styling */
-      .table {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
-        background: white;
-        border-collapse: separate;
-        border-spacing: 0;
-      }
-      
-      .table thead {
-        background: var(--gradient-primary);
-      }
-      
-      .table th {
-        background: transparent;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
-        border-top: none;
-        color: white;
-        padding: 16px 20px;
-        position: relative;
-      }
-      
-      .table th::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--accent-color);
-      }
-      
-      .table th, .table td {
-        vertical-align: middle !important;
-        padding: 14px 20px;
-        border-bottom: 1px solid var(--light-gray);
-      }
-      
-      .table tbody tr {
-        transition: all var(--transition-fast);
-      }
-      
-      .table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(91, 108, 255, 0.05) 0%, rgba(91, 108, 255, 0.02) 100%);
-        transform: scale(1.01);
-        box-shadow: var(--shadow-sm);
-      }
-      
-      .table tbody tr:last-child td {
-        border-bottom: none;
-      }
-      
-      .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(248, 250, 252, 0.5);
-      }
-      
-      .table-striped tbody tr:nth-of-type(odd):hover {
-        background: linear-gradient(90deg, rgba(91, 108, 255, 0.08) 0%, rgba(91, 108, 255, 0.03) 100%);
-      }
-      
-      /* Animation settings */
-      .animate__fadeIn { animation-duration: 0.8s; }
-      .animate__fadeInUp { animation-duration: 0.8s; }
-      .animate__fadeInDown { animation-duration: 0.8s; }
-      
-      /* Dashboard widgets */
-      .dashboard-widget {
-        min-height: 150px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      
-      /* Progress bars */
-      .progress {
-        height: 8px;
-        border-radius: 4px;
-        overflow: hidden;
-        background-color: rgba(0,0,0,0.05);
-      }
-      
-      .progress-bar-animated {
-        animation: progress-bar-stripes 2s linear infinite;
-      }
-      
-      /* Modern Footer */
-      .footer {
-        padding: 24px 0;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        text-align: center;
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.95) 100%);
-        backdrop-filter: var(--blur-md);
-        border-top: 1px solid var(--light-gray);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-      }
-      
-      .footer p {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      
-      .footer i {
-        color: var(--primary-color);
-      }
-      
-      /* Premium Toast notifications */
-      .toast {
-        border: none;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-xl);
-        backdrop-filter: var(--blur-md);
-        background: rgba(255, 255, 255, 0.98);
-        border-left: 4px solid var(--primary-color);
-        overflow: hidden;
-      }
-      
-      .toast-header {
-        border-bottom: 1px solid var(--light-gray);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-        font-weight: 600;
-        padding: 12px 16px;
-      }
-      
-      .toast-body {
-        padding: 14px 16px;
-        color: var(--text-primary);
-      }
-      
-      .toast.show {
-        animation: slideInRight 0.4s ease-out;
-      }
-      
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      
-      /* Enhanced Mobile Navigation */
-      @media (max-width: 992px) {
-        .navbar-collapse {
-          background-color: rgba(58, 12, 163, 0.98);
-          border-radius: 10px;
-          padding: 15px;
-          margin-top: 15px;
-          box-shadow: var(--shadow-md);
-          backdrop-filter: blur(10px);
-        }
-        
-        .navbar-nav {
-          width: 100%;
-        }
-        
-        .nav-link {
-          padding: 10px 15px;
-          margin: 3px 0;
-          border-radius: 8px;
-          display: block;
-          width: 100%;
-        }
-        
-        .dropdown-menu {
-          width: 100%;
-          margin-top: 5px;
-          background-color: rgba(255, 255, 255, 0.95);
-        }
-        
-        .dropdown-item {
-          padding: 10px 15px;
-        }
-      }
-      
-      /* Toast positioning for mobile */
-      @media (max-width: 576px) {
-        .position-fixed.top-0.end-0 {
-          top: 60px !important;
-          right: 10px !important;
-          left: 10px !important;
-          padding: 0 !important;
-        }
-        
-        .toast {
-          max-width: 100%;
-          margin: 0 0 10px 0;
-        }
-      }
-      
-      /* Container improvements */
-      @media (max-width: 768px) {
-        .container {
-          padding-left: 10px;
-          padding-right: 10px;
-        }
-        
-        .container-fluid {
-          padding-left: 10px;
-          padding-right: 10px;
-        }
-      }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="{% static 'css/app-pages.css' %}" rel="stylesheet">
+    <link href="{% static 'css/app-animations.css' %}" rel="stylesheet">
+    <link href="{% static 'css/app-premium.css' %}" rel="stylesheet">
+    <link href="{% static 'css/app-mobile.css' %}" rel="stylesheet">
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark shadow animate__animated animate__fadeInDown">
+<body class="premium-ui d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-premium shadow flex-shrink-0">
     <div class="container-fluid">
-      <a class="navbar-brand animate__animated animate__rubberBand" href="{% url 'dashboard' %}">
-        <i class="bi bi-building-check me-2"></i>ISOMER OIL Davomat
+      <a class="navbar-brand" href="{% url 'dashboard' %}">
+        <i class="bi bi-droplet-half me-2"></i>ISOMER OIL
+        <span class="opacity-75 fw-normal fs-6 ms-1">Davomat</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menyu">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
@@ -583,12 +50,12 @@
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'salary_statistics' %}active{% endif %}" href="{% url 'salary_statistics' %}">
-              <i class="bi bi-cash-coin"></i> Oylik Statistika
+              <i class="bi bi-cash-coin"></i> Oylik
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'nalivshik_schedule' %}active{% endif %}" href="{% url 'nalivshik_schedule' %}">
-              <i class="bi bi-diagram-3-fill"></i> Nalivshik jadvali
+              <i class="bi bi-diagram-3-fill"></i> Nalivshik
             </a>
           </li>
           <li class="nav-item">
@@ -597,10 +64,12 @@
             </a>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-gear-fill"></i> Boshqaruv
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+               data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="true"
+               aria-expanded="false">
+              <i class="bi bi-grid-3x3-gap-fill"></i> Boshqaruv
             </a>
-            <ul class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn animate__faster" aria-labelledby="navbarDropdown">
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="navbarDropdown">
               <li>
                 <a class="dropdown-item" href="{% url 'edit_attendance_history' %}">
                   <i class="bi bi-pencil-square me-2"></i> Davomat tahrirlash
@@ -637,14 +106,13 @@
       </div>
     </div>
   </nav>
-  <div class="container pb-5">
+  <main class="{% block content_wrapper_class %}flex-grow-1 container-fluid app-page px-2 px-md-3 py-3 pb-4{% endblock %}">
       {% if messages %}
         <div class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
           {% for message in messages %}
-            <div class="toast show animate__animated animate__fadeInRight" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
               <div class="toast-header">
                 <strong class="me-auto">{% if message.tags == "error" %}Xato{% else %}Xabar{% endif %}</strong>
-                <small class="text-muted">Habar</small>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
               </div>
               <div class="toast-body text-{{ message.tags }}">
@@ -655,18 +123,16 @@
         </div>
       {% endif %}
       {% block content %}{% endblock %}
-  </div>
-  <footer class="footer">
+  </main>
+  <footer class="site-footer footer-premium flex-shrink-0">
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
           <p class="mb-0">
-            <i class="bi bi-building me-1"></i> 
-            <strong>ISOMER OIL</strong> — Davomat tizimi 
-            <span class="mx-2">|</span> 
-            <i class="bi bi-calendar-check me-1"></i> {{ now.year }} 
-            <span class="mx-2">|</span> 
-            <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Zamonaviy va baraka!
+            <i class="bi bi-droplet-half me-1 text-primary"></i>
+            <strong>ISOMER OIL</strong> — Davomat tizimi
+            <span class="mx-2 opacity-50">|</span>
+            <i class="bi bi-calendar-check me-1"></i> {{ now.year }}
           </p>
         </div>
       </div>
@@ -675,7 +141,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="{% static 'js/app-animations.js' %}" defer></script>
+  <script src="{% static 'js/app-mobile.js' %}" defer></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
-

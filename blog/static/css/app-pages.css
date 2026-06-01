@@ -1,0 +1,403 @@
+/**
+ * ISOMER OIL Davomat — umumiy sahifa dizayni
+ * (Oylik statistika alohida stillarga ega)
+ */
+.app-page {
+  --app-gradient: linear-gradient(135deg, #4cc9f0 0%, #4361ee 55%, #3a0ca3 100%);
+  --app-primary: #4361ee;
+  --app-accent: #4cc9f0;
+  --app-surface: #ffffff;
+  --app-border: #e2e8f0;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --app-radius: 16px;
+  --app-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+/* Sahifa sarlavhasi */
+.page-hero {
+  background: var(--app-gradient);
+  color: #fff;
+  border-radius: var(--app-radius);
+  padding: 1.35rem 1.5rem;
+  box-shadow: 0 12px 32px rgba(67, 97, 238, 0.22);
+  margin-bottom: 1.25rem;
+}
+
+.page-hero-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.page-hero-sub {
+  opacity: 0.9;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.page-hero-meta {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.page-hero-meta-label {
+  opacity: 0.85;
+  font-size: 0.8rem;
+  display: block;
+}
+
+/* Toolbar / filter */
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.app-filter-card {
+  background: var(--app-surface);
+  border-radius: var(--app-radius);
+  padding: 1.15rem 1.35rem;
+  box-shadow: var(--app-shadow);
+  border: 1px solid rgba(67, 97, 238, 0.08);
+  margin-bottom: 1.25rem;
+}
+
+.app-filter-card .form-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-muted);
+  margin-bottom: 0.35rem;
+}
+
+.app-filter-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.85rem;
+}
+
+.app-search-form .form-control {
+  min-width: 200px;
+  border-radius: 10px;
+}
+
+/* Panel (jadval / forma) */
+.app-panel {
+  background: var(--app-surface);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+  border: 1px solid var(--app-border);
+  overflow: hidden; /* jadval uchun */
+}
+
+/* Navbar dropdown buzilmasin */
+main.app-page,
+.app-page {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.app-panel-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.app-panel-header {
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+  color: #334155;
+  border-bottom: 1px solid var(--app-border);
+  background: linear-gradient(180deg, #f8fafc, #fff);
+}
+
+/* Jadval */
+.app-page .app-panel .card:hover,
+.app-page .app-panel:hover {
+  transform: none;
+}
+
+.app-table {
+  margin-bottom: 0;
+}
+
+.app-table thead th {
+  background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: none;
+  padding: 0.75rem 0.85rem;
+  white-space: nowrap;
+}
+
+.app-table tbody td {
+  padding: 0.7rem 0.85rem;
+  vertical-align: middle;
+  border-color: #f1f5f9;
+}
+
+.app-table tbody tr:hover {
+  background: rgba(76, 201, 240, 0.08);
+}
+
+.app-table .btn-sm {
+  border-radius: 8px;
+}
+
+/* Kartalar (dashboard) */
+.app-stat-card {
+  background: var(--app-surface);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+  border: 1px solid var(--app-border);
+  height: 100%;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.app-stat-card:hover {
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.app-stat-card .app-stat-card-head {
+  background: var(--app-gradient);
+  color: #fff;
+  padding: 0.85rem 1.15rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.app-stat-card .app-stat-card-body {
+  padding: 1.15rem;
+}
+
+.app-stat-number {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--app-text);
+  line-height: 1.1;
+}
+
+/* Forma sahifalari */
+.app-form-panel {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.app-form-panel .app-panel-body {
+  padding: 1.5rem;
+}
+
+.app-form-panel .form-label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.app-form-panel .form-control,
+.app-form-panel .form-select {
+  border-radius: 10px;
+  border-color: var(--app-border);
+}
+
+.app-form-panel .form-control:focus,
+.app-form-panel .form-select:focus {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 0.2rem rgba(76, 201, 240, 0.25);
+}
+
+/* Bo'sh holat */
+.app-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.app-empty-icon {
+  font-size: 2.5rem;
+  color: var(--app-primary);
+  opacity: 0.7;
+  margin-bottom: 1rem;
+}
+
+.app-empty-title {
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.app-empty-text {
+  color: var(--app-muted);
+  margin-bottom: 0;
+}
+
+/* Login */
+.app-login-wrap {
+  min-height: calc(100vh - 180px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.app-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--app-surface);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(67, 97, 238, 0.15);
+  border: 1px solid rgba(67, 97, 238, 0.1);
+}
+
+.app-login-card .login-brand {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--app-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin: 0 auto 1rem;
+}
+
+/* Tasdiqlash (o'chirish) */
+.app-confirm-panel {
+  max-width: 480px;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+/* Tezkor havolalar */
+.app-quick-links .list-group-item {
+  border-radius: 10px;
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--app-border);
+  transition: background 0.15s ease, padding-left 0.15s ease;
+}
+
+.app-quick-links .list-group-item:hover {
+  background: rgba(76, 201, 240, 0.1);
+  padding-left: 1.25rem;
+}
+
+/* Mobil kartalar */
+.app-mobile-cards {
+  display: none;
+}
+
+.app-mobile-card {
+  background: #fff;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: var(--app-shadow);
+}
+
+.app-mobile-card-title {
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+/* Badge holatlar */
+.badge-status-present { background: #22c55e !important; }
+.badge-status-absent { background: #ef4444 !important; }
+.badge-status-late { background: #f59e0b !important; color: #1e293b !important; }
+
+/* App page: jadval kartalarida hover effektini o'chirish */
+.app-page > .card:not(.app-stat-card):hover,
+.app-page .app-panel:hover {
+  transform: none;
+}
+
+.app-page .btn-primary {
+  background: var(--app-gradient);
+  border: none;
+}
+
+.app-page .btn-outline-primary {
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+}
+
+.app-page .btn-outline-primary:hover {
+  background: var(--app-primary);
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-hero-title {
+    font-size: 1.3rem;
+  }
+
+  .app-search-form .form-control {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .app-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-table thead th,
+  .app-table tbody td {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* Mobil kartalar: app-mobile.css da 768px gacha yoqiladi */
+.app-mobile-cards {
+  display: none;
+}
+
+/* Login sahifa — base wrapper */
+.app-login-page {
+  max-width: none;
+  padding: 0;
+}
+
+/* Bulk jadval ichidagi form elementlar */
+.app-bulk-table select,
+.app-bulk-table input[type="text"],
+.app-bulk-table textarea {
+  width: 100%;
+  min-width: 80px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.app-form-panel input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.app-form-panel select,
+.app-form-panel textarea {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+}
+
+/* Oylik statistika — alohida shell */
+.salary-skip-app-shell {
+  max-width: 100%;
+}

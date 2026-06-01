@@ -1,186 +1,48 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomat export qilish{% endblock %}
-
-{% block extra_head %}
-<style>
-/* Export page responsive */
-@media (max-width: 768px) {
-  h2 {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .row.justify-content-center {
-    margin: 0;
-  }
-  
-  .col-md-8, .col-lg-6 {
-    padding: 0 10px;
-  }
-  
-  .card.p-4 {
-    padding: 20px 15px !important;
-  }
-  
-  h5 {
-    font-size: 1.2rem;
-    text-align: center;
-  }
-  
-  .row.mb-3 {
-    margin: 0;
-  }
-  
-  .col-md-6 {
-    margin-bottom: 15px;
-    padding: 0 7.5px;
-  }
-  
-  .col-md-6:last-child {
-    margin-bottom: 0;
-  }
-  
-  .form-label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.95rem;
-    padding: 10px 12px;
-  }
-  
-  .btn {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px 20px;
-  }
-  
-  .btn:last-child {
-    margin-bottom: 0;
-  }
-  
-  .bg-light {
-    padding: 15px !important;
-    margin-top: 20px !important;
-  }
-  
-  h6 {
-    font-size: 1rem;
-  }
-  
-  .small {
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-}
-
-@media (max-width: 576px) {
-  h2 {
-    font-size: 1.3rem;
-  }
-  
-  .card.p-4 {
-    padding: 15px 12px !important;
-  }
-  
-  h5 {
-    font-size: 1.1rem;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-  
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .bg-light {
-    padding: 12px !important;
-  }
-}
-</style>
-{% endblock %}
+{% block title %}Davomat export{% endblock %}
 
 {% block content %}
-<h2 class="mb-4" data-aos="fade-right" data-aos-duration="600">Excel export qilish</h2>
+{% include 'attendance/partials/page_hero.html' with title="Excel export" subtitle="Davomatni filtrlab yuklab olish" icon="bi-download" %}
 
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
-    <div class="card p-4 shadow-lg" data-aos="zoom-in" data-aos-duration="800">
-      <h5 class="mb-3" data-aos="fade-up">Export parametrlarini tanlang</h5>
-      
-      <form method="post" data-aos="fade-up" data-aos-delay="300">
+<div class="app-form-panel" style="max-width:640px">
+  <div class="app-panel">
+    <div class="app-panel-body">
+      <form method="post">
         {% csrf_token %}
-        
-        <div class="row mb-3">
+        <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label">Sana (dan):</label>
+            <label class="form-label">Sana (dan)</label>
             <input type="date" name="date_from" class="form-control" value="{{ start_of_month|date:'Y-m-d' }}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Sana (gacha):</label>
+            <label class="form-label">Sana (gacha)</label>
             <input type="date" name="date_to" class="form-control" value="{{ today|date:'Y-m-d' }}">
           </div>
-        </div>
-        
-        <div class="row mb-3">
           <div class="col-md-6">
-            <label class="form-label">Bo'lim:</label>
+            <label class="form-label">Bo'lim</label>
             <select name="department" class="form-select">
-              <option value="">-- Hammasi --</option>
-              {% for dept in departments %}
-                {% if dept %}
-                  <option value="{{ dept }}">{{ dept }}</option>
-                {% endif %}
-              {% endfor %}
+              <option value="">Hammasi</option>
+              {% for dept in departments %}{% if dept %}<option value="{{ dept }}">{{ dept }}</option>{% endif %}{% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Status:</label>
+            <label class="form-label">Holat</label>
             <select name="status" class="form-select">
-              <option value="">-- Hammasi --</option>
-              {% for value, label in statuses %}
-                <option value="{{ value }}">{{ label }}</option>
-              {% endfor %}
+              <option value="">Hammasi</option>
+              {% for value, label in statuses %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
             </select>
           </div>
         </div>
-        
-        <div class="d-grid gap-2" data-aos="fade-up" data-aos-delay="400">
-          <button class="btn btn-primary pulse" type="submit">
-            <i class="bi bi-download"></i> Excel faylini yuklash
-          </button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Davomatga qaytish
-          </a>
+        <div class="d-grid gap-2 d-md-flex">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-download me-1"></i>Excel yuklash</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Ortga</a>
         </div>
       </form>
-      
-      <div class="mt-4 bg-light p-3 rounded" data-aos="fade-up" data-aos-delay="500">
-        <h6 class="mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i> Qo'shimcha ma'lumot</h6>
-        <p class="small text-muted mb-0">
-          Eksport qilingan fayl Excel formatida bo'ladi. Filtrlash parametrlarini tanlang va "Excel faylini yuklash" tugmasini bosing.
-          Bo'sh qoldirilgan maydonlar filtrlashdan chiqarib tashlanadi.
-        </p>
+      <div class="alert alert-light border mt-4 mb-0 small">
+        <i class="bi bi-info-circle text-primary me-1"></i>
+        Bo'sh filtrlar e'tiborsiz qolinadi.
       </div>
     </div>
   </div>
 </div>
-
-{% block extra_scripts %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Manually refresh AOS for this page
-    setTimeout(() => {
-      AOS.refresh();
-    }, 200);
-  });
-</script>
 {% endblock %}
-{% endblock %} 

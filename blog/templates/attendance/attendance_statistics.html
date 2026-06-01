@@ -9,20 +9,10 @@
 {% block content %}
 <div class="stats-page container-fluid px-2 px-md-3 pb-4">
 
-  <!-- Sarlavha -->
-  <div class="stats-hero mb-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-      <div>
-        <h1 class="stats-hero-title mb-1">
-          <i class="bi bi-bar-chart-line-fill me-2"></i>Statistika va tahlil
-        </h1>
-        <p class="stats-hero-sub mb-0">Davomat ko‘rsatkichlari, trend va xodimlar reytingi</p>
-      </div>
-      <div class="stats-hero-period text-md-end">
-        <div class="stats-hero-dates">{{ date_from|date:'d.m.Y' }} — {{ date_to|date:'d.m.Y' }}</div>
-        <small class="stats-hero-period-label">Tanlangan davr · {{ days_in_range }} kun</small>
-      </div>
-    </div>
+  {% include 'attendance/partials/page_hero.html' with title="Statistika va tahlil" subtitle="Davomat ko'rsatkichlari, trend va xodimlar reytingi" icon="bi-bar-chart-line-fill" %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="badge rounded-pill px-3 py-2 border bg-white text-dark">{{ date_from|date:'d.m.Y' }} — {{ date_to|date:'d.m.Y' }}</span>
+    <span class="badge rounded-pill px-3 py-2 bg-primary">{{ days_in_range }} kun</span>
   </div>
 
   <!-- Filtrlash -->

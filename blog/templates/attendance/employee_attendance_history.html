@@ -3,174 +3,31 @@
 
 {% block title %}{{ employee.first_name }} {{ employee.last_name }} - Davomat Tarixi{% endblock %}
 
-{% block extra_head %}
-<style>
-/* Employee attendance history responsive */
-@media (max-width: 768px) {
-  .container-fluid {
-    padding: 15px 10px !important;
-  }
-  
-  .display-4 {
-    font-size: 2rem !important;
-  }
-  
-  .card-body.text-center.py-5 {
-    padding: 20px 15px !important;
-  }
-  
-  .row.justify-content-center {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .col-auto {
-    width: 100%;
-  }
-  
-  .badge {
-    display: block;
-    width: 100%;
-    margin: 5px 0;
-  }
-  
-  .row.align-items-center {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .col-md-4 {
-    width: 100%;
-  }
-  
-  .btn-lg {
-    width: 100%;
-    padding: 10px 20px;
-    font-size: 0.95rem;
-  }
-  
-  .display-6 {
-    font-size: 1.5rem !important;
-  }
-  
-  .card-header h4 {
-    font-size: 1.2rem;
-  }
-  
-  .card-body.p-4 {
-    padding: 20px 15px !important;
-  }
-  
-  .row.g-4 {
-    margin: 0;
-  }
-  
-  .col-lg-3, .col-md-6 {
-    margin-bottom: 15px;
-    padding: 0 7.5px;
-  }
-  
-  .input-group-lg .form-control,
-  .input-group-lg .form-select {
-    font-size: 1rem;
-    padding: 10px 12px;
-  }
-  
-  .input-group-text {
-    font-size: 0.9rem;
-    padding: 10px 12px;
-  }
-}
-
-@media (max-width: 576px) {
-  .display-4 {
-    font-size: 1.5rem !important;
-  }
-  
-  .card-body.text-center.py-5 {
-    padding: 15px 12px !important;
-  }
-  
-  .display-6 {
-    font-size: 1.3rem !important;
-  }
-  
-  .btn-lg {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .card-header h4 {
-    font-size: 1.1rem;
-  }
-  
-  .card-body.p-4 {
-    padding: 15px 12px !important;
-  }
-  
-  .input-group-lg .form-control,
-  .input-group-lg .form-select {
-    font-size: 0.95rem;
-    padding: 8px 12px;
-  }
-  
-  .input-group-text {
-    font-size: 0.85rem;
-    padding: 8px 10px;
-  }
-}
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-    <div class="container">
-        <!-- Xodim ma'lumotlari -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
-                    <div class="card-body text-center text-white py-5">
-                        <h1 class="display-4 fw-bold mb-3">{{ employee.first_name }} {{ employee.last_name }}</h1>
-                        <div class="row justify-content-center">
-                            <div class="col-auto">
-                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.employee_type|default:"Texnik" }}</span>
-                            </div>
-                            <div class="col-auto">
-                                <span class="badge bg-light text-dark fs-6 px-3 py-2 me-2">{{ employee.department|default:"Ishlab chiqarish" }}</span>
-                            </div>
-                            <div class="col-auto">
-                                <span class="badge bg-light text-dark fs-6 px-3 py-2">{{ employee.location|default:"Zavod" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% include 'attendance/partials/page_hero.html' with title="Davomat tarixi" subtitle="Kunlik kalendar va tahrirlash" icon="bi-clock-history" meta=year meta_label="Yil" %}
+<p class="mb-3 fw-semibold text-secondary">{{ employee.last_name }} {{ employee.first_name }} · <span class="text-primary">{{ year }}-{{ month|stringformat:"02d" }}</span></p>
 
-        <!-- Oy navigatsiyasi -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-4 text-center">
-                                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-danger btn-lg px-4">
-                                    ← Oldingi oy
-                                </a>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <h2 class="display-6 fw-bold text-primary mb-0">{{ year }} yil {{ month }} oy</h2>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-danger btn-lg px-4">
-                                    Keyingi oy →
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="mb-3">
+  <span class="badge bg-primary">{{ employee.get_employee_type_display }}</span>
+  {% if employee.department %}<span class="badge bg-secondary">{{ employee.department }}</span>{% endif %}
+  <span class="badge bg-info">{{ employee.get_location_display }}</span>
+</div>
+
+<div class="app-panel mb-4">
+  <div class="app-panel-body">
+    <div class="row align-items-center g-3">
+      <div class="col-md-4 text-center">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary w-100">← Oldingi oy</a>
+      </div>
+      <div class="col-md-4 text-center">
+        <h2 class="h4 fw-bold text-primary mb-0">{{ year }} · {{ month }}-oy</h2>
+      </div>
+      <div class="col-md-4 text-center">
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary w-100">Keyingi oy →</a>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Filtrlash -->
         <div class="row mb-4">
@@ -529,8 +386,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 <!-- Davomat o'zgartirish modali -->
 <div class="modal fade" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">

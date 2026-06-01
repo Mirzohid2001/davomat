@@ -1,189 +1,80 @@
 {% extends 'attendance/base.html' %}
-{% load static %}
-
-{% block title %}Xodimni tanlash{% endblock %}
-
-{% block extra_head %}
-<style>
-/* Select employee page responsive */
-@media (max-width: 768px) {
-  .container.mt-4 {
-    padding: 0 10px;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .card {
-    margin: 0;
-  }
-  
-  .card-body {
-    padding: 20px 15px;
-  }
-  
-  .form-label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-  
-  .form-select {
-    font-size: 0.95rem;
-    padding: 10px 12px;
-  }
-  
-  .btn {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px 20px;
-  }
-  
-  .btn:last-child {
-    margin-bottom: 0;
-  }
-}
-
-@media (max-width: 576px) {
-  h2 {
-    font-size: 1.3rem;
-  }
-  
-  .card-body {
-    padding: 15px 12px;
-  }
-  
-  .form-label {
-    font-size: 0.9rem;
-  }
-  
-  .form-select {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-  
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 400px) {
-  h2 {
-    font-size: 1.2rem;
-  }
-  
-  .card-body {
-    padding: 12px 10px;
-  }
-  
-  .form-select {
-    font-size: 0.85rem;
-    padding: 6px 10px;
-  }
-}
-</style>
-{% endblock %}
+{% block title %}Xodim tanlash{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Davomat kiritish uchun xodimni tanlang</h2>
-    
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label for="location-filter" class="form-label">Joylashuv bo'yicha filtrlash:</label>
-                    <select id="location-filter" class="form-select">
-                        <option value="">Barchasi</option>
-                        {% for loc_code, loc_name in locations %}
-                            <option value="{{ loc_code }}">{{ loc_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="department-filter" class="form-label">Bo'lim bo'yicha filtrlash:</label>
-                    <select id="department-filter" class="form-select">
-                        <option value="">Barchasi</option>
-                        {% for emp in employees %}
-                            {% if emp.department %}
-                                <option value="{{ emp.department }}">{{ emp.department }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="employee" class="form-label">Xodimni tanlang:</label>
-                    <select name="employee" id="employee" class="form-select" required>
-                        <option value="">-- Xodimni tanlang --</option>
-                        {% for emp in employees %}
-                            <option value="{{ emp.id }}" 
-                                    data-location="{{ emp.location }}" 
-                                    data-department="{{ emp.department|default:'' }}">
-                                {{ emp.last_name }} {{ emp.first_name }} ({{ emp.position }}) - {{ emp.get_location_display }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">Davom etish</button>
-                    <a href="{% url 'attendance_list' %}" class="btn btn-secondary">Bekor qilish</a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{% include 'attendance/partials/page_hero.html' with title="Individual davomat" subtitle="Davomat kiritish uchun xodimni tanlang" icon="bi-person-plus-fill" %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const locationFilter = document.getElementById('location-filter');
-        const departmentFilter = document.getElementById('department-filter');
-        const employeeSelect = document.getElementById('employee');
-        const allOptions = Array.from(employeeSelect.options);
-        
-        // Unique departments
-        const uniqueDepartments = new Set();
-        allOptions.forEach(option => {
-            const dept = option.getAttribute('data-department');
-            if (dept) uniqueDepartments.add(dept);
-        });
-        
-        // Populate department filter
-        departmentFilter.innerHTML = '<option value="">Barchasi</option>';
-        Array.from(uniqueDepartments).sort().forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept;
-            option.textContent = dept;
-            departmentFilter.appendChild(option);
-        });
-        
-        function filterEmployees() {
-            const selectedLocation = locationFilter.value;
-            const selectedDepartment = departmentFilter.value;
-            
-            allOptions.forEach(option => {
-                const optionLocation = option.getAttribute('data-location');
-                const optionDepartment = option.getAttribute('data-department');
-                
-                const locationMatch = !selectedLocation || optionLocation === selectedLocation;
-                const departmentMatch = !selectedDepartment || optionDepartment === selectedDepartment;
-                
-                option.style.display = locationMatch && departmentMatch ? '' : 'none';
-            });
-        }
-        
-        locationFilter.addEventListener('change', filterEmployees);
-        departmentFilter.addEventListener('change', filterEmployees);
-    });
-</script>
+<div class="app-form-panel">
+  <div class="app-panel">
+    <div class="app-panel-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="location-filter" class="form-label">Joylashuv</label>
+          <select id="location-filter" class="form-select">
+            <option value="">Barchasi</option>
+            {% for loc_code, loc_name in locations %}
+            <option value="{{ loc_code }}">{{ loc_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="department-filter" class="form-label">Bo'lim</label>
+          <select id="department-filter" class="form-select">
+            <option value="">Barchasi</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="employee" class="form-label">Xodim</label>
+          <select name="employee" id="employee" class="form-select" required>
+            <option value="">— Xodimni tanlang —</option>
+            {% for emp in employees %}
+            <option value="{{ emp.id }}" data-location="{{ emp.location }}" data-department="{{ emp.department|default:'' }}">
+              {{ emp.last_name }} {{ emp.first_name }} ({{ emp.position }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">Davom etish</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const locationFilter = document.getElementById('location-filter');
+  const departmentFilter = document.getElementById('department-filter');
+  const employeeSelect = document.getElementById('employee');
+  const allOptions = Array.from(employeeSelect.options);
+  const uniqueDepartments = new Set();
+  allOptions.forEach(option => {
+    const dept = option.getAttribute('data-department');
+    if (dept) uniqueDepartments.add(dept);
+  });
+  Array.from(uniqueDepartments).sort().forEach(dept => {
+    const option = document.createElement('option');
+    option.value = dept;
+    option.textContent = dept;
+    departmentFilter.appendChild(option);
+  });
+  function filterEmployees() {
+    const loc = locationFilter.value;
+    const dept = departmentFilter.value;
+    allOptions.forEach(option => {
+      if (!option.value) return;
+      const okLoc = !loc || option.getAttribute('data-location') === loc;
+      const okDept = !dept || option.getAttribute('data-department') === dept;
+      option.hidden = !(okLoc && okDept);
+    });
+  }
+  locationFilter.addEventListener('change', filterEmployees);
+  departmentFilter.addEventListener('change', filterEmployees);
+});
+</script>
 {% endblock %}

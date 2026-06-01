@@ -106,22 +106,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="animate__animated animate__fadeInLeft">
-        <i class="bi bi-pencil-square me-2"></i>Davomat tahrirlash
-    </h2>
-    <a href="{% url 'attendance_statistics' %}" class="btn btn-secondary animate__animated animate__fadeInRight">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
-    </a>
+{% include 'attendance/partials/page_hero.html' with title="Davomat tahrirlash" subtitle="Tarixdagi yozuvlarni qidirish va o'zgartirish" icon="bi-pencil-square" %}
+
+<div class="app-toolbar mb-3">
+  <a href="{% url 'attendance_statistics' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Orqaga</a>
 </div>
 
-<!-- Filtrlash formasi -->
-<div class="card mb-4 animate__animated animate__fadeInUp">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtrlash</h5>
-    </div>
-    <div class="card-body">
-        <form class="row g-3" method="get">
+<div class="app-filter-card mb-4">
+    <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> Filtrlash</div>
+        <form class="row g-3 align-items-end" method="get">
             <div class="col-md-3">
                 <label class="form-label">Sana dan:</label>
                 <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
@@ -161,26 +154,22 @@
                 </a>
             </div>
         </form>
-    </div>
 </div>
 
-<!-- Davomat ma'lumotlari -->
-<div class="card animate__animated animate__fadeInUp">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="bi bi-calendar-check me-2"></i>Davomat ma'lumotlari
-            <span class="badge bg-primary ms-2">{{ attendances|length }} ta</span>
-        </h5>
+<div class="app-panel">
+    <div class="app-panel-header">
+        <i class="bi bi-calendar-check me-2"></i>Davomat ma'lumotlari
+        <span class="badge bg-primary ms-2">{{ attendances|length }} ta</span>
     </div>
-    <div class="card-body">
+    <div class="app-panel-body">
         {% if attendances %}
         <form method="post">
             {% csrf_token %}
             {{ formset.management_form }}
             
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-primary">
+                <table class="table app-table table-hover mb-0">
+                    <thead>
                         <tr>
                             <th width="5%">#</th>
                             <th width="15%">Sana</th>

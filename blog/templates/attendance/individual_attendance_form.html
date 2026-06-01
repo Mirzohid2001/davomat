@@ -111,16 +111,13 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>{{ employee.last_name }} {{ employee.first_name }} uchun davomat</h2>
-        <div>
-            <span class="badge bg-info">{{ employee.get_location_display }}</span>
-            {% if employee.department %}
-                <span class="badge bg-secondary">{{ employee.department }}</span>
-            {% endif %}
-        </div>
-    </div>
+{% include 'attendance/partials/page_hero.html' with title="Individual davomat" subtitle="Kunlik holatni kiriting" icon="bi-person-check" meta=date_val|date:"d.m.Y" meta_label="Sana" %}
+<p class="mb-3 fw-semibold">{{ employee.last_name }} {{ employee.first_name }}</p>
+
+<div class="mb-3">
+  <span class="badge bg-info">{{ employee.get_location_display }}</span>
+  {% if employee.department %}<span class="badge bg-secondary">{{ employee.department }}</span>{% endif %}
+</div>
     
     {% if messages %}
         {% for message in messages %}
