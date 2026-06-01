@@ -1,428 +1,210 @@
 {% extends 'attendance/base.html' %}
-{% load custom_filters %}
-{% load attendance_filters %}
+{% load static %}
 {% block title %}Statistika va tahlil{% endblock %}
 
-{% load static %}
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css"/>
 <link rel="stylesheet" href="{% static 'css/statistics-styles.css' %}">
-<style>
-  .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-  }
-  .stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  }
-  .chart-container {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
-  }
-  .stat-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-  }
-  .stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    margin: 0;
-  }
-  .filter-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    border: none;
-  }
-  
-  /* Responsive styles for statistics page */
-  @media (max-width: 992px) {
-    .container-fluid {
-      padding: 0 10px;
-    }
-    
-    .stats-card.p-4 {
-      padding: 20px 15px !important;
-    }
-    
-    .filter-card.p-4 {
-      padding: 20px 15px !important;
-    }
-    
-    .chart-container {
-      padding: 15px;
-      margin-bottom: 15px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .stats-card.p-4 {
-      padding: 15px 12px !important;
-    }
-    
-    .stats-card .d-flex.justify-content-between {
-      flex-direction: column;
-      align-items: flex-start !important;
-      gap: 15px;
-    }
-    
-    .stats-card .text-end {
-      text-align: left !important;
-      width: 100%;
-    }
-    
-    h2 {
-      font-size: 1.5rem;
-    }
-    
-    .h4 {
-      font-size: 1.2rem;
-    }
-    
-    .stat-number {
-      font-size: 2rem;
-    }
-    
-    .stat-label {
-      font-size: 0.85rem;
-    }
-    
-    .filter-card.p-4 {
-      padding: 15px 12px !important;
-    }
-    
-    .filter-card h5 {
-      font-size: 1.1rem;
-      margin-bottom: 15px;
-    }
-    
-    .filter-card .row.g-3 {
-      margin: 0;
-    }
-    
-    .filter-card .col-lg-2,
-    .filter-card .col-lg-3,
-    .filter-card .col-md-4,
-    .filter-card .col-md-6,
-    .filter-card .col-sm-6,
-    .filter-card .col-sm-12 {
-      margin-bottom: 12px;
-      padding: 0 7.5px;
-    }
-    
-    .filter-card .form-label {
-      font-size: 0.9rem;
-      margin-bottom: 6px;
-    }
-    
-    .filter-card .form-control,
-    .filter-card .form-select {
-      font-size: 0.9rem;
-      padding: 8px 12px;
-    }
-    
-    .filter-card .d-flex.gap-2 {
-      flex-direction: column;
-      gap: 8px !important;
-    }
-    
-    .filter-card .btn {
-      width: 100%;
-    }
-    
-    .chart-container {
-      padding: 12px;
-      margin-bottom: 15px;
-    }
-    
-    .chart-container h5 {
-      font-size: 1rem;
-      margin-bottom: 12px;
-    }
-    
-    .chart-container canvas {
-      max-height: 250px !important;
-    }
-    
-    .col-lg-3, .col-lg-6, .col-lg-8, .col-lg-4 {
-      margin-bottom: 15px;
-    }
-    
-    .table-responsive {
-      font-size: 0.85rem;
-    }
-    
-    .table th, .table td {
-      padding: 8px 6px;
-      font-size: 0.85rem;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .stats-card.p-4 {
-      padding: 12px 10px !important;
-    }
-    
-    h2 {
-      font-size: 1.3rem;
-    }
-    
-    .stat-number {
-      font-size: 1.8rem;
-    }
-    
-    .stat-label {
-      font-size: 0.8rem;
-    }
-    
-    .fs-1 {
-      font-size: 2rem !important;
-    }
-    
-    .filter-card.p-4 {
-      padding: 12px 10px !important;
-    }
-    
-    .filter-card h5 {
-      font-size: 1rem;
-    }
-    
-    .filter-card .form-control,
-    .filter-card .form-select {
-      font-size: 0.85rem;
-      padding: 6px 10px;
-    }
-    
-    .chart-container {
-      padding: 10px;
-    }
-    
-    .chart-container h5 {
-      font-size: 0.95rem;
-    }
-    
-    .chart-container canvas {
-      max-height: 200px !important;
-    }
-    
-    .table th, .table td {
-      padding: 6px 4px;
-      font-size: 0.8rem;
-    }
-    
-    .table th {
-      font-size: 0.75rem;
-    }
-  }
-  
-  @media (max-width: 400px) {
-    .stat-number {
-      font-size: 1.5rem;
-    }
-    
-    .fs-1 {
-      font-size: 1.5rem !important;
-    }
-    
-    .chart-container canvas {
-      max-height: 180px !important;
-    }
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <!-- Header -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="stats-card p-4 animate__animated animate__fadeIn">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="mb-1">📊 Statistika va tahlil</h2>
-            <p class="mb-0 opacity-75">Davomat tahlili va hisobotlar</p>
-          </div>
-          <div class="text-end">
-            <div class="h4 mb-0">{{ date_from|date:'d.m.Y' }} - {{ date_to|date:'d.m.Y' }}</div>
-            <small class="opacity-75">Tanlangan davr</small>
-          </div>
-        </div>
+<div class="stats-page container-fluid px-2 px-md-3 pb-4">
+
+  <!-- Sarlavha -->
+  <div class="stats-hero mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div>
+        <h1 class="stats-hero-title mb-1">
+          <i class="bi bi-bar-chart-line-fill me-2"></i>Statistika va tahlil
+        </h1>
+        <p class="stats-hero-sub mb-0">Davomat ko‘rsatkichlari, trend va xodimlar reytingi</p>
+      </div>
+      <div class="stats-hero-period text-md-end">
+        <div class="stats-hero-dates">{{ date_from|date:'d.m.Y' }} — {{ date_to|date:'d.m.Y' }}</div>
+        <small class="stats-hero-period-label">Tanlangan davr · {{ days_in_range }} kun</small>
       </div>
     </div>
   </div>
 
   <!-- Filtrlash -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="filter-card p-4 animate__animated animate__fadeIn">
-        <h5 class="mb-3">🔍 Filtrlash</h5>
-        <form class="row g-3" method="get">
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <label class="form-label">📅 Davr</label>
-            <select name="period" class="form-select">
-              <option value="day" {% if period == "day" %}selected{% endif %}>Kunlik</option>
-              <option value="week" {% if period == "week" %}selected{% endif %}>Haftalik</option>
-              <option value="month" {% if period == "month" %}selected{% endif %}>Oylik</option>
-              <option value="quarter" {% if period == "quarter" %}selected{% endif %}>3 oylik</option>
-              <option value="year" {% if period == "year" %}selected{% endif %}>Yillik</option>
-              <option value="custom" {% if period == "custom" %}selected{% endif %}>Oraliq</option>
-            </select>
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <label class="form-label">📆 Dan</label>
-            <input type="date" name="date_from" class="form-control" value="{{ date_from|date:'Y-m-d' }}">
-          </div>
-          <div class="col-lg-2 col-md-4 col-sm-6">
-            <label class="form-label">📆 Gacha</label>
-            <input type="date" name="date_to" class="form-control" value="{{ date_to|date:'Y-m-d' }}">
-          </div>
-          <div class="col-lg-3 col-md-6 col-sm-6">
-            <label class="form-label">👤 Xodim</label>
-            <select name="employee" class="form-select">
-              <option value="">Barcha xodimlar</option>
-              {% for emp in employees %}
-              <option value="{{ emp.id }}" {% if request.GET.employee == emp.id|stringformat:"s" %}selected{% endif %}>
-                {{ emp.last_name }} {{ emp.first_name }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-lg-3 col-md-6 col-sm-12">
-            <label class="form-label">&nbsp;</label>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-fill" type="submit">
-                <i class="bi bi-search me-1"></i> Ko'rish
-              </button>
-              <a href="{% url 'edit_attendance_history' %}" class="btn btn-warning">
-                <i class="bi bi-pencil-square"></i>
-              </a>
-            </div>
-          </div>
-        </form>
+  <div class="stats-filter-card mb-4">
+    <div class="stats-filter-head">
+      <i class="bi bi-funnel-fill"></i>
+      <span>Filtrlash</span>
+    </div>
+    <form method="get" id="statsFilterForm" class="row g-3 align-items-end">
+      <div class="col-6 col-md-4 col-lg-2">
+        <label class="form-label" for="id_period">Davr</label>
+        <select name="period" id="id_period" class="form-select">
+          <option value="day" {% if period == "day" %}selected{% endif %}>Kunlik</option>
+          <option value="week" {% if period == "week" %}selected{% endif %}>Haftalik</option>
+          <option value="month" {% if period == "month" %}selected{% endif %}>Oylik</option>
+          <option value="quarter" {% if period == "quarter" %}selected{% endif %}>3 oylik</option>
+          <option value="year" {% if period == "year" %}selected{% endif %}>Yillik</option>
+          <option value="custom" {% if period == "custom" %}selected{% endif %}>Boshqa oralik</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <label class="form-label" for="id_date_from">Dan</label>
+        <input type="date" name="date_from" id="id_date_from" class="form-control"
+               value="{{ date_from|date:'Y-m-d' }}">
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <label class="form-label" for="id_date_to">Gacha</label>
+        <input type="date" name="date_to" id="id_date_to" class="form-control"
+               value="{{ date_to|date:'Y-m-d' }}">
+      </div>
+      <div class="col-12 col-md-6 col-lg-3">
+        <label class="form-label" for="id_employee">Xodim</label>
+        <select name="employee" id="id_employee" class="form-select">
+          <option value="">Barcha xodimlar</option>
+          {% for emp in employees %}
+          <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+            {{ emp.last_name }} {{ emp.first_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-lg-3">
+        <div class="d-flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-stats-primary flex-grow-1">
+            <i class="bi bi-search me-1"></i>Ko‘rish
+          </button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary" title="Davomat jadvali">
+            <i class="bi bi-calendar3"></i>
+          </a>
+          <a href="{% url 'edit_attendance_history' %}" class="btn btn-outline-warning" title="Davomat tarixini tahrirlash">
+            <i class="bi bi-pencil-square"></i>
+          </a>
+          <a href="{% url 'salary_statistics' %}" class="btn btn-outline-info" title="Oylik statistika">
+            <i class="bi bi-cash-coin"></i>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% if has_data %}
+
+  <!-- Umumiy ko‘rsatkichlar -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stats-summary-card">
+        <div class="stats-summary-icon bg-primary-subtle text-primary"><i class="bi bi-journal-check"></i></div>
+        <div>
+          <div class="stats-summary-value">{{ total_attendance }}</div>
+          <div class="stats-summary-label">Jami yozuvlar</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stats-summary-card">
+        <div class="stats-summary-icon bg-success-subtle text-success"><i class="bi bi-person-check"></i></div>
+        <div>
+          <div class="stats-summary-value">{{ present_count }}</div>
+          <div class="stats-summary-label">Kelganlar</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stats-summary-card">
+        <div class="stats-summary-icon bg-info-subtle text-info"><i class="bi bi-percent"></i></div>
+        <div>
+          <div class="stats-summary-value">{{ attendance_rate }}%</div>
+          <div class="stats-summary-label">Kelish foizi</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stats-summary-card">
+        <div class="stats-summary-icon bg-secondary-subtle text-secondary"><i class="bi bi-people"></i></div>
+        <div>
+          <div class="stats-summary-value">{{ active_employees }}</div>
+          <div class="stats-summary-label">Faol xodimlar</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Asosiy statistika kartalar -->
-  <div class="row mb-4">
+  <!-- Holatlar bo‘yicha kartalar -->
+  <div class="row g-3 mb-4">
     {% for item in stats_by_status %}
-    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
-      <div class="stats-card p-4 h-100 animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:1 }}00ms;">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="stat-number">{{ item.count }}</div>
-            <div class="stat-label">
-              {% if item.status == 'present' %}✅ Kelgan
-              {% elif item.status == 'absent' %}❌ Kelmagan
-              {% elif item.status == 'late' %}⏰ Kechikkan
-              {% elif item.status == 'vacation' %}🏖️ Ta'til
-              {% elif item.status == 'sick' %}🤒 Kasal
-              {% elif item.status == 'business' %}💼 Safar
-              {% else %}{{ item.status|title }}{% endif %}
-            </div>
-          </div>
-          <div class="fs-1 opacity-50">
-            {% if item.status == 'present' %}✅
-            {% elif item.status == 'absent' %}❌
-            {% elif item.status == 'late' %}⏰
-            {% elif item.status == 'vacation' %}🏖️
-            {% elif item.status == 'sick' %}🤒
-            {% elif item.status == 'business' %}💼
-            {% else %}📊{% endif %}
-          </div>
+    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+      <div class="kpi-card kpi-{{ item.status }}">
+        <div class="kpi-card-top">
+          <span class="kpi-count">{{ item.count }}</span>
+          <span class="kpi-icon" aria-hidden="true">
+            {% if item.status == 'present' %}<i class="bi bi-check-circle-fill"></i>
+            {% elif item.status == 'absent' %}<i class="bi bi-x-circle-fill"></i>
+            {% elif item.status == 'late' %}<i class="bi bi-clock-fill"></i>
+            {% elif item.status == 'vacation' %}<i class="bi bi-sun-fill"></i>
+            {% elif item.status == 'sick' %}<i class="bi bi-heart-pulse-fill"></i>
+            {% elif item.status == 'business' %}<i class="bi bi-briefcase-fill"></i>
+            {% else %}<i class="bi bi-calendar-x"></i>{% endif %}
+          </span>
         </div>
-        <div class="mt-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="opacity-75">Foiz</small>
-            <small class="fw-bold">{{ item.percentage|default:0|floatformat:1 }}%</small>
-          </div>
-          <div class="progress mt-2" style="height: 6px;">
-            <div class="progress-bar bg-white opacity-75" 
-                 style="width: {{ item.percentage|default:0 }}%"></div>
-          </div>
+        <div class="kpi-label">{{ item.label }}</div>
+        <div class="kpi-progress-wrap">
+          <div class="kpi-progress-bar" style="width: {{ item.percentage|floatformat:0 }}%"></div>
         </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="chart-container text-center py-5">
-        <i class="bi bi-graph-down display-1 text-muted"></i>
-        <h4 class="text-muted mt-3">Ma'lumot topilmadi</h4>
-        <p class="text-muted">Filtrlash parametrlarini o'zgartiring</p>
+        <small class="kpi-pct">{{ item.percentage|floatformat:1 }}%</small>
       </div>
     </div>
     {% endfor %}
   </div>
 
   <!-- Grafikalar -->
-  <div class="row mb-4">
-    <!-- Pie Chart -->
-    <div class="col-lg-6 mb-4">
-      <div class="chart-container animate__animated animate__fadeInUp">
-        <h5 class="mb-3">📊 Holatlar bo'yicha taqsimot</h5>
-        <canvas id="pieChart" height="300"></canvas>
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="stats-chart-card">
+        <h3 class="stats-chart-title"><i class="bi bi-pie-chart me-2"></i>Holatlar taqsimoti</h3>
+        <div class="stats-chart-canvas-wrap">
+          <canvas id="pieChart"></canvas>
+        </div>
       </div>
     </div>
-    
-    <!-- Bar Chart -->
-    <div class="col-lg-6 mb-4">
-      <div class="chart-container animate__animated animate__fadeInUp">
-        <h5 class="mb-3">📈 Xodimlar soni bo'yicha</h5>
-        <canvas id="barChart" height="300"></canvas>
+    <div class="col-lg-6">
+      <div class="stats-chart-card">
+        <h3 class="stats-chart-title"><i class="bi bi-bar-chart me-2"></i>Holatlar soni</h3>
+        <div class="stats-chart-canvas-wrap">
+          <canvas id="barChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Trend va jadval -->
-  <div class="row mb-4">
-    <!-- Trend Chart -->
-    <div class="col-lg-8 mb-4">
-      <div class="chart-container animate__animated animate__fadeInUp">
-        <h5 class="mb-3">📈 Kunlik trend</h5>
-        <canvas id="trendChart" height="200"></canvas>
+  <div class="row g-4 mb-4">
+    <div class="col-lg-8">
+      <div class="stats-chart-card">
+        <h3 class="stats-chart-title"><i class="bi bi-graph-up me-2"></i>Kunlik trend</h3>
+        <div class="stats-chart-canvas-wrap stats-chart-canvas-wrap--tall">
+          <canvas id="trendChart"></canvas>
+        </div>
       </div>
     </div>
-    
-    <!-- Xodimlar jadvali -->
-    <div class="col-lg-4 mb-4">
-      <div class="chart-container animate__animated animate__fadeInUp">
-        <h5 class="mb-3">👥 Top xodimlar</h5>
+    <div class="col-lg-4">
+      <div class="stats-chart-card h-100">
+        <h3 class="stats-chart-title"><i class="bi bi-trophy me-2"></i>Top xodimlar</h3>
         <div class="table-responsive">
-          <table class="table table-sm">
+          <table class="table table-sm table-hover stats-top-table mb-0">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Xodim</th>
-                <th>Kelgan</th>
-                <th>%</th>
+                <th class="text-end">Kelgan</th>
+                <th class="text-end">%</th>
               </tr>
             </thead>
             <tbody>
-              {% for emp in stats_by_employee|slice:":5" %}
+              {% for emp in stats_by_employee|slice:":8" %}
               <tr>
+                <td class="text-muted">{{ forloop.counter }}</td>
                 <td>
-                  <small>{{ emp.employee__last_name }} {{ emp.employee__first_name|truncatechars:8 }}</small>
+                  <span class="fw-medium">{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
                 </td>
-                <td class="text-success fw-bold">{{ emp.present }}</td>
-                <td>
-                  {% if emp.total > 0 %}
-                    {% widthratio emp.present emp.total 100 %}%
-                  {% else %}
-                    0%
-                  {% endif %}
+                <td class="text-end text-success fw-semibold">{{ emp.present }}</td>
+                <td class="text-end">
+                  {% if emp.total > 0 %}{% widthratio emp.present emp.total 100 %}%{% else %}—{% endif %}
                 </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="3" class="text-center text-muted">Ma'lumot yo'q</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -432,165 +214,253 @@
     </div>
   </div>
 
+  {% if stats_by_department %}
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="stats-chart-card">
+        <h3 class="stats-chart-title"><i class="bi bi-building me-2"></i>Bo‘limlar bo‘yicha</h3>
+        <div class="stats-chart-canvas-wrap">
+          <canvas id="deptChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+
+  <!-- Bo‘sh holat -->
+  <div class="stats-empty-state">
+    <div class="stats-empty-icon">
+      <i class="bi bi-inbox"></i>
+    </div>
+    <h2 class="stats-empty-title">Tanlangan davrda ma’lumot yo‘q</h2>
+    <p class="stats-empty-text">
+      {{ date_from|date:'d.m.Y' }} — {{ date_to|date:'d.m.Y' }} oralig‘ida davomat yozuvlari topilmadi.
+      {% if selected_employee %} Tanlangan xodim uchun ham tekshiring.{% endif %}
+    </p>
+    <ul class="stats-empty-hints">
+      <li><i class="bi bi-check2"></i> Boshqa oy yoki kengroq davr tanlang</li>
+      <li><i class="bi bi-check2"></i> «Barcha xodimlar» filtri bilan qayta ko‘ring</li>
+      <li><i class="bi bi-check2"></i> <a href="{% url 'attendance_list' %}">Davomat</a> bo‘limida yozuvlar borligini tekshiring</li>
+    </ul>
+    <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+      <a href="{% url 'attendance_statistics' %}?period=month" class="btn btn-stats-primary">Joriy oy</a>
+      <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary">Davomatga o‘tish</a>
+    </div>
+  </div>
+
+  {% endif %}
+
 </div>
+{% endblock %}
 
 {% block extra_scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Chart.js konfiguratsiyasi
+document.addEventListener('DOMContentLoaded', function () {
+  const periodSelect = document.getElementById('id_period');
+  const dateFromInput = document.getElementById('id_date_from');
+  const dateToInput = document.getElementById('id_date_to');
+  const filterForm = document.getElementById('statsFilterForm');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function toISO(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function applyPeriodDates(period) {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    let from = new Date(today);
+    let to = new Date(today);
+
+    if (period === 'day') {
+      /* today */
+    } else if (period === 'week') {
+      const dow = today.getDay();
+      const diff = dow === 0 ? 6 : dow - 1;
+      from.setDate(today.getDate() - diff);
+      to = new Date(from);
+      to.setDate(from.getDate() + 6);
+    } else if (period === 'month') {
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (period === 'quarter') {
+      const qMonth = Math.floor(today.getMonth() / 3) * 3;
+      from = new Date(today.getFullYear(), qMonth, 1);
+      to = new Date(today.getFullYear(), qMonth + 3, 0);
+    } else if (period === 'year') {
+      from = new Date(today.getFullYear(), 0, 1);
+      to = new Date(today.getFullYear(), 11, 31);
+    } else {
+      return;
+    }
+    dateFromInput.value = toISO(from);
+    dateToInput.value = toISO(to);
+  }
+
+  if (periodSelect) {
+    periodSelect.addEventListener('change', function () {
+      if (this.value !== 'custom') {
+        applyPeriodDates(this.value);
+      }
+    });
+  }
+
   const chartColors = {
-    present: '#28a745',
-    absent: '#dc3545', 
-    late: '#ffc107',
-    vacation: '#17a2b8',
-    sick: '#fd7e14',
-    business: '#6f42c1',
-    offday: '#6c757d'
+    present: '#22c55e',
+    absent: '#ef4444',
+    late: '#f59e0b',
+    vacation: '#06b6d4',
+    sick: '#f97316',
+    business: '#8b5cf6',
+    offday: '#94a3b8',
   };
 
-  // Ma'lumotlar
-  const statusLabels = {{ status_labels|safe|default:'[]' }};
-  const statusCounts = {{ status_counts|safe|default:'[]' }};
-  const trendDates = {{ trend_dates|safe|default:'[]' }};
-  const trendData = {{ trend_data|safe|default:'{}' }};
+  const statusKeys = {{ status_keys|default:'[]'|safe }};
+  const statusLabels = {{ status_labels|default:'[]'|safe }};
+  const statusCounts = {{ status_counts|default:'[]'|safe }};
+  const trendDates = {{ trend_dates|default:'[]'|safe }};
+  const trendData = {{ trend_data|default:'{}'|safe }};
+  const departmentLabels = {{ department_labels|default:'[]'|safe }};
+  const departmentPresent = {{ department_present|default:'[]'|safe }};
+  const departmentAbsent = {{ department_absent|default:'[]'|safe }};
 
-  // Pie Chart
-  if (document.getElementById('pieChart') && statusLabels.length > 0) {
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    const pieColors = statusLabels.map(label => {
-      const status = label.toLowerCase();
-      return chartColors[status] || '#6c757d';
-    });
+  const statusLabelUz = {
+    present: 'Keldi',
+    absent: 'Kelmagan',
+    late: 'Kechikdi',
+    vacation: "Ta'til",
+    sick: 'Kasal',
+    business: 'Ish safarida',
+    offday: 'Ish kuni emas',
+  };
 
-    new Chart(pieCtx, {
-      type: 'pie',
+  function colorsForKeys(keys) {
+    return keys.map(k => chartColors[k] || '#6c757d');
+  }
+
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { font: { family: 'system-ui' }, padding: 14 } },
+    },
+  };
+
+  if (statusLabels.length > 0) {
+    const pieColors = colorsForKeys(statusKeys);
+
+    new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
       data: {
         labels: statusLabels,
         datasets: [{
           data: statusCounts,
           backgroundColor: pieColors,
           borderWidth: 2,
-          borderColor: '#fff'
-        }]
+          borderColor: '#fff',
+        }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        ...chartDefaults,
+        cutout: '55%',
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              padding: 20,
-              usePointStyle: true
-            }
-          },
+          legend: { position: 'bottom' },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((context.parsed * 100) / total).toFixed(1);
-                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-              }
-            }
-          }
+              label(ctx) {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+              },
+            },
+          },
         },
-        animation: {
-          animateRotate: true,
-          duration: 1500
-        }
-      }
-    });
-  }
-
-  // Bar Chart
-  if (document.getElementById('barChart') && statusLabels.length > 0) {
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    const barColors = statusLabels.map(label => {
-      const status = label.toLowerCase();
-      return chartColors[status] || '#6c757d';
+      },
     });
 
-    new Chart(barCtx, {
+    new Chart(document.getElementById('barChart'), {
       type: 'bar',
       data: {
         labels: statusLabels,
         datasets: [{
-          label: 'Xodimlar soni',
+          label: 'Soni',
           data: statusCounts,
-          backgroundColor: barColors.map(color => color + '80'),
-          borderColor: barColors,
-          borderWidth: 2,
-          borderRadius: 8
-        }]
+          backgroundColor: pieColors.map(c => c + 'cc'),
+          borderColor: pieColors,
+          borderWidth: 1,
+          borderRadius: 8,
+        }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
+        ...chartDefaults,
+        plugins: { legend: { display: false } },
         scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
+          y: { beginAtZero: true, ticks: { stepSize: 1 } },
         },
-        animation: {
-          duration: 1500
-        }
-      }
+      },
     });
   }
 
-  // Trend Chart
-  if (document.getElementById('trendChart') && trendDates.length > 0) {
-    const trendCtx = document.getElementById('trendChart').getContext('2d');
+  if (trendDates.length > 0 && document.getElementById('trendChart')) {
     const statuses = ['present', 'absent', 'late', 'vacation', 'sick', 'business'];
-    const datasets = [];
+    const datasets = statuses
+      .filter(s => trendData[s] && trendData[s].some(v => v > 0))
+      .map(s => ({
+        label: statusLabelUz[s] || s,
+        data: trendData[s],
+        borderColor: chartColors[s],
+        backgroundColor: chartColors[s] + '22',
+        tension: 0.35,
+        fill: false,
+        pointRadius: 2,
+      }));
 
-    statuses.forEach((status, index) => {
-      if (trendData[status]) {
-        datasets.push({
-          label: status.charAt(0).toUpperCase() + status.slice(1),
-          data: trendData[status],
-          borderColor: chartColors[status],
-          backgroundColor: chartColors[status] + '20',
-          tension: 0.4,
-          fill: false
-        });
-      }
-    });
-
-    new Chart(trendCtx, {
+    new Chart(document.getElementById('trendChart'), {
       type: 'line',
+      data: { labels: trendDates, datasets },
+      options: {
+        ...chartDefaults,
+        interaction: { mode: 'index', intersect: false },
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+  }
+
+  if (departmentLabels.length > 0 && document.getElementById('deptChart')) {
+    new Chart(document.getElementById('deptChart'), {
+      type: 'bar',
       data: {
-        labels: trendDates,
-        datasets: datasets
+        labels: departmentLabels,
+        datasets: [
+          {
+            label: 'Kelgan',
+            data: departmentPresent,
+            backgroundColor: chartColors.present + 'cc',
+            borderColor: chartColors.present,
+            borderWidth: 1,
+            borderRadius: 6,
+          },
+          {
+            label: 'Kelmagan',
+            data: departmentAbsent,
+            backgroundColor: chartColors.absent + 'cc',
+            borderColor: chartColors.absent,
+            borderWidth: 1,
+            borderRadius: 6,
+          },
+        ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top'
-          }
-        },
+        ...chartDefaults,
         scales: {
-          y: {
-            beginAtZero: true
-          }
+          x: { stacked: false },
+          y: { beginAtZero: true, ticks: { stepSize: 1 } },
         },
-        animation: {
-          duration: 2000
-        }
-      }
+      },
     });
   }
 });
 </script>
-{% endblock %}
 {% endblock %}

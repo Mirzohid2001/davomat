@@ -62,6 +62,53 @@ class EmployeeForm(forms.ModelForm):
             'role',
             'team',
         ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'position': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-select'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'employee_type': forms.Select(attrs={'class': 'form-select'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'team': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class EmployeeCreateForm(EmployeeForm):
+    """Faqat yangi xodim qo'shishda: ishga kirish sanasi va kelgan kunlar."""
+
+    hire_date = forms.DateField(
+        label="Ishga kirgan sana",
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        initial=datetime.date.today,
+    )
+    worked_days_count = forms.IntegerField(
+        label="Kelgan kunlar soni (shu oydan)",
+        required=True,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+        help_text="Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting.",
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        hire_date = cleaned_data.get("hire_date")
+        worked_days_count = cleaned_data.get("worked_days_count")
+        if hire_date is None or worked_days_count is None:
+            return cleaned_data
+
+        from calendar import monthrange
+
+        days_left = monthrange(hire_date.year, hire_date.month)[1] - hire_date.day + 1
+        if worked_days_count > days_left:
+            raise forms.ValidationError(
+                f"Kelgan kunlar soni shu oyda maksimal {days_left} bo'lishi mumkin "
+                f"(ishga kirgan sanadan oy oxirigacha)."
+            )
+        return cleaned_data
 
 
 class NalivshikShiftOverrideForm(forms.ModelForm):

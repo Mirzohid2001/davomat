@@ -3,11 +3,20 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from collections import defaultdict
+
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from datetime import timedelta, date
 from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride
-from .forms import EmployeeForm, AttendanceForm, BulkAttendanceForm, AttendanceImportForm, DayOffForm
+from .forms import (
+    EmployeeForm,
+    EmployeeCreateForm,
+    AttendanceForm,
+    BulkAttendanceForm,
+    AttendanceImportForm,
+    DayOffForm,
+)
 from django.forms import modelformset_factory
 from django.db import transaction
 
@@ -376,15 +385,34 @@ def employee_list(request):
 
 @login_required
 def employee_create(request):
+    from .services import (
+        create_initial_attendance_for_new_employee,
+        ensure_initial_monthly_stat,
+        calculate_monthly_stats,
+    )
+
     if request.method == 'POST':
-        form = EmployeeForm(request.POST)
+        form = EmployeeCreateForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Xodim muvaffaqiyatli qo'shildi!")
+            employee = form.save()
+            hire_date = form.cleaned_data['hire_date']
+            worked_days_count = form.cleaned_data['worked_days_count']
+
+            ensure_initial_monthly_stat(employee, hire_date)
+            created_days = create_initial_attendance_for_new_employee(
+                employee, hire_date, worked_days_count
+            )
+            calculate_monthly_stats(hire_date.year, hire_date.month)
+
+            messages.success(
+                request,
+                f"Xodim qo'shildi. Kelgan kunlar: {created_days} ta. "
+                f"Oylik 0 so'm — Oylik statistika sahifasidan kiritasiz.",
+            )
             return redirect('employee_list')
     else:
-        form = EmployeeForm()
-    return render(request, 'attendance/employee_form.html', {'form': form})
+        form = EmployeeCreateForm()
+    return render(request, 'attendance/employee_form.html', {'form': form, 'is_create': True})
 
 @login_required
 def employee_update(request, pk):
@@ -397,7 +425,7 @@ def employee_update(request, pk):
             return redirect('employee_list')
     else:
         form = EmployeeForm(instance=employee)
-    return render(request, 'attendance/employee_form.html', {'form': form, 'employee': employee})
+    return render(request, 'attendance/employee_form.html', {'form': form, 'employee': employee, 'is_create': False})
 
 @login_required
 def employee_delete(request, pk):
@@ -851,67 +879,70 @@ def individual_attendance_create(request, employee_id=None):
         'dayoff': dayoff
     })
 
-@login_required
-def attendance_statistics(request):
-    period = request.GET.get('period', 'month')
-    employee_id = request.GET.get('employee')
-    today = timezone.now().date()
-    date_from, date_to = None, None
-
+def _statistics_default_dates(period, today):
+    """Davr turi bo'yicha standart sana oralig'i."""
     if period == 'day':
-        date_from = today
-        date_to = today
-    elif period == 'week':
+        return today, today
+    if period == 'week':
         date_from = today - timedelta(days=today.weekday())
-        date_to = date_from + timedelta(days=6)
-    elif period == 'month':
+        return date_from, date_from + timedelta(days=6)
+    if period == 'month':
         date_from = today.replace(day=1)
         next_month = (date_from.replace(day=28) + timedelta(days=4)).replace(day=1)
-        date_to = next_month - timedelta(days=1)
-    elif period == 'quarter':
+        return date_from, next_month - timedelta(days=1)
+    if period == 'quarter':
         month = (today.month - 1) // 3 * 3 + 1
         date_from = date(today.year, month, 1)
         if month == 10:
-            date_to = date(today.year, 12, 31)
-        else:
-            date_to = date(today.year, month + 3, 1) - timedelta(days=1)
-    elif period == 'halfyear':
+            return date_from, date(today.year, 12, 31)
+        return date_from, date(today.year, month + 3, 1) - timedelta(days=1)
+    if period == 'halfyear':
         if today.month <= 6:
-            date_from = date(today.year, 1, 1)
-            date_to = date(today.year, 6, 30)
-        else:
-            date_from = date(today.year, 7, 1)
-            date_to = date(today.year, 12, 31)
-    elif period == 'year':
-        date_from = date(today.year, 1, 1)
-        date_to = date(today.year, 12, 31)
-    elif period == 'custom':
+            return date(today.year, 1, 1), date(today.year, 6, 30)
+        return date(today.year, 7, 1), date(today.year, 12, 31)
+    if period == 'year':
+        return date(today.year, 1, 1), date(today.year, 12, 31)
+    date_from = today.replace(day=1)
+    return date_from, today
+
+
+@login_required
+def attendance_statistics(request):
+    import json
+
+    period = request.GET.get('period', 'month')
+    employee_id = request.GET.get('employee') or None
+    today = timezone.now().date()
+
+    date_from_param = request.GET.get('date_from')
+    date_to_param = request.GET.get('date_to')
+    if date_from_param and date_to_param:
         try:
-            date_from = date.fromisoformat(request.GET.get('date_from'))
-            date_to = date.fromisoformat(request.GET.get('date_to'))
-        except Exception:
+            date_from = date.fromisoformat(date_from_param)
+            date_to = date.fromisoformat(date_to_param)
+            if date_from > date_to:
+                date_from, date_to = date_to, date_from
+        except ValueError:
             messages.error(request, "Sana formatida xatolik!")
-            date_from = today.replace(day=1)
-            date_to = today
+            date_from, date_to = _statistics_default_dates(period, today)
     else:
-        date_from = today.replace(day=1)
-        date_to = today
+        date_from, date_to = _statistics_default_dates(period, today)
 
     # Xodim filtri qo'shish
     attendances = Attendance.objects.filter(date__range=[date_from, date_to])
     if employee_id:
         attendances = attendances.filter(employee_id=employee_id)
 
-    stats_by_status = attendances.values('status').annotate(count=Count('id')).order_by('status')
-    
-    # Calculate total for percentage calculations
+    status_labels_map = dict(Attendance.STATUS_CHOICES)
+    stats_by_status = list(
+        attendances.values('status').annotate(count=Count('id')).order_by('status')
+    )
+
     total_attendance = attendances.count()
-    if total_attendance > 0:
-        for item in stats_by_status:
-            item['percentage'] = (item['count'] / total_attendance) * 100
-    else:
-        for item in stats_by_status:
-            item['percentage'] = 0
+    present_count = sum(item['count'] for item in stats_by_status if item['status'] == 'present')
+    for item in stats_by_status:
+        item['label'] = status_labels_map.get(item['status'], item['status'])
+        item['percentage'] = (item['count'] / total_attendance * 100) if total_attendance else 0
     stats_by_employee = attendances.values(
         'employee__last_name', 'employee__first_name'
     ).annotate(
@@ -951,8 +982,7 @@ def attendance_statistics(request):
 
     trend = attendances.values('date', 'status').annotate(count=Count('id')).order_by('date')
 
-    # QuerySet obyektlarini list formatiga o'tkazish
-    stats_by_status_list = list(stats_by_status)
+    stats_by_status_list = stats_by_status
     stats_by_employee_list = list(stats_by_employee)
     stats_by_department_list = list(stats_by_department)
     stats_by_location_list = list(stats_by_location)
@@ -971,11 +1001,8 @@ def attendance_statistics(request):
             date_stats['statuses'][status] = count
         stats_by_date.append(date_stats)
     
-    # Prepare JSON-serialized data for charts
-    import json
-    
-    # Status labels and counts for pie chart
-    status_labels = [item['status'].title() for item in stats_by_status_list]
+    status_keys = [item['status'] for item in stats_by_status_list]
+    status_labels = [item['label'] for item in stats_by_status_list]
     status_counts = [item['count'] for item in stats_by_status_list]
     
     # Department data for bar chart
@@ -1004,6 +1031,9 @@ def attendance_statistics(request):
     # Xodimlar ro'yxati
     employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
     
+    days_in_range = (date_to - date_from).days + 1
+    active_employees = attendances.values('employee').distinct().count()
+
     context = {
         'date_from': date_from,
         'date_to': date_to,
@@ -1017,8 +1047,14 @@ def attendance_statistics(request):
         'employees': employees,
         'selected_employee': employee_id,
         'location_choices': dict(Employee.LOCATION_CHOICES),
-        # JSON-serialized data for charts
-        'status_labels': json.dumps(status_labels),
+        'has_data': total_attendance > 0,
+        'total_attendance': total_attendance,
+        'present_count': present_count,
+        'attendance_rate': round(present_count / total_attendance * 100, 1) if total_attendance else 0,
+        'active_employees': active_employees,
+        'days_in_range': days_in_range,
+        'status_keys': json.dumps(status_keys),
+        'status_labels': json.dumps(status_labels, ensure_ascii=False),
         'status_counts': json.dumps(status_counts),
         'department_labels': json.dumps(department_labels),
         'department_present': json.dumps(department_present),
@@ -1044,8 +1080,10 @@ def salary_statistics_view(request):
     role = request.GET.get('role', '').strip()
     currency = request.GET.get('currency', '').strip()
     location = request.GET.get('location', '').strip()
-    # Statistikani hisoblash (agar kerak bo'lsa)
-    calculate_monthly_stats(year, month)
+    # Faqat "Qayta hisoblash" bosilganda — har safar emas (sahifa tez ochiladi)
+    if request.GET.get('recalc') == '1':
+        calculate_monthly_stats(year, month)
+        messages.info(request, "Oylik statistika qayta hisoblandi.")
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
 
     # Kengaytirilgan filterlar
@@ -1074,22 +1112,36 @@ def salary_statistics_view(request):
     # - oddiy xodimlar uchun ishchi kunlar (yakshanbasiz)
     # - nalivshiklar uchun esa o'z komandasi bo'yicha navbatchilik kunlari soni.
     from .services import calculate_nalivshik_planned_days
+
+    stats = list(stats)
+    nalivshik_planned_cache = {}
     for stat in stats:
         if stat.employee.role == 'nalivshik':
-            stat.working_days_in_month = calculate_nalivshik_planned_days(year, month, stat.employee)
+            if stat.employee_id not in nalivshik_planned_cache:
+                nalivshik_planned_cache[stat.employee_id] = calculate_nalivshik_planned_days(
+                    year, month, stat.employee
+                )
+            stat.working_days_in_month = nalivshik_planned_cache[stat.employee_id]
         else:
             stat.working_days_in_month = working_days_in_month
-    # Kelmagan kunlar soni va sanalari
-    absent_days = {}
+
+    absent_count_map = {
+        row['employee_id']: row['cnt']
+        for row in Attendance.objects.filter(
+            date__year=year, date__month=month, status='absent'
+        )
+        .values('employee_id')
+        .annotate(cnt=Count('id'))
+    }
+    absent_dates_map = defaultdict(list)
+    for emp_id, d in Attendance.objects.filter(
+        date__year=year, date__month=month, status='absent'
+    ).values_list('employee_id', 'date'):
+        absent_dates_map[emp_id].append(d)
+
     for stat in stats:
-        absents = Attendance.objects.filter(
-            employee=stat.employee,
-            date__year=year,
-            date__month=month,
-            status='absent'
-        ).values_list('date', flat=True)
-        stat.absent_count = len(absents)
-        stat.absent_dates = list(absents)
+        stat.absent_count = absent_count_map.get(stat.employee_id, 0)
+        stat.absent_dates = absent_dates_map.get(stat.employee_id, [])
     # Umumiy summalar
     total_salary = sum([s.salary for s in stats])
     total_bonus = sum([s.bonus for s in stats])
@@ -1137,7 +1189,6 @@ def salary_statistics_view(request):
         'total_paid': total_paid,
         'total_debt_start': total_debt_start,
         'total_debt_end': total_debt_end,
-        'absent_days': absent_days,
         'total_absent': total_absent,
         'total_currency': total_currency,
         'currency_totals': currency_totals,
@@ -1820,17 +1871,27 @@ def edit_salary_stat(request, stat_id):
                 from .services import update_future_months_salary
                 update_future_months_salary(stat.employee, stat.salary, stat.currency, stat.year, stat.month)
             
-            # Recalculate accrued amount with new salary/bonus values
+            # Faqat shu xodim uchun qayta hisoblash (butun oyni emas — tez)
             from .services import calculate_monthly_stats
-            calculate_monthly_stats(stat.year, stat.month)
-            
+            calculate_monthly_stats(stat.year, stat.month, employee=stat.employee)
+            stat.refresh_from_db()
+
             # AJAX request uchun JSON response qaytarish
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
-                    'message': 'Ma\'lumotlar muvaffaqiyatli saqlandi va keyingi oylarga o\'tkazildi!',
-                    'redirect_url': request.GET.get('next', '/statistics/salary/')
+                    'message': "Ma'lumotlar saqlandi.",
+                    'stat': {
+                        'id': stat.id,
+                        'salary': float(stat.salary),
+                        'bonus': float(stat.bonus),
+                        'paid': float(stat.paid),
+                        'accrued': float(stat.accrued),
+                        'debt_start': float(stat.debt_start),
+                        'debt_end': float(stat.debt_end),
+                        'currency': stat.currency,
+                    },
                 })
             
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")

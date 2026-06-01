@@ -428,6 +428,9 @@
                 <button type="submit" class="btn btn-primary w-100">Ko'rsatish</button>
             </div>
             <div class="col-lg-2 col-md-3 col-sm-6">
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" class="btn btn-outline-warning w-100" title="Davomatdan barcha oylikni qayta hisoblash">Qayta hisoblash</a>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
                 <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary w-100">Tozalash</a>
             </div>
             <div class="col-lg-2 col-md-3 col-sm-6">
@@ -459,7 +462,7 @@
     </thead>
     <tbody>
         {% for stat in stats %}
-        <tr class="text-center {% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
+        <tr id="salary-row-{{ stat.id }}" class="text-center {% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
             <td>{{ forloop.counter }}</td>
             <td class="fw-semibold">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
             <td>
@@ -814,6 +817,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function formatMoney(n) {
+        return Math.round(Number(n)).toLocaleString('uz-UZ');
+    }
+
+    function setMoneyCell(td, amount, currency, keepEditButton) {
+        const text = formatMoney(amount) + ' ' + currency;
+        if (keepEditButton) {
+            const btn = td.querySelector('button');
+            td.textContent = text + ' ';
+            if (btn) td.appendChild(btn);
+        } else {
+            td.textContent = text;
+        }
+    }
+
+    function updateSalaryTableRow(stat) {
+        const row = document.getElementById('salary-row-' + stat.id);
+        if (!row) return false;
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 14) return false;
+        const cur = stat.currency;
+        setMoneyCell(cells[3], stat.salary, cur, false);
+        setMoneyCell(cells[4], stat.bonus, cur, true);
+        setMoneyCell(cells[10], stat.accrued, cur, false);
+        setMoneyCell(cells[11], stat.paid, cur, true);
+        setMoneyCell(cells[12], stat.debt_start, cur, false);
+        setMoneyCell(cells[13], stat.debt_end, cur, false);
+        cells[11].classList.remove('table-success', 'table-warning');
+        if (stat.paid >= stat.accrued) {
+            cells[11].classList.add('table-success');
+        } else if (stat.paid === 0) {
+            cells[11].classList.add('table-warning');
+        }
+        cells[12].classList.toggle('table-danger', stat.debt_start < 0);
+        cells[13].classList.toggle('table-danger', stat.debt_end < 0);
+        return true;
+    }
+
     // Har bir modal uchun form submit handler
     {% for stat in stats %}
     const form{{ stat.id }} = document.querySelector('#editModal{{ stat.id }} form');
@@ -855,14 +896,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     document.body.appendChild(toast);
                     
-                    // Modal yopish
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editModal{{ stat.id }}'));
                     modal.hide();
-                    
-                    // Sahifani yangilash
-                    setTimeout(() => {
+
+                    if (data.stat && !updateSalaryTableRow(data.stat)) {
                         window.location.reload();
-                    }, 1000);
+                    }
                 } else {
                     alert('Xatolik yuz berdi: ' + (data.message || 'Noma\'lum xatolik'));
                 }

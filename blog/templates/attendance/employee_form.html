@@ -3,94 +3,46 @@
 
 {% block extra_head %}
 <style>
-/* Form responsive styles */
 @media (max-width: 768px) {
-  h2 {
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .row.justify-content-center {
-    margin: 0;
-  }
-  
-  .col-md-7 {
-    padding: 0 10px;
-  }
-  
-  .card {
-    padding: 20px 15px !important;
-    margin: 0;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.9rem;
-    padding: 10px 12px;
-  }
-  
-  .btn {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px 20px;
-    font-size: 0.9rem;
-  }
-  
-  .btn:last-child {
-    margin-bottom: 0;
-  }
-}
-
-@media (max-width: 576px) {
-  h2 {
-    font-size: 1.3rem;
-  }
-  
-  .card {
-    padding: 15px 10px !important;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.85rem;
-    padding: 8px 10px;
-  }
-  
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 400px) {
-  h2 {
-    font-size: 1.2rem;
-  }
-  
-  .card {
-    padding: 12px 8px !important;
-  }
-  
-  .form-control, .form-select {
-    font-size: 0.8rem;
-    padding: 6px 8px;
-  }
-  
-  .btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
+  h2 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
+  .col-md-7 { padding: 0 10px; }
+  .card { padding: 20px 15px !important; }
+  .form-control, .form-select { font-size: 0.9rem; padding: 10px 12px; }
+  .btn { width: 100%; margin-bottom: 10px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2 class="mb-3">{% if employee %}Xodimni tahrirlash{% else %}Yangi xodim{% endif %}</h2>
+<h2 class="mb-3">{% if is_create %}Yangi xodim{% else %}Xodimni tahrirlash{% endif %}</h2>
 <div class="row justify-content-center">
-  <div class="col-md-7 col-lg-5">
+  <div class="col-md-8 col-lg-6">
     <div class="card p-4 shadow-lg">
-      <form method="post">
+      {% if is_create %}
+      <div class="alert alert-info small mb-3">
+        Yangi xodim uchun <strong>kelgan kunlar</strong> majburiy. Oylik avtomatik <strong>0 so'm</strong> bo'ladi —
+        keyin <em>Oylik statistika</em>dan o'zingiz kiritasiz.
+      </div>
+      {% endif %}
+      <form method="post" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="text-danger small">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
         <div class="mt-3 d-grid gap-2">
           <button class="btn btn-success" type="submit">Saqlash</button>
           <a href="{% url 'employee_list' %}" class="btn btn-secondary">Bekor qilish</a>

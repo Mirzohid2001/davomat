@@ -1,9 +1,31 @@
 from datetime import date, timedelta, datetime
 from calendar import monthrange
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
 
 from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride
+
+
+def round_money(amount, currency: str) -> Decimal:
+    """UZS uchun butun so'm, boshqa valyutalar uchun 2 xona."""
+    amount = Decimal(str(amount or 0))
+    if currency in ("UZS", "SUM"):
+        return amount.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def calculate_debt_end(debt_start, accrued, paid, currency: str) -> Decimal:
+    """
+    Qarzdorlik oxirini hisoblaydi.
+    To'langan summa jami majburiyat (boshlang'ich + hisoblangan) dan oshsa — qarz 0.
+    """
+    debt_start = round_money(debt_start, currency)
+    accrued = round_money(accrued, currency)
+    paid = round_money(paid, currency)
+    total_due = debt_start + accrued
+    if paid >= total_due:
+        return Decimal("0")
+    return round_money(debt_start + accrued - paid, currency)
 
 
 def calculate_working_days_in_month(year, month):
@@ -165,6 +187,64 @@ def generate_nalivshik_attendance_for_day(day: date):
                 },
             )
 
+def create_initial_attendance_for_new_employee(employee: Employee, hire_date: date, worked_days_count: int):
+    """
+    Yangi xodim qo'shilganda ishga kirgan sanadan boshlab
+    kelgan kunlar uchun 'present' davomat yozuvlarini yaratadi.
+    """
+    if worked_days_count <= 0:
+        return 0
+
+    year, month = hire_date.year, hire_date.month
+    total_days = monthrange(year, month)[1]
+    dayoffs = set(
+        DayOff.objects.filter(date__year=year, date__month=month).values_list("date", flat=True)
+    )
+
+    created = 0
+    for day in range(hire_date.day, total_days + 1):
+        if created >= worked_days_count:
+            break
+        current_date = date(year, month, day)
+        if employee.role != "nalivshik":
+            if current_date.weekday() == 6 or current_date in dayoffs:
+                continue
+        Attendance.objects.update_or_create(
+            employee=employee,
+            date=current_date,
+            defaults={
+                "status": "present",
+                "comment": "Yangi xodim qo'shilganda kiritilgan kelgan kun",
+            },
+        )
+        created += 1
+    return created
+
+
+def ensure_initial_monthly_stat(employee: Employee, hire_date: date):
+    """Yangi xodim uchun boshlang'ich oylik statistikasi (oylik = 0)."""
+    year, month = hire_date.year, hire_date.month
+    working_days, total_days = calculate_working_days_in_month(year, month)
+    MonthlyEmployeeStat.objects.get_or_create(
+        employee=employee,
+        year=year,
+        month=month,
+        defaults={
+            "salary": Decimal("0"),
+            "bonus": Decimal("0"),
+            "penalty": Decimal("0"),
+            "days_in_month": total_days,
+            "worked_days": 0,
+            "accrued": Decimal("0"),
+            "paid": Decimal("0"),
+            "debt_start": Decimal("0"),
+            "debt_end": Decimal("0"),
+            "currency": "UZS",
+            "manual_salary": employee.employee_type == "office",
+        },
+    )
+
+
 def update_future_months_salary(employee, new_salary, new_currency, current_year, current_month):
     """Oylik o'zgartirilganda keyingi oylarga yangi oylikni o'tkazish"""
     from datetime import date
@@ -210,9 +290,15 @@ def update_future_months_salary(employee, new_salary, new_currency, current_year
         if current_date > today.replace(day=1):
             break
 
-def calculate_monthly_stats(year, month):
+def calculate_monthly_stats(year, month, employee=None):
+    """
+    Oylik statistikani hisoblaydi.
+    employee berilsa — faqat shu xodim (modal saqlash uchun tez).
+    """
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
     employees = Employee.objects.filter(is_active=True)
+    if employee is not None:
+        employees = employees.filter(pk=employee.pk)
     for employee in employees:
         # Stat yozuvini olish (agar mavjud bo'lsa)
         stat = MonthlyEmployeeStat.objects.filter(employee=employee, year=year, month=month).first()
@@ -236,7 +322,7 @@ def calculate_monthly_stats(year, month):
                 bonus = Decimal('0')  # Yangi oy uchun bonus 0 dan boshlanadi
                 currency = prev_stat.currency  # Valyutani ham oldingi oydan olish
             else:
-                salary = Decimal('1000')  # Faqat birinchi marta
+                salary = Decimal('0')  # Yangi xodim — oylikni keyin qo'lda kiritasiz
                 bonus = Decimal('0')
                 currency = 'UZS'  # Birinchi marta uchun default valyuta
             
@@ -339,15 +425,21 @@ def calculate_monthly_stats(year, month):
                 accrued = accrued_salary + bonus - penalty
             else:
                 accrued = bonus - penalty  # Faqat bonus
-        
+
+        # Pul summalarini valyutaga mos yaxlitlash (40/67 so'm qoldiqlarini kamaytirish)
+        bonus = round_money(bonus, currency)
+        penalty = round_money(penalty, currency)
+        accrued = round_money(accrued, currency)
+        paid = round_money(paid, currency)
+
         # Oldingi oy oxiridagi qarzdorlik
         prev_stat = MonthlyEmployeeStat.objects.filter(
             employee=employee,
             year=year if month > 1 else year-1,
             month=month-1 if month > 1 else 12
         ).first()
-        debt_start = prev_stat.debt_end if prev_stat else Decimal('0')
-        debt_end = debt_start + accrued - paid
+        debt_start = round_money(prev_stat.debt_end if prev_stat else Decimal('0'), currency)
+        debt_end = calculate_debt_end(debt_start, accrued, paid, currency)
         
         # Stat yozuvini yaratish yoki yangilash
         with transaction.atomic():
