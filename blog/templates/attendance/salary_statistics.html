@@ -2,7 +2,7 @@
 {% block content_wrapper_class %}flex-grow-1 salary-skip-app-shell container-fluid px-2 px-md-3 py-3 pb-4{% endblock %}
 
 {% block extra_head %}
-{% load static %}
+{% load static humanize %}
 <link rel="stylesheet" href="{% static 'css/salary-statistics.css' %}">
 <style>.salary-skip-app-shell { display: block; max-width: 100%; }</style>
 {% endblock %}
@@ -50,7 +50,7 @@
       <div class="salary-kpi__icon salary-kpi__icon--emerald" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
       <div class="salary-kpi__body">
         <div class="salary-kpi__label">Hisoblangan · {{ cur }}</div>
-        <div class="salary-kpi__value">{{ vals.accrued|floatformat:0 }}</div>
+        <div class="salary-kpi__value">{{ vals.accrued|floatformat:0|intcomma }}</div>
       </div>
     </div>
     {% endfor %}
@@ -171,9 +171,9 @@
                     {% endif %}
                 </span>
             </td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.salary|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.bonus|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
             <td>{{ stat.worked_days }}</td>
@@ -182,10 +182,10 @@
                     {{ stat.absent_count }}
                 </span>
             </td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.accrued|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
-            <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}"><span class="salary-money">{{ stat.paid|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
-            <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
-            <td class="salary-money-cell {% if stat.debt_end < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_end|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}"><span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
+            <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell {% if stat.debt_end < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
         </tr>
         {% empty %}
         <tr>
@@ -205,22 +205,22 @@
             <td>{{ total_absent }}</td>
             <td>
                 {% for cur, vals in currency_totals.items %}
-                    <div class="salary-total-line"><span class="salary-money">{{ vals.accrued|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
                 {% endfor %}
             </td>
             <td>
                 {% for cur, vals in currency_totals.items %}
-                    <div class="salary-total-line"><span class="salary-money">{{ vals.paid|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
                 {% endfor %}
             </td>
             <td>
                 {% for cur, vals in currency_totals.items %}
-                    <div class="salary-total-line"><span class="salary-money">{{ vals.debt_start|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
                 {% endfor %}
             </td>
             <td>
                 {% for cur, vals in currency_totals.items %}
-                    <div class="salary-total-line"><span class="salary-money">{{ vals.debt_end|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
                 {% endfor %}
             </td>
         </tr>
@@ -252,15 +252,15 @@
             <div class="salary-mobile-card__body">
                 <div class="salary-mobile-card__row">
                     <span class="salary-mobile-card__label">Oylik:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.salary|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
                     <span class="salary-mobile-card__label">Mukofot:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.bonus|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
                     <span class="salary-mobile-card__label">Jarima:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.penalty|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
                     <span class="salary-mobile-card__label">Ишчи кунлар:</span>
@@ -276,19 +276,19 @@
                 </div>
                 <div class="salary-mobile-card__row">
                     <span class="salary-mobile-card__label">Hisoblangan:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.accrued|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.paid >= stat.accrued %}debt-success{% elif stat.paid == 0 %}debt-warning{% endif %}">
                     <span class="salary-mobile-card__label">To'langan:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.paid|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
                     <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_start|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_end < 0 %}debt-warning{% endif %}">
                     <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_end|floatformat:0 }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
             </div>
             <div class="salary-mobile-card__actions">
@@ -320,19 +320,19 @@
             </div>
             <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">Hisoblangan:</span>
-                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.accrued|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">To'langan:</span>
-                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.paid|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
-                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_start|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
-                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_end|floatformat:0 }}</span> <span class="salary-currency">{{ cur }}</span></span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             {% endfor %}
         </div>
