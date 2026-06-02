@@ -549,6 +549,32 @@ body.salary-modal-open .modal-backdrop.show {
   transition: background 0.2s ease;
 }
 
+/* Pul qiymatlari o'qilishi aniq bo'lsin */
+.salary-money-cell {
+  text-align: right !important;
+  min-width: 9.25rem;
+}
+
+.salary-money {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.salary-currency {
+  display: inline-block;
+  margin-left: 0.22rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.salary-money-cell .btn-edit-salary {
+  margin-left: 0.4rem;
+}
+
 .salary-table__num {
   width: 2.5rem;
   color: #94a3b8;
@@ -563,6 +589,17 @@ body.salary-modal-open .modal-backdrop.show {
   color: var(--sal-text);
   letter-spacing: -0.01em;
   min-width: 10rem;
+}
+
+/* Ustunlar bir-biriga yopishib ketmasin */
+.salary-table thead th:nth-child(4),
+.salary-table thead th:nth-child(5),
+.salary-table thead th:nth-child(6),
+.salary-table thead th:nth-child(11),
+.salary-table thead th:nth-child(12),
+.salary-table thead th:nth-child(13),
+.salary-table thead th:nth-child(14) {
+  min-width: 9rem;
 }
 
 .salary-table tbody tr:nth-child(even) td {
@@ -609,6 +646,14 @@ body.salary-modal-open .modal-backdrop.show {
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.salary-total-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  line-height: 1.45;
 }
 
 /* Turi badge */
