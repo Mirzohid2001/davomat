@@ -658,6 +658,75 @@
   background: rgba(15, 23, 42, 0.05);
 }
 
+/* ——— Davomat tarixi modali (qora fon / input muammosi) ——— */
+.attendance-modal.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  color-scheme: light;
+}
+
+.attendance-modal .modal-dialog {
+  z-index: 1061;
+}
+
+.attendance-modal__panel {
+  background: #ffffff;
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+  color: var(--pm-text);
+}
+
+.attendance-modal__header {
+  background: var(--pm-gradient);
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+}
+
+.attendance-modal__body {
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 1.25rem 1.35rem;
+}
+
+.attendance-modal__footer {
+  background: #ffffff;
+  border-top: 1px solid var(--pm-border);
+  padding: 1rem 1.25rem;
+}
+
+.attendance-modal .form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.attendance-modal .form-control,
+.attendance-modal .form-select {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid var(--pm-border-strong);
+  border-radius: 11px;
+  min-height: 44px;
+}
+
+.attendance-modal .form-control::placeholder {
+  color: #94a3b8;
+}
+
+.attendance-modal .form-control:focus,
+.attendance-modal .form-select:focus {
+  border-color: var(--pm-brand);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
 @media (max-width: 768px) {
   .page-hero {
     padding: 1.25rem 1.35rem;

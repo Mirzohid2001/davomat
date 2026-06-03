@@ -387,17 +387,20 @@
             </div>
         </div>
 
-<!-- Davomat o'zgartirish modali -->
-<div class="modal fade" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">
+{% endblock %}
+
+{% block page_modals %}
+<!-- Modallar main tashqarisida — qora fon / backdrop muammosiz -->
+<div class="modal fade attendance-modal" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+        <div class="modal-content attendance-modal__panel">
+            <div class="modal-header attendance-modal__header text-white">
                 <h5 class="modal-title" id="attendanceModalLabel">
-                    <i class="bi bi-calendar-check"></i> Davomat o'zgartirish
+                    <i class="bi bi-calendar-check me-2"></i> Davomat o'zgartirish
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body attendance-modal__body">
                 <div id="modalLoading" class="text-center py-4">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Yuklanmoqda...</span>
@@ -409,11 +412,11 @@
                         {% csrf_token %}
                         <input type="hidden" id="modalEmployeeId" name="employee_id">
                         <input type="hidden" id="modalDate" name="date">
-                        
+
                         <div class="mb-3">
-                            <label for="modalStatus" class="form-label fw-bold">Davomat holati:</label>
+                            <label for="modalStatus" class="form-label">Davomat holati</label>
                             <select name="status" id="modalStatus" class="form-select" required>
-                                <option value="">-- Tanlang --</option>
+                                <option value="">— Tanlang —</option>
                                 <option value="present">Keldi</option>
                                 <option value="absent">Kelmagan</option>
                                 <option value="late">Kechikdi</option>
@@ -423,24 +426,23 @@
                                 <option value="offday">Ish kuni emas</option>
                             </select>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="modalComment" class="form-label fw-bold">Izoh/sabab:</label>
-                            <textarea name="comment" id="modalComment" class="form-control" rows="3"></textarea>
+
+                        <div class="mb-0">
+                            <label for="modalComment" class="form-label">Izoh / sabab</label>
+                            <textarea name="comment" id="modalComment" class="form-control" rows="3" placeholder="Kerak bo'lsa izoh yozing..."></textarea>
                         </div>
                     </form>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+            <div class="modal-footer attendance-modal__footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-primary" id="saveAttendanceBtn" onclick="saveAttendance()">
-                    <i class="bi bi-save"></i> Saqlash
+                    <i class="bi bi-check-lg me-1"></i> Saqlash
                 </button>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_scripts %}

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="uz">
+<html lang="uz" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}ISOMER OIL Davomat{% endblock %}</title>
@@ -124,6 +124,7 @@
       {% endif %}
       {% block content %}{% endblock %}
   </main>
+  {% block page_modals %}{% endblock %}
   <footer class="site-footer footer-premium flex-shrink-0">
     <div class="container">
       <div class="row">

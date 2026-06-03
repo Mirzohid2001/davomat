@@ -274,16 +274,11 @@
   }
 }
 
-/* Темная тема (опционально) */
+/* Qorong'u tema — faqat enhanced klasslar (oddiy Bootstrap modaliga ta'sir qilmasin) */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --glass-bg: rgba(0, 0, 0, 0.2);
-    --glass-border: rgba(255, 255, 255, 0.1);
-  }
-  
   .modal-content-enhanced {
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
   }
 }
 
