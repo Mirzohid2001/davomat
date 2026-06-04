@@ -62,7 +62,7 @@ class SalaryStatisticsAPIView(APIView):
             date__month=month,
             employee__in=[s.employee_id for s in stats],
         ).values("employee_id").annotate(
-            present_days=Count("id", filter=Q(status__in=["present", "sick"])),
+            present_days=Count("id", filter=Q(status__in=["present", "sick", "late"])),
             absent_days=Count("id", filter=Q(status="absent")),
         )
         attendance_map = {row["employee_id"]: row for row in attendance_counts}

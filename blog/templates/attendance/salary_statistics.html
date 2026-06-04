@@ -26,6 +26,11 @@
           <span class="salary-hero__period-value">{% if month == 1 %}Yanvar{% elif month == 2 %}Fevral{% elif month == 3 %}Mart{% elif month == 4 %}Aprel{% elif month == 5 %}May{% elif month == 6 %}Iyun{% elif month == 7 %}Iyul{% elif month == 8 %}Avgust{% elif month == 9 %}Sentabr{% elif month == 10 %}Oktabr{% elif month == 11 %}Noyabr{% elif month == 12 %}Dekabr{% else %}{{ month }}{% endif %} {{ year }}</span>
         </div>
         <span class="salary-hero__period-label">Hisobot davri</span>
+        {% if stats_calculated_at %}
+        <span class="salary-hero__period-label d-block mt-1">
+          <i class="bi bi-clock-history me-1"></i>Oxirgi hisoblash: {{ stats_calculated_at|date:"d.m.Y H:i" }}
+        </span>
+        {% endif %}
       </div>
     </div>
   </header>
@@ -173,7 +178,7 @@
             </td>
             <td class="salary-money-cell"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell"><span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
             <td>{{ stat.worked_days }}</td>
@@ -389,6 +394,10 @@
                             <label for="id_bonus_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-gift"></i> Mukofot</label>
                             <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
                         </div>
+                        <div class="salary-modal__field salary-modal__field--wide">
+                            <label for="id_penalty_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-dash-circle"></i> Jarima</label>
+                            <input type="number" name="penalty" value="{{ stat.penalty|floatformat:2 }}" step="any" min="0" class="form-control salary-modal__input" id="id_penalty_{{ stat.id }}">
+                        </div>
                     </div>
                     <p class="salary-modal__hint"><i class="bi bi-info-circle"></i> Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi.</p>
                 </div>
@@ -469,6 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const cur = stat.currency;
         setMoneyCell(cells[3], stat.salary, cur, false);
         setMoneyCell(cells[4], stat.bonus, cur, true);
+        setMoneyCell(cells[5], stat.penalty, cur, true);
         setMoneyCell(cells[10], stat.accrued, cur, false);
         setMoneyCell(cells[11], stat.paid, cur, true);
         setMoneyCell(cells[12], stat.debt_start, cur, false);

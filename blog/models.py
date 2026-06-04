@@ -182,6 +182,7 @@ class MonthlyEmployeeStat(models.Model):
     debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
     currency = models.CharField("Valyuta", max_length=3, choices=CURRENCY_CHOICES, default='UZS')
     manual_salary = models.BooleanField("Oylik faqat qo‘lda kiritiladi (ofis xodimi)", default=False)
+    calculated_at = models.DateTimeField("Oxirgi hisoblash vaqti", null=True, blank=True)
 
     class Meta:
         unique_together = ('employee', 'year', 'month')

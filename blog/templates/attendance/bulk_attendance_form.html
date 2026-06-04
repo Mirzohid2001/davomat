@@ -5,8 +5,10 @@
 {% include 'attendance/partials/page_hero.html' with title="Bulk davomat" subtitle="Jadval orqali tez kiritish" icon="bi-table" %}
 {% if dayoff %}
 <div class="alert alert-warning border-0 mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Yopiq kun: <strong>{{ dayoff.reason }}</strong></div>
+{% elif restricted_day %}
+<div class="alert alert-info border-0 mb-3"><i class="bi bi-info-circle me-2"></i>Yakshanba/yopiq kun — faqat <strong>nalivshiklar</strong> uchun davomat kiritiladi.</div>
 {% endif %}
-<form method="post" enctype="multipart/form-data" autocomplete="off">
+<form method="post" autocomplete="off">
     {% csrf_token %}
     {{ formset.management_form }}
     <div class="app-panel app-bulk-table">
@@ -19,7 +21,6 @@
             <th>Familiyasi</th>
             <th style="width: 120px;">Status</th>
             <th style="width: 220px;">Izoh</th>
-            <th style="width: 160px;">Fayl</th>
           </tr>
         </thead>
         <tbody>
@@ -37,9 +38,6 @@
               </td>
               <td>
                 {{ form.comment }}
-              </td>
-              <td>
-                {{ form.attachment }}
               </td>
               <td style="display:none;">
                 {{ form.employee }}

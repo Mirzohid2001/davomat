@@ -13,20 +13,26 @@
   </a>
 </div>
 
+{% if is_restricted_day %}
+<div class="alert alert-info border-0 mb-3 py-2 small">
+  <i class="bi bi-info-circle me-2"></i>Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun davomat kuzatiladi.
+</div>
+{% endif %}
+
 <div class="row g-4 mb-4 app-stagger">
   <div class="col-lg-4 col-md-6">
     <div class="app-stat-card">
       <div class="app-stat-card-head"><i class="bi bi-calendar-check me-2"></i>Bugungi davomat</div>
       <div class="app-stat-card-body text-center">
-        <div class="app-stat-number">{{ stats|length }}</div>
-        <p class="text-muted small mb-3">Holatlar soni</p>
+        <div class="app-stat-number">{{ attendance_today.count }}</div>
+        <p class="text-muted small mb-3">Jami yozuvlar</p>
         <div class="d-flex flex-wrap justify-content-center gap-1">
-          {% for item in stats %}
+          {% for item in stats_today %}
           <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-            {{ item.status }}: {{ item.count }}
+            {{ item.label }}: {{ item.count }}
           </span>
           {% empty %}
-          <p class="text-muted small mb-0">Bugun uchun yozuv yo'q</p>
+          <p class="text-muted small mb-0 w-100">Bugun uchun yozuv yo'q</p>
           {% endfor %}
         </div>
       </div>
@@ -34,6 +40,25 @@
   </div>
 
   <div class="col-lg-4 col-md-6">
+    <div class="app-stat-card">
+      <div class="app-stat-card-head"><i class="bi bi-calendar-week me-2"></i>Haftalik davomat</div>
+      <div class="app-stat-card-body text-center">
+        <div class="app-stat-number">{{ week_total }}</div>
+        <p class="text-muted small mb-3">{{ week_start|date:"d.m" }} — {{ today_date|date:"d.m.Y" }}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-1">
+          {% for item in stats_week %}
+          <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+            {{ item.label }}: {{ item.count }}
+          </span>
+          {% empty %}
+          <p class="text-muted small mb-0 w-100">Bu hafta yozuv yo'q</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-12">
     <div class="app-stat-card">
       <div class="app-stat-card-head"><i class="bi bi-person-x me-2"></i>Kiritilmaganlar</div>
       <div class="app-stat-card-body">
@@ -54,8 +79,10 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class="col-lg-4 col-md-12">
+<div class="row g-4 mb-4">
+  <div class="col-lg-12">
     <div class="app-stat-card">
       <div class="app-stat-card-head"><i class="bi bi-trophy me-2"></i>Top xodimlar (30 kun)</div>
       <div class="app-stat-card-body">
@@ -104,8 +131,8 @@
           </div>
           <div class="col-4">
             <div class="p-3 rounded-3 bg-light">
-              <div class="fs-3 fw-bold text-success">{{ stats|length }}</div>
-              <small class="text-muted">Holat</small>
+              <div class="fs-3 fw-bold text-success">{{ attendance_today.count }}</div>
+              <small class="text-muted">Bugun</small>
             </div>
           </div>
           <div class="col-4">

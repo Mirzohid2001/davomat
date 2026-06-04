@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from collections import defaultdict
 
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Max
 from django.utils import timezone
 from datetime import timedelta, date
 from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride
@@ -16,6 +16,7 @@ from .forms import (
     BulkAttendanceForm,
     AttendanceImportForm,
     DayOffForm,
+    SalaryStatEditForm,
 )
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -26,8 +27,16 @@ from django.http import HttpResponse
 from .services import (
     calculate_monthly_stats,
     calculate_working_days_in_month,
-    generate_nalivshik_attendance_for_day,
+    employee_can_attend_on_date,
+    get_absence_quota_for_period,
+    get_bulk_attendance_employees,
     get_nalivshik_teams_for_date,
+    get_restricted_day_reason,
+    is_restricted_attendance_date,
+    normalize_attendance_status,
+    sync_monthly_stats_for_date,
+    sync_monthly_stats_for_month,
+    YEARLY_ABSENCE_FREE_LIMIT,
 )
 from openpyxl.utils import get_column_letter
 
@@ -41,17 +50,6 @@ from openpyxl.formatting.rule import CellIsRule
 class SalaryStatFilterForm(forms.Form):
     year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)
     month = forms.IntegerField(label="Oy", min_value=1, max_value=12)
-
-class SalaryStatEditForm(forms.ModelForm):
-    class Meta:
-        model = MonthlyEmployeeStat
-        fields = ['salary', 'currency', 'paid', 'bonus']
-        widgets = {
-            'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-            'currency': forms.Select(attrs={'class': 'form-select'}),
-            'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-            'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-        }
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -79,33 +77,71 @@ def dashboard(request):
     today = date.today()
     employees = Employee.objects.filter(is_active=True)
     attendance_today = Attendance.objects.filter(date=today)
-    
-    # Бугун ёпиқ кун ёки якшанбами текшириш
+
     is_dayoff = DayOff.objects.filter(date=today).exists()
     is_sunday = today.weekday() == 6
-    
-    # Офис ходимларини ва ёпиқ кунларда барчани чиқариш
-    if is_dayoff or is_sunday:
-        # Ёпиқ кунларда ҳеч кимни "киритилмаган"га чиқармаслик
+    is_restricted_day = is_dayoff or is_sunday
+
+    if is_restricted_day:
+        employees_need_attendance = employees.filter(role='nalivshik')
+    else:
+        employees_need_attendance = employees.exclude(employee_type='office')
+
+    if is_restricted_day and not employees_need_attendance.exists():
         not_filled = Employee.objects.none()
     else:
-        # Фақат офис ходимларидан бошқаларни текшириш (office емас ходимлар)
-        employees_need_attendance = employees.exclude(employee_type='office')
-        not_filled = employees_need_attendance.exclude(id__in=attendance_today.values_list('employee', flat=True))
-    
-    stats = Attendance.objects.values('status').annotate(count=Count('id'))
+        not_filled = employees_need_attendance.exclude(
+            id__in=attendance_today.values_list('employee', flat=True)
+        )
+
+    stats_today = (
+        Attendance.objects.filter(date=today)
+        .values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
+    )
+    week_start = today - timedelta(days=today.weekday())
+    stats_week = (
+        Attendance.objects.filter(date__gte=week_start, date__lte=today)
+        .values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
+    )
+    week_total = Attendance.objects.filter(date__gte=week_start, date__lte=today).count()
+
     best_employees = Attendance.objects.filter(
-        status='present',
-        date__gte=today - timedelta(days=30)
+        status__in=['present', 'late'],
+        date__gte=today - timedelta(days=30),
     ).values('employee__last_name', 'employee__first_name').annotate(
         present_count=Count('id')
     ).order_by('-present_count')[:5]
+
+    status_labels = dict(Attendance.STATUS_CHOICES)
+
+    def _enrich_status_rows(rows):
+        return [
+            {
+                'status': row['status'],
+                'label': status_labels.get(row['status'], row['status']),
+                'count': row['count'],
+            }
+            for row in rows
+        ]
+
+    stats_today_display = _enrich_status_rows(stats_today)
+    stats_week_display = _enrich_status_rows(stats_week)
+
     return render(request, 'attendance/dashboard.html', {
         'today': today,
+        'today_date': today,
+        'week_start': week_start,
+        'week_total': week_total,
         'employees': employees,
         'attendance_today': attendance_today,
         'not_filled': not_filled,
-        'stats': stats,
+        'stats_today': stats_today_display,
+        'stats_week': stats_week_display,
+        'is_restricted_day': is_restricted_day,
         'best_employees': best_employees,
     })
 
@@ -115,38 +151,32 @@ def absence_quota_view(request):
     """
     Har bir xodim uchun yillik 21 ta ruxsat etilgan kelmagan kun
     kvotasidan qanchasi ishlatilgani va qancha qolgani ko'rsatiladigan sahifa.
+    Oylik hisob bilan bir xil formula ishlatiladi.
     """
     import datetime as _dt
 
     today = _dt.date.today()
     year = int(request.GET.get('year', today.year))
+    month_param = request.GET.get('month', '').strip()
+    month = int(month_param) if month_param else None
 
     employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
-    data = []
-    FREE_LIMIT = 21
-
+    rows = []
     for emp in employees:
-        total_absent = Attendance.objects.filter(
-            employee=emp, date__year=year, status="absent"
-        ).count()
-        used = min(total_absent, FREE_LIMIT)
-        left = max(0, FREE_LIMIT - used)
-        over = max(0, total_absent - FREE_LIMIT)
+        quota = get_absence_quota_for_period(emp, year, month)
+        rows.append({"employee": emp, **quota})
 
-        data.append(
-            {
-                "employee": emp,
-                "total_absent": total_absent,
-                "used": used,
-                "left": left,
-                "over": over,
-            }
-        )
-
+    month_names = [
+        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
+    ]
     context = {
         "year": year,
-        "rows": data,
-        "free_limit": FREE_LIMIT,
+        "month": month,
+        "rows": rows,
+        "free_limit": YEARLY_ABSENCE_FREE_LIMIT,
+        "month_names": month_names,
     }
     return render(request, "attendance/absence_quota.html", context)
 
@@ -160,22 +190,26 @@ def absence_quota_export(request):
 
     today = _dt.date.today()
     year = int(request.GET.get("year", today.year))
+    month_param = request.GET.get("month", "").strip()
+    month = int(month_param) if month_param else None
 
     employees = Employee.objects.filter(is_active=True).order_by("last_name", "first_name")
-    FREE_LIMIT = 21
 
     wb = Workbook()
     ws = wb.active
     ws.title = f"Kvota_{year}"
 
-    # Header
     headers = [
         "№",
         "Familiya",
         "Ismi",
         "Lavozim",
-        f"Jami kelmagan ({year})",
-        f"Kvotadan foydalangan (0-{FREE_LIMIT})",
+        "Oldingi oylar kelmagan",
+        "Joriy oy kelmagan",
+        "Yil boshidan jami",
+        "Kvotadan kechirilgan (oy)",
+        "Oylikka ta'sir qiladi (oy)",
+        f"Kvotadan foydalangan (0-{YEARLY_ABSENCE_FREE_LIMIT})",
         "Qolgan kvota",
         "Limitdan ortiq",
     ]
@@ -186,21 +220,19 @@ def absence_quota_export(request):
 
     row_idx = 2
     for idx, emp in enumerate(employees, start=1):
-        total_absent = Attendance.objects.filter(
-            employee=emp, date__year=year, status="absent"
-        ).count()
-        used = min(total_absent, FREE_LIMIT)
-        left = max(0, FREE_LIMIT - used)
-        over = max(0, total_absent - FREE_LIMIT)
-
+        quota = get_absence_quota_for_period(emp, year, month)
         ws.cell(row=row_idx, column=1, value=idx)
         ws.cell(row=row_idx, column=2, value=emp.last_name)
         ws.cell(row=row_idx, column=3, value=emp.first_name)
         ws.cell(row=row_idx, column=4, value=emp.position)
-        ws.cell(row=row_idx, column=5, value=total_absent)
-        ws.cell(row=row_idx, column=6, value=used)
-        ws.cell(row=row_idx, column=7, value=left)
-        ws.cell(row=row_idx, column=8, value=over)
+        ws.cell(row=row_idx, column=5, value=quota["absent_before"])
+        ws.cell(row=row_idx, column=6, value=quota["absent_this_month"])
+        ws.cell(row=row_idx, column=7, value=quota["absent_ytd"])
+        ws.cell(row=row_idx, column=8, value=quota["forgiven_in_month"])
+        ws.cell(row=row_idx, column=9, value=quota["affects_salary"])
+        ws.cell(row=row_idx, column=10, value=quota["used"])
+        ws.cell(row=row_idx, column=11, value=quota["left"])
+        ws.cell(row=row_idx, column=12, value=quota["over"])
         row_idx += 1
 
     # Autosize columns
@@ -439,22 +471,40 @@ def employee_delete(request, pk):
 
 @login_required
 def bulk_attendance_create(request):
-    today = date.today()
-    # Бугун ёпиқ кун ёки якшанбами текшириш
-    is_dayoff = DayOff.objects.filter(date=today).exists()
-    is_sunday = today.weekday() == 6
-    
-    if is_dayoff or is_sunday:
-        dayoff_reason = DayOff.objects.filter(date=today).first()
-        reason = dayoff_reason.reason if dayoff_reason else "Якшанба"
-        messages.error(request, f"Бугун {reason} - давомат киритиб бўлмайди!")
+    def _coerce_attendance_date(value):
+        if isinstance(value, date):
+            return value
+        if isinstance(value, str) and value:
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                pass
+        return date.today()
+
+    if request.method == 'POST':
+        raw_date = request.POST.get('form-0-date') or request.GET.get('date')
+    else:
+        raw_date = request.GET.get('date')
+    date_val = _coerce_attendance_date(raw_date)
+
+    employees, restricted_day = get_bulk_attendance_employees(date_val)
+    if restricted_day and not employees.exists():
+        dayoff_reason = DayOff.objects.filter(date=date_val).first()
+        if date_val.weekday() == 6:
+            reason = "Yakshanba"
+        elif dayoff_reason:
+            reason = dayoff_reason.reason
+        else:
+            reason = "Yopiq kun"
+        messages.error(
+            request,
+            f"{date_val.strftime('%d.%m.%Y')} — {reason}. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi.",
+        )
         return redirect('dashboard')
-    
-    employees = Employee.objects.filter(is_active=True)
-    date_val = request.GET.get('date') or date.today()
+
     AttendanceFormSet = modelformset_factory(
         Attendance, form=AttendanceForm, can_delete=False,
-        fields=['employee', 'date', 'status', 'comment', 'attachment'],
+        fields=['employee', 'date', 'status', 'comment'],
         extra=employees.count()
     )
 
@@ -473,7 +523,6 @@ def bulk_attendance_create(request):
                 'date': rec.date,
                 'status': rec.status,
                 'comment': rec.comment,
-                'attachment': rec.attachment
             })
         else:
             initial_data.append({
@@ -483,16 +532,14 @@ def bulk_attendance_create(request):
             })
 
     if request.method == 'POST':
-        formset = AttendanceFormSet(request.POST, request.FILES,
-                                    queryset=Attendance.objects.none(),
-                                    initial=initial_data)
+        formset = AttendanceFormSet(
+            request.POST,
+            queryset=Attendance.objects.none(),
+            initial=initial_data,
+        )
         if formset.is_valid():
             formset.save()
-
-            # Nalivshiklar uchun komanda bo'yicha avtomatik davomat
-            # (faqat umumiy kunlik bulk kiritishdan keyin, yopiq kun/yakshanba emas kunlarda)
-            generate_nalivshik_attendance_for_day(date_val)
-
+            sync_monthly_stats_for_month(date_val.year, date_val.month)
             messages.success(request, "Davomat muvaffaqiyatli saqlandi!")
             return redirect('attendance_list')
     else:
@@ -505,6 +552,7 @@ def bulk_attendance_create(request):
         'employee_id_to_fio': employee_id_to_fio,
         'date_val': date_val,
         'dayoff': dayoff,
+        'restricted_day': restricted_day,
     })
 
 
@@ -541,20 +589,23 @@ def attendance_list(request):
 def attendance_update(request, pk):
     record = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':
-        form = AttendanceForm(request.POST, request.FILES, instance=record)
+        form = AttendanceForm(request.POST, request.FILES, instance=record, attendance_employee=record.employee)
         if form.is_valid():
-            form.save()
+            record = form.save()
+            sync_monthly_stats_for_date(record.employee, record.date)
             messages.success(request, "Davomat yangilandi!")
             return redirect('attendance_list')
     else:
-        form = AttendanceForm(instance=record)
+        form = AttendanceForm(instance=record, attendance_employee=record.employee)
     return render(request, 'attendance/attendance_form.html', {'form': form, 'record': record})
 
 @login_required
 def attendance_delete(request, pk):
     record = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':
+        employee, att_date = record.employee, record.date
         record.delete()
+        sync_monthly_stats_for_date(employee, att_date)
         messages.success(request, "Davomat o'chirildi!")
         return redirect('attendance_list')
     return render(request, 'attendance/attendance_confirm_delete.html', {'record': record})
@@ -573,6 +624,7 @@ def attendance_import(request):
                 else:
                     df = pd.read_csv(file)
                 count = 0
+                sync_targets = set()
                 for idx, row in df.iterrows():
                     try:
                         emp = Employee.objects.filter(
@@ -591,17 +643,27 @@ def attendance_import(request):
                         except Exception:
                             errors.append(f"{idx+2}-satr: Sana formati noto'g'ri ({row.get('date','')})")
                             continue
+                        try:
+                            status = normalize_attendance_status(row.get('status'))
+                        except ValueError as exc:
+                            errors.append(f"{idx+2}-satr: {exc}")
+                            continue
                         Attendance.objects.update_or_create(
                             employee=emp,
                             date=date_obj,
                             defaults={
-                                'status': row['status'],
+                                'status': status,
                                 'comment': row.get('comment', ''),
                             }
                         )
+                        sync_targets.add((emp.pk, date_obj.year, date_obj.month))
                         count += 1
                     except Exception as e:
                         errors.append(f"{idx+2}-satr: {str(e)}")
+                for emp_id, sync_year, sync_month in sync_targets:
+                    sync_monthly_stats_for_month(
+                        sync_year, sync_month, employee=Employee.objects.filter(pk=emp_id).first()
+                    )
                 AttendanceImportLog.objects.create(
                     user=request.user,
                     file_name=file.name,
@@ -736,10 +798,13 @@ def individual_attendance_create(request, employee_id=None):
                 messages.error(request, "Xodimni tanlang!")
         
         employees = Employee.objects.filter(is_active=True).order_by('location', 'department', 'last_name')
+        if is_restricted_attendance_date(date.today()):
+            employees = employees.filter(role='nalivshik')
         locations = Employee.LOCATION_CHOICES
         return render(request, 'attendance/select_employee.html', {
             'employees': employees,
-            'locations': locations
+            'locations': locations,
+            'restricted_day': is_restricted_attendance_date(date.today()),
         })
     
     # Tanlangan xodim uchun davomat kiritish
@@ -753,18 +818,17 @@ def individual_attendance_create(request, employee_id=None):
         date_val = date.today()
         messages.warning(request, "Noto'g'ri sana formati. Bugungi sana ishlatilmoqda.")
     
-    # Танланган санани текшириш
-    is_dayoff = DayOff.objects.filter(date=date_val).exists()
-    is_sunday = date_val.weekday() == 6
-    
-    if is_dayoff or is_sunday:
-        dayoff_reason = DayOff.objects.filter(date=date_val).first()
-        reason = dayoff_reason.reason if dayoff_reason else "Якшанба"
-        messages.error(request, f"{date_val.strftime('%d.%m.%Y')} - {reason} кунида давомат киритиб бўлмайди!")
+    if not employee_can_attend_on_date(employee, date_val):
+        reason = get_restricted_day_reason(date_val)
+        messages.error(
+            request,
+            f"{date_val.strftime('%d.%m.%Y')} — {reason}. "
+            f"Bu kunda faqat nalivshiklar davomat kiritishi mumkin.",
+        )
         return redirect('dashboard')
-    
+
     attendance = Attendance.objects.filter(employee=employee, date=date_val).first()
-    
+
     if request.method == 'POST':
         # Form ma'lumotlarini olish
         status = request.POST.get('status')
@@ -778,16 +842,17 @@ def individual_attendance_create(request, employee_id=None):
             except ValueError:
                 date_val = date.today()
         
-        # Yopiq kun yoki yakshanba tekshirish (POST uchun ham)
-        is_dayoff = DayOff.objects.filter(date=date_val).exists()
-        is_sunday = date_val.weekday() == 6
-        if is_dayoff or is_sunday:
-            dayoff_reason = DayOff.objects.filter(date=date_val).first()
-            reason = dayoff_reason.reason if dayoff_reason else "Yakshanba"
+        # Yopiq kun yoki yakshanba (nalivshiklar bundan mustasno)
+        if not employee_can_attend_on_date(employee, date_val):
+            reason = get_restricted_day_reason(date_val)
+            msg = (
+                f"{date_val.strftime('%d.%m.%Y')} — {reason}. "
+                "Bu kunda faqat nalivshiklar davomat kiritishi mumkin."
+            )
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
-                return JsonResponse({'success': False, 'message': f'{date_val.strftime("%d.%m.%Y")} - {reason} kunida davomat o\'zgartirib bo\'lmaydi!'})
-            messages.error(request, f"{date_val.strftime('%d.%m.%Y')} - {reason} kunida davomat o'zgartirib bo'lmaydi!")
+                return JsonResponse({'success': False, 'message': msg})
+            messages.error(request, msg)
             return redirect('dashboard')
         
         # Validatsiya
@@ -829,7 +894,8 @@ def individual_attendance_create(request, employee_id=None):
                     'comment': comment
                 }
                 )
-            
+            sync_monthly_stats_for_date(employee, date_val)
+
             # AJAX request uchun JSON response qaytarish
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
@@ -843,12 +909,14 @@ def individual_attendance_create(request, employee_id=None):
             # Keyingi xodimga o'tish yoki ro'yxatga qaytish
             next_action = request.POST.get('next_action')
             if next_action == 'next_employee':
-                # Xodimlar ro'yxatidan keyingi xodimni topish
-                next_employee = Employee.objects.filter(
+                next_qs = Employee.objects.filter(
                     is_active=True,
-                    location=employee.location
-                ).filter(
-                    Q(last_name__gt=employee.last_name) | 
+                    location=employee.location,
+                )
+                if is_restricted_attendance_date(date_val):
+                    next_qs = next_qs.filter(role='nalivshik')
+                next_employee = next_qs.filter(
+                    Q(last_name__gt=employee.last_name) |
                     (Q(last_name=employee.last_name) & Q(first_name__gt=employee.first_name))
                 ).order_by('last_name', 'first_name').first()
                 
@@ -869,14 +937,15 @@ def individual_attendance_create(request, employee_id=None):
     # GET so'rovi uchun forma tayyorlash
     form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': 'present'})
     
-    # Ish kuni emas kunini tekshirish
     dayoff = DayOff.objects.filter(date=date_val).first()
-    
+    restricted_day = is_restricted_attendance_date(date_val)
+
     return render(request, 'attendance/individual_attendance_form.html', {
         'form': form,
         'employee': employee,
         'date_val': date_val,
-        'dayoff': dayoff
+        'dayoff': dayoff,
+        'restricted_day': restricted_day,
     })
 
 def _statistics_default_dates(period, today):
@@ -1080,9 +1149,9 @@ def salary_statistics_view(request):
     role = request.GET.get('role', '').strip()
     currency = request.GET.get('currency', '').strip()
     location = request.GET.get('location', '').strip()
-    # Faqat "Qayta hisoblash" bosilganda — har safar emas (sahifa tez ochiladi)
+    # Sahifa ochilganda davomat bo'yicha yengil sinxronizatsiya
+    calculate_monthly_stats(year, month)
     if request.GET.get('recalc') == '1':
-        calculate_monthly_stats(year, month)
         messages.info(request, "Oylik statistika qayta hisoblandi.")
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
 
@@ -1168,6 +1237,9 @@ def salary_statistics_view(request):
         currency_totals[cur]['paid'] += float(stat.paid)
         currency_totals[cur]['debt_start'] += float(stat.debt_start)
         currency_totals[cur]['debt_end'] += float(stat.debt_end)
+    stats_calculated_at = MonthlyEmployeeStat.objects.filter(
+        year=year, month=month
+    ).aggregate(latest=Max('calculated_at'))['latest']
     return render(request, 'attendance/salary_statistics.html', {
         'stats': stats,
         'form': form,
@@ -1192,6 +1264,7 @@ def salary_statistics_view(request):
         'total_absent': total_absent,
         'total_currency': total_currency,
         'currency_totals': currency_totals,
+        'stats_calculated_at': stats_calculated_at,
     })
 
 @login_required
@@ -1886,6 +1959,7 @@ def edit_salary_stat(request, stat_id):
                         'id': stat.id,
                         'salary': float(stat.salary),
                         'bonus': float(stat.bonus),
+                        'penalty': float(stat.penalty),
                         'paid': float(stat.paid),
                         'accrued': float(stat.accrued),
                         'debt_start': float(stat.debt_start),
@@ -2085,7 +2159,14 @@ def edit_attendance_history(request):
     if request.method == 'POST':
         formset = AttendanceFormSet(request.POST, queryset=attendances)
         if formset.is_valid():
+            sync_targets = {
+                (obj.employee_id, obj.date.year, obj.date.month) for obj in attendances
+            }
             formset.save()
+            for emp_id, sync_year, sync_month in sync_targets:
+                sync_monthly_stats_for_month(
+                    sync_year, sync_month, employee=Employee.objects.filter(pk=emp_id).first()
+                )
             messages.success(request, "Davomat ma'lumotlari yangilandi!")
             return redirect('edit_attendance_history')
     else:

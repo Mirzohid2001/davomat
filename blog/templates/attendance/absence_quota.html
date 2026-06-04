@@ -2,14 +2,20 @@
 {% block title %}Kelmagan kun kvotasi{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Kelmagan kun kvotasi" subtitle="Yillik kelmagan kun kvotasi va limitdan ortiq kunlar" icon="bi-calendar-minus" meta=year meta_label="Yil" %}
+{% include 'attendance/partials/page_hero.html' with title="Kelmagan kun kvotasi" subtitle="Oylik hisob bilan bir xil 21 kun kvota formulasi" icon="bi-calendar-minus" meta=year meta_label="Yil" %}
 
 <div class="app-toolbar mb-3">
   <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
     <input type="number" name="year" class="form-control" style="max-width:120px" value="{{ year }}" min="2000" max="2100">
+    <select name="month" class="form-select" style="max-width:160px">
+      <option value="">Yil oxirigacha</option>
+      {% for m, label in month_names %}
+      <option value="{{ m }}" {% if month == m %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
     <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Ko'rsat</button>
   </form>
-  <a href="{% url 'absence_quota_export' %}?year={{ year }}" class="btn btn-success">
+  <a href="{% url 'absence_quota_export' %}?year={{ year }}{% if month %}&month={{ month }}{% endif %}" class="btn btn-success">
     <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
   </a>
 </div>
@@ -22,9 +28,13 @@
           <th>№</th>
           <th class="text-start">F.I.O</th>
           <th>Lavozim</th>
-          <th>Jami kelmagan</th>
+          <th>Oldingi oylar</th>
+          <th>Joriy oy</th>
+          <th>Yil boshidan jami</th>
+          <th>Kvotadan kechirilgan</th>
+          <th>Oylikka ta'sir</th>
           <th>Kvotadan foydalangan</th>
-          <th>Qolgan kvota</th>
+          <th>Qolgan</th>
           <th>Limitdan ortiq</th>
         </tr>
       </thead>
@@ -34,7 +44,17 @@
           <td>{{ forloop.counter }}</td>
           <td class="text-start fw-semibold">{{ row.employee.last_name }} {{ row.employee.first_name }}</td>
           <td>{{ row.employee.position|default:"—" }}</td>
-          <td>{{ row.total_absent }}</td>
+          <td>{{ row.absent_before }}</td>
+          <td>{{ row.absent_this_month }}</td>
+          <td>{{ row.absent_ytd }}</td>
+          <td><span class="badge rounded-pill bg-info text-dark">{{ row.forgiven_in_month }}</span></td>
+          <td>
+            {% if row.affects_salary > 0 %}
+            <span class="badge rounded-pill bg-danger">{{ row.affects_salary }}</span>
+            {% else %}
+            <span class="badge rounded-pill bg-success">0</span>
+            {% endif %}
+          </td>
           <td>{{ row.used }}</td>
           <td><span class="badge rounded-pill {% if row.left > 0 %}bg-success{% else %}bg-secondary{% endif %}">{{ row.left }}</span></td>
           <td>
@@ -43,14 +63,16 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7">{% include 'attendance/partials/empty_state.html' with title="Ma'lumot yo'q" %}</td></tr>
+        <tr><td colspan="11">{% include 'attendance/partials/empty_state.html' with title="Ma'lumot yo'q" %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   <div class="app-panel-body border-top small text-muted">
-    <strong>Eslatma:</strong> Har bir xodim yiliga {{ free_limit }} martagacha <code>absent</code> kvota sifatida hisoblanadi.
-    Ortiqcha kunlar oylikdan chegiriladi.
+    <strong>Formula (oylik hisob bilan bir xil):</strong>
+    yil boshidan {{ free_limit }} ta <code>absent</code> kvota beriladi.
+    Oldingi oylardagi kelmaganlar kvotadan ayiriladi; joriy oyda qolgan kvota <em>kechirilgan</em> deb ko'rsatiladi.
+    Ortiqcha kunlar <em>oylikka ta'sir</em> qiladi.
   </div>
 </div>
 {% endblock %}

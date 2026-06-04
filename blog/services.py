@@ -2,8 +2,82 @@ from datetime import date, timedelta, datetime
 from calendar import monthrange
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
+from django.utils import timezone
 
 from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride
+
+
+# Oylik hisobda ishlangan kun sifatida qabul qilinadigan davomat holatlari
+WORKED_DAY_STATUSES = ('present', 'sick', 'late')
+
+# Yillik ruxsat etilgan kelmagan kunlar (oylik hisob va kvota sahifasi)
+YEARLY_ABSENCE_FREE_LIMIT = 21
+
+VALID_ATTENDANCE_STATUSES = {choice[0] for choice in Attendance.STATUS_CHOICES}
+ATTENDANCE_STATUS_LABELS = {choice[1].lower(): choice[0] for choice in Attendance.STATUS_CHOICES}
+
+
+def normalize_attendance_status(raw_status) -> str:
+    """Import va API uchun statusni tekshiradi va kodga aylantiradi."""
+    if raw_status is None:
+        raise ValueError("Status bo'sh")
+    status = str(raw_status).strip()
+    if not status or status.lower() == "nan":
+        raise ValueError("Status bo'sh")
+    code = status.lower()
+    if code in VALID_ATTENDANCE_STATUSES:
+        return code
+    label_match = ATTENDANCE_STATUS_LABELS.get(status.lower())
+    if label_match:
+        return label_match
+    allowed = ", ".join(sorted(VALID_ATTENDANCE_STATUSES))
+    raise ValueError(f"Noto'g'ri status: {raw_status}. Qabul qilinadi: {allowed}")
+
+
+def get_absence_quota_for_period(employee, year: int, month: int | None = None) -> dict:
+    """
+    Oylik hisobdagi 21 kun kvota formulasi bilan bir xil natija.
+    month berilmasa: joriy yil uchun bugungi oy, o'tgan yillar uchun dekabr.
+    """
+    today = date.today()
+    if month is None:
+        month = today.month if year == today.year else 12
+
+    year_start = date(year, 1, 1)
+    month_start = date(year, month, 1)
+
+    absent_before = Attendance.objects.filter(
+        employee=employee,
+        date__gte=year_start,
+        date__lt=month_start,
+        status='absent',
+    ).count()
+    absent_this_month = Attendance.objects.filter(
+        employee=employee,
+        date__year=year,
+        date__month=month,
+        status='absent',
+    ).count()
+    absent_ytd = absent_before + absent_this_month
+    free_left = max(0, YEARLY_ABSENCE_FREE_LIMIT - absent_before)
+    forgiven_in_month = min(free_left, absent_this_month)
+    affects_salary = absent_this_month - forgiven_in_month
+    used = min(absent_ytd, YEARLY_ABSENCE_FREE_LIMIT)
+    left = max(0, YEARLY_ABSENCE_FREE_LIMIT - used)
+    over = max(0, absent_ytd - YEARLY_ABSENCE_FREE_LIMIT)
+
+    return {
+        'year': year,
+        'month': month,
+        'absent_before': absent_before,
+        'absent_this_month': absent_this_month,
+        'absent_ytd': absent_ytd,
+        'forgiven_in_month': forgiven_in_month,
+        'affects_salary': affects_salary,
+        'used': used,
+        'left': left,
+        'over': over,
+    }
 
 
 def round_money(amount, currency: str) -> Decimal:
@@ -26,6 +100,40 @@ def calculate_debt_end(debt_start, accrued, paid, currency: str) -> Decimal:
     if paid >= total_due:
         return Decimal("0")
     return round_money(debt_start + accrued - paid, currency)
+
+
+def is_restricted_attendance_date(for_date: date) -> bool:
+    """Yakshanba yoki yopiq kun (nalivshiklar bundan mustasno ishlaydi)."""
+    if for_date.weekday() == 6:
+        return True
+    return DayOff.objects.filter(date=for_date).exists()
+
+
+def get_restricted_day_reason(for_date: date) -> str:
+    if for_date.weekday() == 6:
+        return "Yakshanba"
+    dayoff = DayOff.objects.filter(date=for_date).first()
+    return dayoff.reason if dayoff else "Yopiq kun"
+
+
+def employee_can_attend_on_date(employee, for_date: date) -> bool:
+    """Oddiy xodimlar yakshanba/yopiq kunda davomat kirita olmaydi."""
+    if not is_restricted_attendance_date(for_date):
+        return True
+    return getattr(employee, "role", None) == "nalivshik"
+
+
+def get_bulk_attendance_employees(for_date: date):
+    """
+    Ommaviy davomat uchun xodimlar.
+    Yakshanba va yopiq kunlarda faqat nalivshiklar ishlaydi.
+    Qaytadi: (queryset, restricted_day bool)
+    """
+    active = Employee.objects.filter(is_active=True)
+    restricted = is_restricted_attendance_date(for_date)
+    if restricted:
+        return active.filter(role='nalivshik'), True
+    return active, False
 
 
 def calculate_working_days_in_month(year, month):
@@ -178,7 +286,8 @@ def generate_nalivshik_attendance_for_day(day: date):
             continue
 
         if emp.team == day_team or emp.team == night_team:
-            Attendance.objects.update_or_create(
+            # Mavjud yozuvni (qo'lda absent/sick va h.k.) ustiga yozmaymiz
+            Attendance.objects.get_or_create(
                 employee=emp,
                 date=day,
                 defaults={
@@ -290,6 +399,7 @@ def update_future_months_salary(employee, new_salary, new_currency, current_year
         if current_date > today.replace(day=1):
             break
 
+
 def calculate_monthly_stats(year, month, employee=None):
     """
     Oylik statistikani hisoblaydi.
@@ -306,6 +416,7 @@ def calculate_monthly_stats(year, month, employee=None):
             salary = stat.salary
             bonus = stat.bonus
             paid = stat.paid
+            penalty = stat.penalty
             manual_salary = stat.manual_salary
             currency = stat.currency
         else:
@@ -328,42 +439,19 @@ def calculate_monthly_stats(year, month, employee=None):
             
             paid = Decimal('0')
             manual_salary = (employee.employee_type == 'office')
-        penalty = Decimal('0')
-        
-        # Ishlangan kunlar hisoblash (kelganlar VA kasal bo'lganlar)
+            paid = Decimal('0')
+            manual_salary = (employee.employee_type == 'office')
+            penalty = Decimal('0')
+
+        # Ishlangan kunlar hisoblash
         worked_days = Attendance.objects.filter(
             employee=employee,
             date__year=year,
             date__month=month,
-            status__in=['present', 'sick']
+            status__in=WORKED_DAY_STATUSES,
         ).count()
-        # Bir yildagi kelmagan kunlar chegarasi: 21 kun
-        # 1-yil davomida 21 martagacha "absent" oylikka ta'sir qilmaydi.
-        # Avval shu yilning hozirgi oygacha bo'lgan JAMI kelmagan kunlarni topamiz.
-        from datetime import date as _date
-        from calendar import monthrange as _monthrange
-
-        year_start = _date(year, 1, 1)
-        current_month_start = _date(year, month, 1)
-        # Joriy oyga qadar bo'lgan (oldingi oylar) kelmaganlar
-        absent_before = Attendance.objects.filter(
-            employee=employee,
-            date__gte=year_start,
-            date__lt=current_month_start,
-            status='absent'
-        ).count()
-        # Joriy oy ichidagi kelmaganlar
-        absent_this_month = Attendance.objects.filter(
-            employee=employee,
-            date__year=year,
-            date__month=month,
-            status='absent'
-        ).count()
-        free_limit = 21
-        free_left = max(0, free_limit - absent_before)
-        forgiven_in_month = min(free_left, absent_this_month)
-        # Rejada bo'lgan, lekin 21 kun kvotaga kiradigan kelmaganlar
-        # ish kunlari sifatida hisoblanadi:
+        quota = get_absence_quota_for_period(employee, year, month)
+        forgiven_in_month = quota['forgiven_in_month']
         effective_worked_days_for_full = worked_days + forgiven_in_month
         
         # Hisoblangan summa - turi bo'yicha
@@ -440,7 +528,8 @@ def calculate_monthly_stats(year, month, employee=None):
         ).first()
         debt_start = round_money(prev_stat.debt_end if prev_stat else Decimal('0'), currency)
         debt_end = calculate_debt_end(debt_start, accrued, paid, currency)
-        
+        now = timezone.now()
+
         # Stat yozuvini yaratish yoki yangilash
         with transaction.atomic():
             stat_obj, created = MonthlyEmployeeStat.objects.get_or_create(
@@ -457,6 +546,7 @@ def calculate_monthly_stats(year, month, employee=None):
                     'debt_end': debt_end,
                     'manual_salary': manual_salary,
                     'currency': currency,
+                    'calculated_at': now,
                 }
             )
             if not created:
@@ -471,4 +561,15 @@ def calculate_monthly_stats(year, month, employee=None):
                 stat_obj.debt_end = debt_end
                 stat_obj.manual_salary = manual_salary
                 stat_obj.currency = currency
-                stat_obj.save() 
+                stat_obj.calculated_at = now
+                stat_obj.save()
+
+
+def sync_monthly_stats_for_date(employee, day: date):
+    """Davomat o'zgargach shu xodimning oylik statistikasini yangilaydi."""
+    calculate_monthly_stats(day.year, day.month, employee=employee)
+
+
+def sync_monthly_stats_for_month(year: int, month: int, employee=None):
+    """Berilgan oy uchun oylik statistikani qayta hisoblaydi."""
+    calculate_monthly_stats(year, month, employee=employee)

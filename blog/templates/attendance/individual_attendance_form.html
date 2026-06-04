@@ -127,9 +127,14 @@
         {% endfor %}
     {% endif %}
     
-    {% if dayoff %}
+    {% if restricted_day and employee.role == 'nalivshik' %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Yakshanba/yopiq kun — nalivshik smenasi bo'yicha davomat kiritiladi.
+        </div>
+    {% elif dayoff %}
         <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i> 
+            <i class="fas fa-exclamation-triangle"></i>
             Bu sana dam olish kuni: {{ dayoff.reason }}
         </div>
     {% endif %}
