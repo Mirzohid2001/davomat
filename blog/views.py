@@ -401,19 +401,147 @@ def nalivshik_schedule_view(request):
     }
     return render(request, 'attendance/nalivshik_schedule.html', context)
 
-@login_required
-def employee_list(request):
-    search = request.GET.get('q', '')
-    employees = Employee.objects.all()
+def _employees_queryset(search=''):
+    """Xodimlar ro'yxati va eksport uchun umumiy filtrlash."""
+    employees = Employee.objects.select_related('team').order_by('last_name', 'first_name')
     if search:
         employees = employees.filter(
-            Q(first_name__icontains=search) | 
-            Q(last_name__icontains=search) | 
-            Q(position__icontains=search) | 
-            Q(department__icontains=search) | 
-            Q(phone_number__icontains=search)
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(position__icontains=search)
+            | Q(department__icontains=search)
+            | Q(phone_number__icontains=search)
         )
+    return employees
+
+
+@login_required
+def employee_list(request):
+    search = request.GET.get('q', '').strip()
+    employees = _employees_queryset(search)
     return render(request, 'attendance/employees.html', {'employees': employees, 'search': search})
+
+
+@login_required
+def employee_list_export(request):
+    """Xodimlar ro'yxatini professional Excel faylga eksport."""
+    from io import BytesIO
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+
+    search = request.GET.get('q', '').strip()
+    employees = _employees_queryset(search)
+    today = date.today()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Xodimlar"
+
+    thin = Side(style='thin', color='D1D5DB')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    header_fill = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
+    title_fill = PatternFill(start_color='4A90E2', end_color='5B6FE8', fill_type='solid')
+    alt_fill = PatternFill(start_color='F8FAFC', end_color='F8FAFC', fill_type='solid')
+    active_fill = PatternFill(start_color='D1FAE5', end_color='D1FAE5', fill_type='solid')
+    inactive_fill = PatternFill(start_color='F3F4F6', end_color='F3F4F6', fill_type='solid')
+
+    headers = [
+        '№',
+        'Familiya',
+        'Ismi',
+        'Lavozim',
+        "Bo'lim",
+        'Telefon',
+        'Joylashuv',
+        'Xodim turi',
+        'Lavozim turi',
+        'Komanda',
+        'Holat',
+    ]
+    last_col = len(headers)
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=last_col)
+    title_cell = ws.cell(row=1, column=1, value='ISOMER OIL — Xodimlar ro\'yxati')
+    title_cell.font = Font(bold=True, size=16, color='FFFFFF')
+    title_cell.fill = title_fill
+    title_cell.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 32
+
+    subtitle_parts = [f"Sana: {today.strftime('%d.%m.%Y')}", f"Jami: {employees.count()} ta xodim"]
+    if search:
+        subtitle_parts.append(f"Qidiruv: «{search}»")
+    ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=last_col)
+    sub_cell = ws.cell(row=2, column=1, value='  |  '.join(subtitle_parts))
+    sub_cell.font = Font(size=10, color='475569')
+    sub_cell.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[2].height = 20
+
+    header_row = 4
+    for col, label in enumerate(headers, 1):
+        cell = ws.cell(row=header_row, column=col, value=label)
+        cell.font = Font(bold=True, color='FFFFFF', size=11)
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = border
+    ws.row_dimensions[header_row].height = 24
+
+    for idx, emp in enumerate(employees, start=1):
+        row = header_row + idx
+        team_name = emp.team.name if emp.team else '—'
+        status_label = 'Aktiv' if emp.is_active else 'Noaktiv'
+        values = [
+            idx,
+            emp.last_name,
+            emp.first_name,
+            emp.position or '—',
+            emp.department or '—',
+            emp.phone_number or '—',
+            emp.get_location_display(),
+            emp.get_employee_type_display(),
+            emp.get_role_display(),
+            team_name,
+            status_label,
+        ]
+        row_fill = alt_fill if idx % 2 == 0 else None
+        status_fill = active_fill if emp.is_active else inactive_fill
+
+        for col, value in enumerate(values, 1):
+            cell = ws.cell(row=row, column=col, value=value)
+            cell.border = border
+            cell.alignment = Alignment(
+                horizontal='center' if col in (1, 11) else 'left',
+                vertical='center',
+                wrap_text=col in (4, 5, 8, 9),
+            )
+            if col == 11:
+                cell.fill = status_fill
+                cell.font = Font(bold=True, color='065F46' if emp.is_active else '6B7280')
+            elif row_fill:
+                cell.fill = row_fill
+
+    ws.freeze_panes = f'A{header_row + 1}'
+
+    for col in range(1, last_col + 1):
+        col_letter = get_column_letter(col)
+        max_len = len(str(headers[col - 1]))
+        for row in range(header_row, header_row + employees.count() + 1):
+            val = ws.cell(row=row, column=col).value
+            if val is not None:
+                max_len = max(max_len, len(str(val)))
+        ws.column_dimensions[col_letter].width = min(max_len + 3, 42)
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    filename = f"ISOMER_OIL_Xodimlar_{today.strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 @login_required
 def employee_create(request):

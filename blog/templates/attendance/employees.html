@@ -9,9 +9,14 @@
     <input type="text" name="q" placeholder="Qidiruv (ism, lavozim...)" value="{{ search }}" class="form-control" autofocus>
     <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search me-1"></i>Qidirish</button>
   </form>
-  <a href="{% url 'employee_create' %}" class="btn btn-success">
-    <i class="bi bi-person-plus-fill me-1"></i>Yangi xodim
-  </a>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'employee_list_export' %}{% if search %}?q={{ search|urlencode }}{% endif %}" class="btn btn-outline-success">
+      <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
+    </a>
+    <a href="{% url 'employee_create' %}" class="btn btn-success">
+      <i class="bi bi-person-plus-fill me-1"></i>Yangi xodim
+    </a>
+  </div>
 </div>
 
 <div class="app-panel app-table-responsive-hide-sm">

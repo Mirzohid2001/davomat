@@ -208,6 +208,39 @@ class EmployeeCreateViewTests(TestCase):
         self.assertContains(response, "Ishga kirgan sana")
         self.assertContains(response, "Kelgan kunlar soni")
 
+    def test_employee_list_has_export_button(self):
+        response = self.client.get(reverse("employee_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Excelga eksport")
+
+    def test_employee_export_returns_xlsx(self):
+        Employee.objects.create(
+            first_name="Export",
+            last_name="Testov",
+            position="Operator",
+            department="Zavod",
+            employee_type="full",
+        )
+        response = self.client.get(reverse("employee_list_export"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "spreadsheetml",
+            response["Content-Type"],
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertGreater(len(response.content), 1000)
+
+    def test_employee_export_respects_search_filter(self):
+        Employee.objects.create(
+            first_name="Ali", last_name="Top", position="A", employee_type="full"
+        )
+        Employee.objects.create(
+            first_name="Boshqa", last_name="Yashirin", position="B", employee_type="full"
+        )
+        response = self.client.get(reverse("employee_list_export"), {"q": "Top"})
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(response.content), 500)
+
 
 class BulkAttendanceViewTests(TestCase):
     def setUp(self):
