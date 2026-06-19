@@ -28,6 +28,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
         "department",
         "location",
         "phone_number",
+        "hire_date",
         "is_active",
         "role",
         "team",

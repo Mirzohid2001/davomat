@@ -30,6 +30,7 @@
           <th>Lavozimi</th>
           <th>Bo'limi</th>
           <th>Telefon</th>
+          <th>Ishga kirgan</th>
           <th>Holat</th>
           <th>Amallar</th>
         </tr>
@@ -43,6 +44,7 @@
           <td>{{ e.position|default:"—" }}</td>
           <td>{{ e.department|default:"—" }}</td>
           <td>{{ e.phone_number|default:"—" }}</td>
+          <td>{% if e.hire_date %}{{ e.hire_date|date:"d.m.Y" }}{% else %}—{% endif %}</td>
           <td>
             {% if e.is_active %}
             <span class="badge bg-success">Aktiv</span>
@@ -62,7 +64,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" class="border-0">
+          <td colspan="9" class="border-0">
             {% url 'employee_create' as emp_create_url %}
             {% include 'attendance/partials/empty_state.html' with title="Xodimlar topilmadi" text="Qidiruv so'zini o'zgartiring yoki yangi xodim qo'shing." action_url=emp_create_url action_label="Yangi xodim" %}
           </td>
@@ -84,6 +86,7 @@
       {% if e.position %}<span><i class="bi bi-briefcase me-1"></i>{{ e.position }}</span>{% endif %}
       {% if e.department %}<span><i class="bi bi-building me-1"></i>{{ e.department }}</span>{% endif %}
       {% if e.phone_number %}<span><i class="bi bi-telephone me-1"></i>{{ e.phone_number }}</span>{% endif %}
+      {% if e.hire_date %}<span><i class="bi bi-calendar-event me-1"></i>Ishga kirgan: {{ e.hire_date|date:"d.m.Y" }}</span>{% endif %}
     </div>
     <div class="app-mobile-card__actions">
       <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success"><i class="bi bi-calendar-plus"></i> Davomat</a>

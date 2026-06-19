@@ -74,6 +74,7 @@ class EmployeeForm(forms.ModelForm):
             'department',
             'location',
             'phone_number',
+            'hire_date',
             'is_active',
             'employee_type',
             'role',
@@ -86,6 +87,7 @@ class EmployeeForm(forms.ModelForm):
             'department': forms.TextInput(attrs={'class': 'form-control'}),
             'location': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'hire_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'employee_type': forms.Select(attrs={'class': 'form-select'}),
             'role': forms.Select(attrs={'class': 'form-select'}),
@@ -96,12 +98,6 @@ class EmployeeForm(forms.ModelForm):
 class EmployeeCreateForm(EmployeeForm):
     """Faqat yangi xodim qo'shishda: ishga kirish sanasi va kelgan kunlar."""
 
-    hire_date = forms.DateField(
-        label="Ishga kirgan sana",
-        required=True,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-        initial=datetime.date.today,
-    )
     worked_days_count = forms.IntegerField(
         label="Kelgan kunlar soni (shu oydan)",
         required=True,
@@ -109,6 +105,12 @@ class EmployeeCreateForm(EmployeeForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
         help_text="Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting.",
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['hire_date'].required = True
+        if not self.instance.pk:
+            self.fields['hire_date'].initial = datetime.date.today
 
     def clean(self):
         cleaned_data = super().clean()
@@ -142,11 +144,26 @@ class NalivshikShiftOverrideForm(forms.ModelForm):
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:
         model = MonthlyEmployeeStat
-        fields = ['salary', 'currency', 'paid', 'bonus', 'penalty']
+        fields = ['salary', 'currency', 'paid', 'paid_at', 'bonus', 'penalty']
         widgets = {
             'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+            'paid_at': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'penalty': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'min': '0'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from decimal import Decimal
+
+        paid = Decimal(str(cleaned_data.get('paid') or 0))
+        paid_at = cleaned_data.get('paid_at')
+        if paid > 0 and not paid_at:
+            raise forms.ValidationError(
+                "To'lov summasi kiritilsa, to'lov sanasini ham kiriting."
+            )
+        if paid <= 0:
+            cleaned_data['paid_at'] = None
+        return cleaned_data

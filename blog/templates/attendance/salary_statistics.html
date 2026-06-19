@@ -188,7 +188,11 @@
                 </span>
             </td>
             <td class="salary-money-cell"><span class="salary-money">{{ stat.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
-            <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}"><span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
+            <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">
+                <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
+                {% if stat.paid_at %}<br><small class="text-muted" title="To'lov sanasi"><i class="bi bi-calendar-check"></i> {{ stat.paid_at|date:"d.m.Y" }}</small>{% endif %}
+                <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button>
+            </td>
             <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell {% if stat.debt_end < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
         </tr>
@@ -285,7 +289,10 @@
                 </div>
                 <div class="salary-mobile-card__row {% if stat.paid >= stat.accrued %}debt-success{% elif stat.paid == 0 %}debt-warning{% endif %}">
                     <span class="salary-mobile-card__label">To'langan:</span>
-                    <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
+                    <span class="salary-mobile-card__value">
+                        <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
+                        {% if stat.paid_at %}<br><small class="text-muted"><i class="bi bi-calendar-check"></i> {{ stat.paid_at|date:"d.m.Y" }}</small>{% endif %}
+                    </span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
                     <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
@@ -391,6 +398,11 @@
                             <input type="number" name="paid" value="{{ stat.paid|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_paid_{{ stat.id }}">
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
+                            <label for="id_paid_at_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-calendar-event"></i> To'lov sanasi</label>
+                            <input type="date" name="paid_at" value="{% if stat.paid_at %}{{ stat.paid_at|date:'Y-m-d' }}{% endif %}" class="form-control salary-modal__input" id="id_paid_at_{{ stat.id }}">
+                            <small class="text-muted">To'lov kiritilsa, sana majburiy (dalil uchun).</small>
+                        </div>
+                        <div class="salary-modal__field salary-modal__field--wide">
                             <label for="id_bonus_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-gift"></i> Mukofot</label>
                             <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
                         </div>
@@ -470,6 +482,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function formatDateUz(iso) {
+        if (!iso) return '';
+        const parts = iso.split('-');
+        if (parts.length !== 3) return iso;
+        return parts[2] + '.' + parts[1] + '.' + parts[0];
+    }
+
     function updateSalaryTableRow(stat) {
         const row = document.getElementById('salary-row-' + stat.id);
         if (!row) return false;
@@ -480,7 +499,13 @@ document.addEventListener('DOMContentLoaded', function() {
         setMoneyCell(cells[4], stat.bonus, cur, true);
         setMoneyCell(cells[5], stat.penalty, cur, true);
         setMoneyCell(cells[10], stat.accrued, cur, false);
-        setMoneyCell(cells[11], stat.paid, cur, true);
+        const paidBtn = cells[11].querySelector('button');
+        let paidHtml = formatMoney(stat.paid) + ' ' + cur;
+        if (stat.paid_at) {
+            paidHtml += '<br><small class="text-muted" title="To\'lov sanasi"><i class="bi bi-calendar-check"></i> ' + formatDateUz(stat.paid_at) + '</small>';
+        }
+        cells[11].innerHTML = paidHtml + ' ';
+        if (paidBtn) cells[11].appendChild(paidBtn);
         setMoneyCell(cells[12], stat.debt_start, cur, false);
         setMoneyCell(cells[13], stat.debt_end, cur, false);
         cells[11].classList.remove('table-success', 'table-warning');

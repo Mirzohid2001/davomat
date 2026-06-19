@@ -195,6 +195,7 @@ class EmployeeCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
         emp = Employee.objects.get(last_name="Xodim", first_name="Yangi")
+        self.assertEqual(emp.hire_date, date(2026, 3, 10))
         self.assertEqual(
             Attendance.objects.filter(employee=emp, status="present").count(), 5
         )
@@ -207,6 +208,18 @@ class EmployeeCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Ishga kirgan sana")
         self.assertContains(response, "Kelgan kunlar soni")
+
+    def test_employee_list_shows_hire_date(self):
+        Employee.objects.create(
+            first_name="Test",
+            last_name="User",
+            position="Haydovchi",
+            hire_date=date(2025, 6, 15),
+        )
+        response = self.client.get(reverse("employee_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ishga kirgan")
+        self.assertContains(response, "15.06.2025")
 
     def test_employee_list_has_export_button(self):
         response = self.client.get(reverse("employee_list"))
@@ -377,6 +390,76 @@ class PenaltyPreservationTests(TestCase):
         stat = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=6)
         self.assertEqual(stat.penalty, Decimal("500000"))
         self.assertLess(stat.accrued, stat.salary)
+
+
+class PaidAtTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="paid_admin", password="pass12345")
+        self.client = Client()
+        self.client.login(username="paid_admin", password="pass12345")
+        self.emp = Employee.objects.create(
+            first_name="Pay",
+            last_name="Test",
+            position="Op",
+            employee_type="office",
+        )
+        self.stat = MonthlyEmployeeStat.objects.create(
+            employee=self.emp,
+            year=2026,
+            month=6,
+            salary=Decimal("5000000"),
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            paid=Decimal("0"),
+            accrued=Decimal("5000000"),
+            currency="UZS",
+            manual_salary=True,
+        )
+
+    def test_paid_without_date_rejected(self):
+        url = reverse("edit_salary_stat", args=[self.stat.id])
+        response = self.client.post(
+            url,
+            {
+                "salary": "5000000",
+                "currency": "UZS",
+                "paid": "3000000",
+                "paid_at": "",
+                "bonus": "0",
+                "penalty": "0",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+        self.stat.refresh_from_db()
+        self.assertEqual(self.stat.paid, Decimal("0"))
+
+    def test_paid_with_date_saved_and_preserved_on_recalc(self):
+        url = reverse("edit_salary_stat", args=[self.stat.id])
+        response = self.client.post(
+            url,
+            {
+                "salary": "5000000",
+                "currency": "UZS",
+                "paid": "3000000",
+                "paid_at": "2026-06-15",
+                "bonus": "0",
+                "penalty": "0",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["stat"]["paid_at"], "2026-06-15")
+        self.stat.refresh_from_db()
+        self.assertEqual(self.stat.paid, Decimal("3000000"))
+        self.assertEqual(self.stat.paid_at, date(2026, 6, 15))
+        calculate_monthly_stats(2026, 6, employee=self.emp)
+        self.stat.refresh_from_db()
+        self.assertEqual(self.stat.paid_at, date(2026, 6, 15))
 
 
 class ImportStatusValidationTests(TestCase):

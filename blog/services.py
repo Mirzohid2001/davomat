@@ -416,6 +416,7 @@ def calculate_monthly_stats(year, month, employee=None):
             salary = stat.salary
             bonus = stat.bonus
             paid = stat.paid
+            paid_at = stat.paid_at
             penalty = stat.penalty
             manual_salary = stat.manual_salary
             currency = stat.currency
@@ -438,8 +439,7 @@ def calculate_monthly_stats(year, month, employee=None):
                 currency = 'UZS'  # Birinchi marta uchun default valyuta
             
             paid = Decimal('0')
-            manual_salary = (employee.employee_type == 'office')
-            paid = Decimal('0')
+            paid_at = None
             manual_salary = (employee.employee_type == 'office')
             penalty = Decimal('0')
 
@@ -542,6 +542,7 @@ def calculate_monthly_stats(year, month, employee=None):
                     'worked_days': worked_days,
                     'accrued': accrued,
                     'paid': paid,
+                    'paid_at': paid_at,
                     'debt_start': debt_start,
                     'debt_end': debt_end,
                     'manual_salary': manual_salary,
@@ -557,6 +558,7 @@ def calculate_monthly_stats(year, month, employee=None):
                 stat_obj.worked_days = worked_days
                 stat_obj.accrued = accrued
                 stat_obj.paid = paid
+                stat_obj.paid_at = paid_at
                 stat_obj.debt_start = debt_start
                 stat_obj.debt_end = debt_end
                 stat_obj.manual_salary = manual_salary

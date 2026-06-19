@@ -453,6 +453,7 @@ def employee_list_export(request):
         'Lavozim',
         "Bo'lim",
         'Telefon',
+        'Ishga kirgan sana',
         'Joylashuv',
         'Xodim turi',
         'Lavozim turi',
@@ -497,6 +498,7 @@ def employee_list_export(request):
             emp.position or '—',
             emp.department or '—',
             emp.phone_number or '—',
+            emp.hire_date.strftime('%d.%m.%Y') if emp.hire_date else '—',
             emp.get_location_display(),
             emp.get_employee_type_display(),
             emp.get_role_display(),
@@ -510,11 +512,11 @@ def employee_list_export(request):
             cell = ws.cell(row=row, column=col, value=value)
             cell.border = border
             cell.alignment = Alignment(
-                horizontal='center' if col in (1, 11) else 'left',
+                horizontal='center' if col in (1, 7, 12) else 'left',
                 vertical='center',
-                wrap_text=col in (4, 5, 8, 9),
+                wrap_text=col in (4, 5, 8, 9, 10),
             )
-            if col == 11:
+            if col == 12:
                 cell.fill = status_fill
                 cell.font = Font(bold=True, color='065F46' if emp.is_active else '6B7280')
             elif row_fill:
@@ -1668,8 +1670,10 @@ def export_salary_statistics_excel(request):
     
     # Guruhlash bilan worksheet yaratish funksiyasi (BARCHA XODIMLAR uchun)
     def create_grouped_worksheet(worksheet, title, all_stats, color_bg='1E3A5F', color_accent='2C5282'):
+        LAST_COL = 12  # №, Xodim + 5 juft (sum/$): oylik, hisoblandi, tulandi, qarzdorlik bosh, qarzdorlik oxiri
+
         # Professional sarlavha - gradient effekt
-        worksheet.merge_cells('A1:J2')
+        worksheet.merge_cells(f'A1:{get_column_letter(LAST_COL)}2')
         title_cell = worksheet.cell(row=1, column=1)
         title_cell.value = f"🏢 ISOMER OIL - {title} ({year}-{month:02d})"
         title_cell.font = Font(name='Calibri', bold=True, size=16, color='FFFFFF')
@@ -1683,25 +1687,26 @@ def export_salary_statistics_excel(request):
             top=Side(style='thick', color='FFFFFF'),
             bottom=Side(style='thick', color='FFFFFF')
         )
-        for col in range(1, 11):
+        for col in range(1, LAST_COL + 1):
             for row in range(1, 3):
                 cell = worksheet.cell(row=row, column=col)
                 cell.fill = PatternFill(start_color=color_bg, end_color=color_accent, fill_type='solid')
                 cell.border = thick_border
         
-        # Yangi struktura:
-        # №, Xodim, oylik (sum/$), hisoblandi (sum/$), tulandi (sum/$), qarzdorlik (sum/$)
-        # Row 3: Asosiy sarlavhalar (merge qilingan)
+        # №, Xodim, oylik/hisoblandi/tulandi/qarzdorlik bosh/qarzdorlik oxiri (har biri sum/$)
         worksheet.merge_cells('A3:A4')  # №
         worksheet.merge_cells('B3:B4')  # Xodim
         worksheet.merge_cells('C3:D3')  # oylik
         worksheet.merge_cells('E3:F3')  # hisoblandi
         worksheet.merge_cells('G3:H3')  # tulandi
-        worksheet.merge_cells('I3:J3')  # qarzdorlik
+        worksheet.merge_cells('I3:J3')  # qarzdorlik (bosh)
+        worksheet.merge_cells('K3:L3')  # qarzdorlik (oxiri)
         
-        # Row 3: Asosiy sarlavhalar
-        main_headers = ["№", "Xodim", "oylik", "hisoblandi", "tulandi", "qarzdorlik"]
-        main_header_cols = [1, 2, 3, 5, 7, 9]
+        main_headers = [
+            "№", "Xodim", "oylik", "hisoblandi", "tulandi",
+            "qarzdorlik (bosh)", "qarzdorlik (oxiri)",
+        ]
+        main_header_cols = [1, 2, 3, 5, 7, 9, 11]
         
         header_border = Border(
             left=Side(style='medium', color='1E3A5F'),
@@ -1710,19 +1715,10 @@ def export_salary_statistics_excel(request):
             bottom=Side(style='thick', color='1E3A5F')
         )
         
-        for idx, (col, header) in enumerate(zip(main_header_cols, main_headers)):
-            if idx == 0:  # №
-                merge_range = 'A3:A4'
-            elif idx == 1:  # Xodim
-                merge_range = 'B3:B4'
-            elif idx == 2:  # oylik
-                merge_range = 'C3:D3'
-            elif idx == 3:  # hisoblandi
-                merge_range = 'E3:F3'
-            elif idx == 4:  # tulandi
-                merge_range = 'G3:H3'
-            else:  # qarzdorlik
-                merge_range = 'I3:J3'
+        merge_ranges = [
+            'A3:A4', 'B3:B4', 'C3:D3', 'E3:F3', 'G3:H3', 'I3:J3', 'K3:L3',
+        ]
+        for (col, header), merge_range in zip(zip(main_header_cols, main_headers), merge_ranges):
             
             worksheet.merge_cells(merge_range)
             cell = worksheet.cell(row=3, column=col)
@@ -1732,9 +1728,8 @@ def export_salary_statistics_excel(request):
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             cell.border = header_border
         
-        # Row 4: Valyuta sarlavhalari (sum va $)
-        sub_headers = ["sum", "$", "sum", "$", "sum", "$", "sum", "$"]
-        sub_header_cols = [3, 4, 5, 6, 7, 8, 9, 10]
+        sub_headers = ["sum", "$"] * 5
+        sub_header_cols = list(range(3, LAST_COL + 1))
         
         for col, header in zip(sub_header_cols, sub_headers):
             cell = worksheet.cell(row=4, column=col)
@@ -1765,7 +1760,7 @@ def export_salary_statistics_excel(request):
                 continue
             
             # Professional guruh sarlavhasi
-            worksheet.merge_cells(f'A{current_row}:J{current_row}')
+            worksheet.merge_cells(f'A{current_row}:{get_column_letter(LAST_COL)}{current_row}')
             group_header = worksheet.cell(row=current_row, column=1)
             group_header.value = group_title.upper()
             group_header.font = Font(name='Calibri', bold=True, size=13, color='FFFFFF')
@@ -1790,47 +1785,38 @@ def export_salary_statistics_excel(request):
                 currency = stat.currency.upper() if stat.currency else 'UZS'
                 USD_TO_UZS_RATE = 12000
                 
-                # Qarzdorlikni hisoblash
-                debt_amount = float(stat.accrued) - float(stat.paid)
+                debt_start_amount = float(stat.debt_start)
+                debt_end_amount = float(stat.debt_end)
                 
-                # Ma'lumotlarni yangi strukturaga moslashtirish
-                # №, Xodim, oylik (sum/$), hisoblandi (sum/$), tulandi (sum/$), qarzdorlik (sum/$)
                 row_data = {
-                    1: employee_number,  # №
-                    2: f"{stat.employee.last_name} {stat.employee.first_name}",  # Xodim
-                    3: None,  # oylik sum
-                    4: None,  # oylik $
-                    5: None,  # hisoblandi sum
-                    6: None,  # hisoblandi $
-                    7: None,  # tulandi sum
-                    8: None,  # tulandi $
-                    9: None,  # qarzdorlik sum
-                    10: None,  # qarzdorlik $
+                    1: employee_number,
+                    2: f"{stat.employee.last_name} {stat.employee.first_name}",
+                    3: None, 4: None,  # oylik
+                    5: None, 6: None,  # hisoblandi
+                    7: None, 8: None,  # tulandi
+                    9: None, 10: None,  # qarzdorlik bosh
+                    11: None, 12: None,  # qarzdorlik oxiri
                 }
                 
-                # Valyutaga qarab ma'lumotlarni to'ldirish
                 if currency == 'USD':
-                    # USD bo'lsa, $ ustunlarida ma'lumot
-                    row_data[4] = float(stat.salary)  # oylik $
-                    row_data[6] = float(stat.accrued)  # hisoblandi $
-                    row_data[8] = float(stat.paid)  # tulandi $
-                    row_data[10] = debt_amount  # qarzdorlik $
-                    # sum ustunlarida so'mda konvertatsiya
-                    row_data[3] = float(stat.salary) * USD_TO_UZS_RATE  # oylik sum
-                    row_data[5] = float(stat.accrued) * USD_TO_UZS_RATE  # hisoblandi sum
-                    row_data[7] = float(stat.paid) * USD_TO_UZS_RATE  # tulandi sum
-                    row_data[9] = debt_amount * USD_TO_UZS_RATE  # qarzdorlik sum
-                else:  # UZS
-                    # UZS bo'lsa, sum ustunlarida ma'lumot
-                    row_data[3] = float(stat.salary)  # oylik sum
-                    row_data[5] = float(stat.accrued)  # hisoblandi sum
-                    row_data[7] = float(stat.paid)  # tulandi sum
-                    row_data[9] = debt_amount  # qarzdorlik sum
-                    # $ ustunlarida bo'sh
-                    row_data[4] = ""
-                    row_data[6] = ""
-                    row_data[8] = ""
-                    row_data[10] = ""
+                    row_data[4] = float(stat.salary)
+                    row_data[6] = float(stat.accrued)
+                    row_data[8] = float(stat.paid)
+                    row_data[10] = debt_start_amount
+                    row_data[12] = debt_end_amount
+                    row_data[3] = float(stat.salary) * USD_TO_UZS_RATE
+                    row_data[5] = float(stat.accrued) * USD_TO_UZS_RATE
+                    row_data[7] = float(stat.paid) * USD_TO_UZS_RATE
+                    row_data[9] = debt_start_amount * USD_TO_UZS_RATE
+                    row_data[11] = debt_end_amount * USD_TO_UZS_RATE
+                else:
+                    row_data[3] = float(stat.salary)
+                    row_data[5] = float(stat.accrued)
+                    row_data[7] = float(stat.paid)
+                    row_data[9] = debt_start_amount
+                    row_data[11] = debt_end_amount
+                    row_data[4] = row_data[6] = row_data[8] = ""
+                    row_data[10] = row_data[12] = ""
                 
                 # Professional cell border
                 data_border = Border(
@@ -1840,33 +1826,31 @@ def export_salary_statistics_excel(request):
                     bottom=Side(style='thin', color='000000')
                 )
                 
-                for col in range(1, 11):
-                    value = row_data[col]
+                for col in range(1, LAST_COL + 1):
+                    value = row_data.get(col)
                     cell = worksheet.cell(row=current_row, column=col)
                     cell.value = value
                     cell.border = data_border
                     
-                    # Professional stillar
-                    if col == 1:  # №
+                    if col == 1:
                         cell.font = Font(name='Calibri', bold=True, size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='center', vertical='center')
                         cell.fill = PatternFill(start_color='F0F0F0', end_color='F0F0F0', fill_type='solid')
-                    elif col == 2:  # Xodim
+                    elif col == 2:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='left', vertical='center')
-                    elif col in [3, 5, 7, 9]:  # sum ustunlari
+                    elif col in [3, 5, 7, 9, 11]:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='right', vertical='center')
                         if value is not None and value != "":
                             cell.number_format = '#,##0 "so\'m"'
-                    elif col in [4, 6, 8, 10]:  # $ ustunlari
+                    elif col in [4, 6, 8, 10, 12]:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='right', vertical='center')
                         if value is not None and value != "":
                             cell.number_format = '"$" #,##0.00'
                     
-                    # Qarzdorlik uchun rang
-                    if col in [9, 10] and value is not None and value != "":
+                    if col in [9, 10, 11, 12] and value is not None and value != "":
                         debt_val = float(value) if isinstance(value, (int, float)) else 0
                         if debt_val > 0:
                             cell.fill = PatternFill(start_color='FFE4E1', end_color='FFE4E1', fill_type='solid')
@@ -1877,16 +1861,19 @@ def export_salary_statistics_excel(request):
                 
                 # Umumiy valyuta hisob-kitobiga qo'shish
                 if currency not in all_currency_totals:
-                    all_currency_totals[currency] = {'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0, 'debt': 0}
+                    all_currency_totals[currency] = {
+                        'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0,
+                        'debt_start': 0, 'debt_end': 0,
+                    }
                 all_currency_totals[currency]['count'] += 1
                 all_currency_totals[currency]['salary'] += float(stat.salary)
                 all_currency_totals[currency]['accrued'] += float(stat.accrued)
                 all_currency_totals[currency]['paid'] += float(stat.paid)
-                all_currency_totals[currency]['debt'] += debt_amount
+                all_currency_totals[currency]['debt_start'] += debt_start_amount
+                all_currency_totals[currency]['debt_end'] += debt_end_amount
                 
-                # Professional zebra chiziqlar
                 if current_row % 2 == 0:
-                    for col in range(1, 11):
+                    for col in range(1, LAST_COL + 1):
                         cell = worksheet.cell(row=current_row, column=col)
                         # Faqat rang berilmagan celllarga rang berish
                         if not hasattr(cell.fill, 'start_color') or cell.fill.start_color.rgb == '00000000' or cell.fill.start_color.rgb == 'FFFFFFFF':
@@ -1898,7 +1885,7 @@ def export_salary_statistics_excel(request):
             current_row += 1
         
         # Ustun kengliklari
-        column_widths = [8, 30, 18, 14, 18, 14, 18, 14, 18, 14]  # №, Xodim, oylik (sum/$), hisoblandi (sum/$), tulandi (sum/$), qarzdorlik (sum/$)
+        column_widths = [8, 30, 18, 14, 18, 14, 18, 14, 18, 14, 18, 14]
         for col, width in enumerate(column_widths, 1):
             column_letter = get_column_letter(col)
             worksheet.column_dimensions[column_letter].width = width
@@ -1906,7 +1893,7 @@ def export_salary_statistics_excel(request):
         # Professional umumiy jami (oxirida)
         if all_currency_totals:
             summary_start_row = current_row + 2  # Bo'sh qator qo'shish
-            worksheet.merge_cells(f'A{summary_start_row}:J{summary_start_row}')
+            worksheet.merge_cells(f'A{summary_start_row}:{get_column_letter(LAST_COL)}{summary_start_row}')
             summary_header = worksheet.cell(row=summary_start_row, column=1)
             summary_header.value = "💰 JAMI"
             summary_header.font = Font(name='Calibri', bold=True, size=14, color='FFFFFF')
@@ -1931,38 +1918,43 @@ def export_salary_statistics_excel(request):
             total_accrued_usd = 0
             total_paid_sum = 0
             total_paid_usd = 0
-            total_debt_sum = 0
-            total_debt_usd = 0
+            total_debt_start_sum = 0
+            total_debt_start_usd = 0
+            total_debt_end_sum = 0
+            total_debt_end_usd = 0
             
             for currency, totals in sorted(all_currency_totals.items()):
                 if currency == 'USD':
                     total_salary_usd += totals['salary']
                     total_accrued_usd += totals['accrued']
                     total_paid_usd += totals['paid']
-                    total_debt_usd += totals['debt']
-                    # So'mda ham qo'shish
+                    total_debt_start_usd += totals['debt_start']
+                    total_debt_end_usd += totals['debt_end']
                     total_salary_sum += totals['salary'] * USD_TO_UZS_RATE
                     total_accrued_sum += totals['accrued'] * USD_TO_UZS_RATE
                     total_paid_sum += totals['paid'] * USD_TO_UZS_RATE
-                    total_debt_sum += totals['debt'] * USD_TO_UZS_RATE
-                else:  # UZS
+                    total_debt_start_sum += totals['debt_start'] * USD_TO_UZS_RATE
+                    total_debt_end_sum += totals['debt_end'] * USD_TO_UZS_RATE
+                else:
                     total_salary_sum += totals['salary']
                     total_accrued_sum += totals['accrued']
                     total_paid_sum += totals['paid']
-                    total_debt_sum += totals['debt']
+                    total_debt_start_sum += totals['debt_start']
+                    total_debt_end_sum += totals['debt_end']
             
-            # Jami ma'lumotlari
             summary_data = {
-                1: "",  # №
-                2: "JAMI",  # Xodim
-                3: total_salary_sum if total_salary_sum > 0 else "",  # oylik sum
-                4: total_salary_usd if total_salary_usd > 0 else "",  # oylik $
-                5: total_accrued_sum if total_accrued_sum > 0 else "",  # hisoblandi sum
-                6: total_accrued_usd if total_accrued_usd > 0 else "",  # hisoblandi $
-                7: total_paid_sum if total_paid_sum > 0 else "",  # tulandi sum
-                8: total_paid_usd if total_paid_usd > 0 else "",  # tulandi $
-                9: total_debt_sum if total_debt_sum > 0 else "",  # qarzdorlik sum
-                10: total_debt_usd if total_debt_usd > 0 else "",  # qarzdorlik $
+                1: "",
+                2: "JAMI",
+                3: total_salary_sum if total_salary_sum > 0 else "",
+                4: total_salary_usd if total_salary_usd > 0 else "",
+                5: total_accrued_sum if total_accrued_sum > 0 else "",
+                6: total_accrued_usd if total_accrued_usd > 0 else "",
+                7: total_paid_sum if total_paid_sum > 0 else "",
+                8: total_paid_usd if total_paid_usd > 0 else "",
+                9: total_debt_start_sum if total_debt_start_sum != 0 else "",
+                10: total_debt_start_usd if total_debt_start_usd != 0 else "",
+                11: total_debt_end_sum if total_debt_end_sum != 0 else "",
+                12: total_debt_end_usd if total_debt_end_usd != 0 else "",
             }
             
             # JAMI qatori uchun aniq chiziqlar:
@@ -1972,13 +1964,12 @@ def export_salary_statistics_excel(request):
             summary_border_medium = Side(style='medium', color='0B2A3C')
             dark_blue_fill = PatternFill(start_color='1E3A5F', end_color='1E3A5F', fill_type='solid')
             
-            for col in range(1, 11):
-                value = summary_data[col]
+            for col in range(1, LAST_COL + 1):
+                value = summary_data.get(col, "")
                 cell = worksheet.cell(row=summary_row, column=col)
                 cell.value = value
-                # Tashqi + ichki borderlarni ustun bo'yicha qo'yish
                 left_side = summary_border_thick if col == 1 else summary_border_medium
-                right_side = summary_border_thick if col == 10 else summary_border_medium
+                right_side = summary_border_thick if col == LAST_COL else summary_border_medium
                 cell.border = Border(
                     left=left_side,
                     right=right_side,
@@ -1994,21 +1985,20 @@ def export_salary_statistics_excel(request):
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='center', vertical='center')
                     cell.fill = dark_blue_fill
-                elif col in [3, 5, 7, 9]:  # sum ustunlari
+                elif col in [3, 5, 7, 9, 11]:
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='right', vertical='center')
                     cell.fill = dark_blue_fill
                     if value is not None and value != "":
                         cell.number_format = '#,##0 "so\'m"'
-                elif col in [4, 6, 8, 10]:  # $ ustunlari
+                elif col in [4, 6, 8, 10, 12]:
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='right', vertical='center')
                     cell.fill = dark_blue_fill
                     if value is not None and value != "":
                         cell.number_format = '"$" #,##0.00'
                 
-                # Qarzdorlik uchun rang
-                if col in [9, 10] and value is not None and value != "":
+                if col in [9, 10, 11, 12] and value is not None and value != "":
                     debt_val = float(value) if isinstance(value, (int, float)) else 0
                     if debt_val > 0:
                         cell.fill = PatternFill(start_color='FF6B6B', end_color='FF6B6B', fill_type='solid')
@@ -2089,6 +2079,7 @@ def edit_salary_stat(request, stat_id):
                         'bonus': float(stat.bonus),
                         'penalty': float(stat.penalty),
                         'paid': float(stat.paid),
+                        'paid_at': stat.paid_at.isoformat() if stat.paid_at else None,
                         'accrued': float(stat.accrued),
                         'debt_start': float(stat.debt_start),
                         'debt_end': float(stat.debt_end),
@@ -2097,6 +2088,13 @@ def edit_salary_stat(request, stat_id):
                 })
             
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            errors = '; '.join(
+                f"{field}: {', '.join(errs)}"
+                for field, errs in form.errors.items()
+            ) or "Ma'lumotlar noto'g'ri."
+            return JsonResponse({'success': False, 'message': errors}, status=400)
     else:
         form = SalaryStatEditForm(instance=stat)
     return render(request, 'attendance/edit_salary_stat.html', {'form': form, 'stat': stat})

@@ -62,6 +62,7 @@ class Employee(models.Model):
         )]
     )
     is_active = models.BooleanField("Aktiv", default=True)
+    hire_date = models.DateField("Ishga kirgan sana", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     employee_type = models.CharField("Xodim turi", max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
@@ -178,6 +179,7 @@ class MonthlyEmployeeStat(models.Model):
     worked_days = models.PositiveIntegerField("Ishlangan kunlar", default=0)
     accrued = models.DecimalField("Hisoblangan", max_digits=12, decimal_places=2, default=0)
     paid = models.DecimalField("To'langan", max_digits=12, decimal_places=2, default=0)
+    paid_at = models.DateField("To'lov sanasi", null=True, blank=True)
     debt_start = models.DecimalField("Boshlang'ich qarzdorlik", max_digits=12, decimal_places=2, default=0)
     debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
     currency = models.CharField("Valyuta", max_length=3, choices=CURRENCY_CHOICES, default='UZS')
