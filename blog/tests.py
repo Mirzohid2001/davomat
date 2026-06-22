@@ -5,12 +5,13 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from blog.models import Attendance, Employee, MonthlyEmployeeStat, Team, AttendanceImportLog
+from blog.models import Attendance, Employee, MonthlyEmployeeStat, MonthlyProduction, Team, AttendanceImportLog
 from blog.services import (
     calculate_debt_end,
     calculate_monthly_stats,
     create_initial_attendance_for_new_employee,
     ensure_initial_monthly_stat,
+    ensure_monthly_stats_for_month,
     generate_nalivshik_attendance_for_day,
     get_absence_quota_for_period,
     normalize_attendance_status,
@@ -417,15 +418,15 @@ class PaidAtTests(TestCase):
             manual_salary=True,
         )
 
-    def test_paid_without_date_rejected(self):
+    def test_payment_without_date_rejected(self):
         url = reverse("edit_salary_stat", args=[self.stat.id])
         response = self.client.post(
             url,
             {
                 "salary": "5000000",
                 "currency": "UZS",
-                "paid": "3000000",
-                "paid_at": "",
+                "new_payment_amount": "3000000",
+                "new_payment_date": "",
                 "bonus": "0",
                 "penalty": "0",
             },
@@ -433,33 +434,37 @@ class PaidAtTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.json()["success"])
-        self.stat.refresh_from_db()
-        self.assertEqual(self.stat.paid, Decimal("0"))
+        self.assertEqual(self.stat.salary_payments.count(), 0)
 
-    def test_paid_with_date_saved_and_preserved_on_recalc(self):
+    def test_multiple_payments_saved_with_dates(self):
         url = reverse("edit_salary_stat", args=[self.stat.id])
-        response = self.client.post(
-            url,
-            {
-                "salary": "5000000",
-                "currency": "UZS",
-                "paid": "3000000",
-                "paid_at": "2026-06-15",
-                "bonus": "0",
-                "penalty": "0",
-            },
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertTrue(data["success"])
-        self.assertEqual(data["stat"]["paid_at"], "2026-06-15")
+        for pay_date, amount in [("2026-06-05", "2000000"), ("2026-06-15", "1500000"), ("2026-06-25", "1000000")]:
+            response = self.client.post(
+                url,
+                {
+                    "salary": "5000000",
+                    "currency": "UZS",
+                    "new_payment_amount": amount,
+                    "new_payment_date": pay_date,
+                    "bonus": "0",
+                    "penalty": "0",
+                },
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            )
+            self.assertEqual(response.status_code, 200, msg=response.content)
+            self.assertTrue(response.json()["success"])
+
         self.stat.refresh_from_db()
-        self.assertEqual(self.stat.paid, Decimal("3000000"))
-        self.assertEqual(self.stat.paid_at, date(2026, 6, 15))
+        self.assertEqual(self.stat.paid, Decimal("4500000"))
+        self.assertEqual(self.stat.salary_payments.count(), 3)
+        dates = list(self.stat.salary_payments.order_by('paid_at').values_list('paid_at', flat=True))
+        self.assertEqual(dates, [date(2026, 6, 5), date(2026, 6, 15), date(2026, 6, 25)])
+        self.assertEqual(self.stat.paid_at, date(2026, 6, 25))
+
         calculate_monthly_stats(2026, 6, employee=self.emp)
         self.stat.refresh_from_db()
-        self.assertEqual(self.stat.paid_at, date(2026, 6, 15))
+        self.assertEqual(self.stat.salary_payments.count(), 3)
+        self.assertEqual(self.stat.paid, Decimal("4500000"))
 
 
 class ImportStatusValidationTests(TestCase):
@@ -868,4 +873,439 @@ class LogicIntegrationTests(TestCase):
         )
         log = AttendanceImportLog.objects.latest("imported_at")
         self.assertIn("Noto'g'ri status", log.log or "")
+
+
+class ProductionBonusTests(TestCase):
+    def setUp(self):
+        self.emp = Employee.objects.create(
+            first_name="Ali",
+            last_name="Valiyev",
+            position="Operator",
+            employee_type="full",
+            production_bonus_eligible=True,
+        )
+        self.other = Employee.objects.create(
+            first_name="Bob",
+            last_name="Karimov",
+            position="Haydovchi",
+            employee_type="full",
+            production_bonus_eligible=False,
+        )
+
+    def test_bonus_amount_by_threshold(self):
+        from blog.services import (
+            production_bonus_amount_for_tons,
+            PRODUCTION_BONUS_UP_TO_THRESHOLD,
+            PRODUCTION_BONUS_ABOVE_THRESHOLD,
+        )
+
+        self.assertIsNone(production_bonus_amount_for_tons(Decimal("0")))
+        self.assertIsNone(production_bonus_amount_for_tons(Decimal("1")))
+        self.assertIsNone(production_bonus_amount_for_tons(Decimal("1499")))
+        self.assertEqual(production_bonus_amount_for_tons(Decimal("1500")), PRODUCTION_BONUS_UP_TO_THRESHOLD)
+        self.assertEqual(production_bonus_amount_for_tons(Decimal("3000")), PRODUCTION_BONUS_UP_TO_THRESHOLD)
+        self.assertEqual(production_bonus_amount_for_tons(Decimal("3000.01")), PRODUCTION_BONUS_ABOVE_THRESHOLD)
+        self.assertEqual(production_bonus_amount_for_tons(Decimal("2500")), PRODUCTION_BONUS_UP_TO_THRESHOLD)
+        self.assertEqual(production_bonus_amount_for_tons(Decimal("3500")), PRODUCTION_BONUS_ABOVE_THRESHOLD)
+
+    def test_one_ton_does_not_apply_bonus(self):
+        from blog.services import save_production_bonus_settings
+
+        save_production_bonus_settings(2026, 6, Decimal("1"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("0"))
+
+    def test_zero_tons_does_not_apply_bonus(self):
+        from blog.services import save_production_bonus_settings, calculate_monthly_stats
+
+        save_production_bonus_settings(2026, 6, Decimal("0"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("0"))
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id])
+        stat.refresh_from_db()
+        self.assertEqual(stat.bonus, Decimal("2400000"))
+
+    def test_calculate_monthly_stats_applies_production_bonus(self):
+        from blog.services import save_production_bonus_settings, calculate_monthly_stats
+
+        save_production_bonus_settings(2026, 6, Decimal("1200"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("0"))
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id])
+        stat.refresh_from_db()
+        self.assertEqual(stat.bonus, Decimal("2400000"))
+
+        save_production_bonus_settings(2026, 6, Decimal("3500"), [self.emp.id])
+        stat.refresh_from_db()
+        self.assertEqual(stat.bonus, Decimal("4800000"))
+
+    def test_non_eligible_employee_keeps_zero_bonus(self):
+        from blog.services import save_production_bonus_settings
+
+        save_production_bonus_settings(2026, 6, Decimal("2000"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.other, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("0"))
+
+    def test_bonus_override_preserves_manual_bonus(self):
+        from blog.services import save_production_bonus_settings, calculate_monthly_stats
+
+        save_production_bonus_settings(2026, 6, Decimal("2000"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        stat.bonus = Decimal("1000000")
+        stat.bonus_override = True
+        stat.save()
+        calculate_monthly_stats(2026, 6, employee=self.emp)
+        stat.refresh_from_db()
+        self.assertEqual(stat.bonus, Decimal("1000000"))
+
+    def test_production_bonus_modal_save(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="prod_bonus", password="pass12345")
+        client = Client()
+        client.login(username="prod_bonus", password="pass12345")
+        response = client.post(
+            reverse("salary_statistics"),
+            {
+                "form_type": "production_bonus",
+                "year": "2026",
+                "month": "6",
+                "production_tons": "3500",
+                "eligible_employees": [str(self.emp.id)],
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("4800000"))
+
+    def test_clear_production_bonus_for_month(self):
+        from blog.services import save_production_bonus_settings, clear_production_bonus_for_month
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("2400000"))
+        record = MonthlyProduction.objects.get(year=2026, month=6)
+        self.assertIn(self.emp, record.eligible_employees.all())
+
+        clear_production_bonus_for_month(2026, 6)
+        stat.refresh_from_db()
+        self.assertEqual(stat.bonus, Decimal("0"))
+        self.assertFalse(MonthlyProduction.objects.filter(year=2026, month=6).exists())
+
+    def test_remove_production_bonus_for_selected_only(self):
+        from blog.services import save_production_bonus_settings, remove_production_bonus_for_employees
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id, self.other.id])
+
+        remove_production_bonus_for_employees(2026, 6, [self.emp.id])
+        emp_stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        other_stat = MonthlyEmployeeStat.objects.get(employee=self.other, year=2026, month=6)
+        record = MonthlyProduction.objects.get(year=2026, month=6)
+
+        self.assertEqual(emp_stat.bonus, Decimal("0"))
+        self.assertFalse(record.eligible_employees.filter(pk=self.emp.pk).exists())
+        self.assertEqual(other_stat.bonus, Decimal("2400000"))
+        self.assertTrue(record.eligible_employees.filter(pk=self.other.pk).exists())
+
+    def test_production_bonus_is_per_month(self):
+        from blog.services import save_production_bonus_settings
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id])
+        save_production_bonus_settings(2026, 7, Decimal("2500"), [self.other.id])
+
+        june_stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        july_emp_stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=7)
+        july_other_stat = MonthlyEmployeeStat.objects.get(employee=self.other, year=2026, month=7)
+
+        self.assertEqual(june_stat.bonus, Decimal("2400000"))
+        self.assertEqual(july_emp_stat.bonus, Decimal("0"))
+        self.assertEqual(july_other_stat.bonus, Decimal("2400000"))
+
+    def test_paid_synced_from_payments_on_recalc(self):
+        from blog.services import calculate_monthly_stats
+        from blog.models import SalaryPayment
+
+        stat = MonthlyEmployeeStat.objects.create(
+            employee=self.emp, year=2026, month=6, salary=Decimal("3000000"),
+            paid=Decimal("999"), currency="UZS", accrued=Decimal("3000000"),
+        )
+        SalaryPayment.objects.create(stat=stat, amount=Decimal("1000000"), paid_at=date(2026, 6, 15))
+        SalaryPayment.objects.create(stat=stat, amount=Decimal("500000"), paid_at=date(2026, 6, 20))
+
+        calculate_monthly_stats(2026, 6, employee=self.emp)
+        stat.refresh_from_db()
+        self.assertEqual(stat.paid, Decimal("1500000"))
+
+    def test_save_with_no_eligible_does_not_clear_others(self):
+        from blog.services import save_production_bonus_settings
+
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [self.emp.id])
+        save_production_bonus_settings(2026, 6, Decimal("2500"), [])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("2400000"))
+
+    def test_stale_eligible_without_production_zeros_bonus(self):
+        from blog.services import calculate_monthly_stats
+
+        MonthlyEmployeeStat.objects.create(
+            employee=self.emp, year=2026, month=6, bonus=Decimal("2400000"), currency="UZS"
+        )
+        calculate_monthly_stats(2026, 6, employee=self.emp)
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=2026, month=6)
+        self.assertEqual(stat.bonus, Decimal("0"))
+
+
+class EnsureMonthlyStatsTests(TestCase):
+    def test_ensure_creates_stats_for_new_month_from_previous(self):
+        emp = Employee.objects.create(
+            first_name="Ali",
+            last_name="Valiyev",
+            position="Operator",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=6,
+            salary=Decimal("3000000"),
+            accrued=Decimal("3000000"),
+            debt_end=Decimal("500000"),
+            currency="UZS",
+        )
+        self.assertFalse(MonthlyEmployeeStat.objects.filter(employee=emp, year=2026, month=7).exists())
+
+        ensure_monthly_stats_for_month(2026, 7)
+
+        july = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=7)
+        self.assertEqual(july.salary, Decimal("3000000"))
+        self.assertEqual(july.debt_start, Decimal("500000"))
+
+    def test_ensure_does_not_overwrite_existing_month_stats(self):
+        emp = Employee.objects.create(
+            first_name="Bob",
+            last_name="Karimov",
+            position="Haydovchi",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=7,
+            salary=Decimal("2000000"),
+            accrued=Decimal("999999"),
+            currency="UZS",
+        )
+        ensure_monthly_stats_for_month(2026, 7)
+        stat = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=7)
+        self.assertEqual(stat.accrued, Decimal("999999"))
+
+    def test_update_future_months_salary_creates_missing_next_month(self):
+        from blog.services import update_future_months_salary
+
+        emp = Employee.objects.create(
+            first_name="Sardor",
+            last_name="Aliyev",
+            position="Operator",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=6,
+            salary=Decimal("7000000"),
+            accrued=Decimal("7000000"),
+            currency="UZS",
+        )
+
+        self.assertFalse(
+            MonthlyEmployeeStat.objects.filter(employee=emp, year=2026, month=7).exists()
+        )
+
+        update_future_months_salary(emp, Decimal("7000000"), "UZS", 2026, 6)
+
+        july = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=7)
+        self.assertEqual(july.salary, Decimal("7000000"))
+        self.assertEqual(july.currency, "UZS")
+
+    def test_sync_salary_from_previous_month_updates_existing(self):
+        from blog.services import ensure_monthly_stats_for_month
+
+        emp = Employee.objects.create(
+            first_name="Dilshod",
+            last_name="Rahimov",
+            position="Operator",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=6,
+            salary=Decimal("9500000"),
+            currency="UZS",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=7,
+            salary=Decimal("9000000"),
+            currency="UZS",
+        )
+
+        ensure_monthly_stats_for_month(2026, 7)
+
+        july = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=7)
+        self.assertEqual(july.salary, Decimal("9500000"))
+
+    def test_salary_override_blocks_sync_from_previous_month(self):
+        from blog.services import ensure_monthly_stats_for_month
+
+        emp = Employee.objects.create(
+            first_name="Jasur",
+            last_name="Toshmatov",
+            position="Direktor",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=6,
+            salary=Decimal("9000000"),
+            currency="UZS",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=7,
+            salary=Decimal("10000000"),
+            salary_override=True,
+            currency="UZS",
+        )
+
+        ensure_monthly_stats_for_month(2026, 7)
+
+        july = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=7)
+        self.assertEqual(july.salary, Decimal("10000000"))
+
+    def test_edit_july_salary_sets_override_and_persists(self):
+        from django.contrib.auth.models import User
+        from django.test import Client
+        from django.urls import reverse
+
+        user = User.objects.create_user(username="payroll_admin", password="secret")
+        emp = Employee.objects.create(
+            first_name="Mirzohid",
+            last_name="Kenjayev",
+            position="Direktor",
+            employee_type="full",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=6,
+            salary=Decimal("9500000"),
+            currency="UZS",
+        )
+        july = MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=2026,
+            month=7,
+            salary=Decimal("9000000"),
+            currency="UZS",
+        )
+
+        client = Client()
+        client.force_login(user)
+        url = reverse("edit_salary_stat", args=[july.id])
+        response = client.post(
+            url,
+            {
+                "salary": "9500000",
+                "currency": "UZS",
+                "bonus": "0",
+                "penalty": "0",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+
+        july.refresh_from_db()
+        self.assertTrue(july.salary_override)
+        self.assertEqual(july.salary, Decimal("9500000"))
+
+        ensure_monthly_stats_for_month(2026, 7)
+        july.refresh_from_db()
+        self.assertEqual(july.salary, Decimal("9500000"))
+
+
+class SalaryPaymentHistoryTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        self.user = User.objects.create_user(username="history_admin", password="secret")
+        self.client = Client()
+        self.client.force_login(self.user)
+
+        self.emp1 = Employee.objects.create(
+            first_name="Ali",
+            last_name="Valiyev",
+            position="Operator",
+            employee_type="full",
+        )
+        self.emp2 = Employee.objects.create(
+            first_name="Bobur",
+            last_name="Karimov",
+            position="Direktor",
+            employee_type="full",
+        )
+        stat1 = MonthlyEmployeeStat.objects.create(
+            employee=self.emp1,
+            year=2026,
+            month=6,
+            salary=Decimal("5000000"),
+            currency="UZS",
+        )
+        stat2 = MonthlyEmployeeStat.objects.create(
+            employee=self.emp2,
+            year=2026,
+            month=7,
+            salary=Decimal("9000000"),
+            currency="UZS",
+        )
+        from blog.models import SalaryPayment
+
+        SalaryPayment.objects.create(
+            stat=stat1, amount=Decimal("2000000"), paid_at=date(2026, 6, 15), note="avans"
+        )
+        SalaryPayment.objects.create(
+            stat=stat2, amount=Decimal("3000000"), paid_at=date(2026, 7, 10)
+        )
+
+    def test_payment_history_page_loads(self):
+        response = self.client.get(reverse("salary_payment_history"), {"year": 2026})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Valiyev")
+        self.assertContains(response, "Karimov")
+
+    def test_payment_history_filters_by_employee(self):
+        response = self.client.get(
+            reverse("salary_payment_history"),
+            {"year": 2026, "employee": self.emp1.id},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Valiyev")
+        self.assertContains(response, "avans")
+        self.assertNotContains(response, "3,000,000")
+
+    def test_payment_history_export(self):
+        response = self.client.get(
+            reverse("salary_payment_history_export"),
+            {"year": 2026},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response["Content-Type"],
+        )
 

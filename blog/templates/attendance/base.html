@@ -49,7 +49,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'salary_statistics' %}active{% endif %}" href="{% url 'salary_statistics' %}">
+            <a class="nav-link {% if request.resolver_match.url_name == 'salary_statistics' or request.resolver_match.url_name == 'salary_payment_history' %}active{% endif %}" href="{% url 'salary_statistics' %}">
               <i class="bi bi-cash-coin"></i> Oylik
             </a>
           </li>
@@ -73,6 +73,11 @@
               <li>
                 <a class="dropdown-item" href="{% url 'edit_attendance_history' %}">
                   <i class="bi bi-pencil-square me-2"></i> Davomat tahrirlash
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'salary_payment_history' %}">
+                  <i class="bi bi-receipt-cutoff me-2"></i> Oylik to'lovlar tarixi
                 </a>
               </li>
               <li>

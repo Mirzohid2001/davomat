@@ -55,7 +55,8 @@
           <td>
             <div class="btn-group btn-group-sm">
               <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success" title="Davomat"><i class="bi bi-calendar-plus"></i></a>
-              <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary" title="Tarix"><i class="bi bi-clock-history"></i></a>
+              <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary" title="Davomat tarixi"><i class="bi bi-clock-history"></i></a>
+              <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary" title="Oylik to'lovlar"><i class="bi bi-cash-stack"></i></a>
               <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-outline-info" title="Statistika"><i class="bi bi-graph-up"></i></a>
               <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
               <a href="{% url 'employee_delete' e.id %}" class="btn btn-outline-danger" title="O'chirish"><i class="bi bi-trash"></i></a>
@@ -90,7 +91,8 @@
     </div>
     <div class="app-mobile-card__actions">
       <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success"><i class="bi bi-calendar-plus"></i> Davomat</a>
-      <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary"><i class="bi bi-clock-history"></i> Tarix</a>
+      <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary"><i class="bi bi-clock-history"></i> Davomat</a>
+      <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary"><i class="bi bi-cash-stack"></i> To'lovlar</a>
       <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-outline-info"><i class="bi bi-graph-up"></i> Stat</a>
       <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i> Tahrir</a>
     </div>

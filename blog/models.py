@@ -63,6 +63,11 @@ class Employee(models.Model):
     )
     is_active = models.BooleanField("Aktiv", default=True)
     hire_date = models.DateField("Ishga kirgan sana", blank=True, null=True)
+    production_bonus_eligible = models.BooleanField(
+        "Ishlab chiqarish premiyasiga mos",
+        default=False,
+        help_text="Belgilangan xodimlarga oylik benzin ishlab chiqarish bo'yicha avtomatik premiya beriladi.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     employee_type = models.CharField("Xodim turi", max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
@@ -173,7 +178,17 @@ class MonthlyEmployeeStat(models.Model):
     year = models.PositiveIntegerField("Yil")
     month = models.PositiveIntegerField("Oy")  # 1-12
     salary = models.DecimalField("Oylik", max_digits=12, decimal_places=2, default=0)
+    salary_override = models.BooleanField(
+        "Oylik qo'lda o'rnatilgan",
+        default=False,
+        help_text="True bo'lsa, oylik avvalgi oydan avtomatik o'zgarmaydi.",
+    )
     bonus = models.DecimalField("Mukofot", max_digits=12, decimal_places=2, default=0)
+    bonus_override = models.BooleanField(
+        "Mukofot qo'lda o'rnatilgan",
+        default=False,
+        help_text="True bo'lsa, ishlab chiqarish premiyasi avtomatik yozilmaydi.",
+    )
     penalty = models.DecimalField("Jarima", max_digits=12, decimal_places=2, default=0)
     days_in_month = models.PositiveIntegerField("Oy kunlari", default=0)
     worked_days = models.PositiveIntegerField("Ishlangan kunlar", default=0)
@@ -194,3 +209,56 @@ class MonthlyEmployeeStat(models.Model):
 
     def __str__(self):
         return f"{self.year}-{self.month:02d} - {self.employee}"
+
+
+class SalaryPayment(models.Model):
+    """Oylik bo'yicha alohida to'lovlar (bir oyda bir necha marta)."""
+
+    stat = models.ForeignKey(
+        MonthlyEmployeeStat,
+        on_delete=models.CASCADE,
+        related_name='salary_payments',
+        verbose_name="Oylik statistika",
+    )
+    amount = models.DecimalField("Summa", max_digits=12, decimal_places=2)
+    paid_at = models.DateField("To'lov sanasi")
+    note = models.CharField("Izoh", max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Oylik to'lovi"
+        verbose_name_plural = "Oylik to'lovlari"
+        ordering = ['paid_at', 'pk']
+
+    def __str__(self):
+        return f"{self.paid_at} — {self.amount}"
+
+
+class MonthlyProduction(models.Model):
+    """Oylik benzin ishlab chiqarish hajmi (tonna) — premiya hisoblash uchun."""
+
+    year = models.PositiveIntegerField("Yil")
+    month = models.PositiveIntegerField("Oy")
+    production_tons = models.DecimalField(
+        "Ishlab chiqarish (tonna)",
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    eligible_employees = models.ManyToManyField(
+        Employee,
+        blank=True,
+        related_name='production_bonus_months',
+        verbose_name="Premiya oluvchi xodimlar",
+        help_text="Faqat shu oy uchun ishlab chiqarish premiyasi oladigan xodimlar.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('year', 'month')
+        verbose_name = "Oylik ishlab chiqarish"
+        verbose_name_plural = "Oylik ishlab chiqarish"
+        ordering = ['-year', '-month']
+
+    def __str__(self):
+        return f"{self.year}-{self.month:02d}: {self.production_tons} t"

@@ -9,6 +9,8 @@ from .models import (
     Team,
     MonthlyEmployeeStat,
     NalivshikShiftOverride,
+    MonthlyProduction,
+    SalaryPayment,
 )
 
 
@@ -29,6 +31,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
         "location",
         "phone_number",
         "hire_date",
+        "production_bonus_eligible",
         "is_active",
         "role",
         "team",
@@ -78,3 +81,17 @@ class NalivshikShiftOverrideAdmin(admin.ModelAdmin):
     list_display = ("date", "day_team", "night_team", "comment")
     list_filter = ("day_team", "night_team")
     search_fields = ("comment",)
+
+
+@admin.register(SalaryPayment)
+class SalaryPaymentAdmin(admin.ModelAdmin):
+    list_display = ("stat", "amount", "paid_at", "note", "created_at")
+    list_filter = ("paid_at",)
+    search_fields = ("stat__employee__first_name", "stat__employee__last_name", "note")
+
+
+@admin.register(MonthlyProduction)
+class MonthlyProductionAdmin(admin.ModelAdmin):
+    list_display = ("year", "month", "production_tons", "updated_at")
+    list_filter = ("year", "month")
+    filter_horizontal = ("eligible_employees",)

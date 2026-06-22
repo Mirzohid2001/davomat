@@ -92,7 +92,16 @@
                 </select>
             </div>
             <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_role" class="form-label fw-semibold">Lavozim turi</label>
+                <label for="filter_position" class="form-label fw-semibold">Lavozim</label>
+                <select id="filter_position" name="position" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for pos in position_choices %}
+                    <option value="{{ pos }}" {% if selected_position == pos %}selected{% endif %}>{{ pos }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label for="filter_role" class="form-label fw-semibold">Rol (tizim)</label>
                 <select id="filter_role" name="role" class="form-select">
                     <option value="">Barchasi</option>
                     {% for value, label in role_choices %}
@@ -121,9 +130,17 @@
             <div class="col-12">
               <div class="salary-filters__actions">
                 <button type="submit" class="btn salary-btn-primary">Ko'rsatish</button>
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}" class="btn btn-outline-warning" title="Davomatdan barcha oylikni qayta hisoblash"><i class="bi bi-arrow-repeat me-1"></i>Qayta hisoblash</a>
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if selected_position %}&position={{ selected_position|urlencode }}{% endif %}" class="btn btn-outline-warning" title="Davomatdan barcha oylikni qayta hisoblash"><i class="bi bi-arrow-repeat me-1"></i>Qayta hisoblash</a>
                 <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary">Tozalash</a>
+                <a href="{% url 'salary_payment_history' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-info"><i class="bi bi-receipt-cutoff me-1"></i>To'lovlar tarixi</a>
                 <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport</a>
+                <button type="button" class="btn salary-btn-premium{% if production_bonus_active %} salary-btn-premium--active{% endif %}" data-bs-toggle="modal" data-bs-target="#productionBonusModal">
+                  <i class="bi bi-fuel-pump" aria-hidden="true"></i>
+                  <span>Premiya</span>
+                  {% if production_bonus_active %}
+                  <span class="salary-btn-premium__chip">{{ production_tons|floatformat:0 }} t · {{ eligible_employees_count }} kishi</span>
+                  {% endif %}
+                </button>
               </div>
             </div>
         </form>
@@ -142,6 +159,7 @@
         <tr class="text-center">
             <th>№</th>
             <th>F I O xodim</th>
+            <th>Lavozim</th>
             <th>Turi</th>
             <th>Oylik</th>
             <th>Mukofot</th>
@@ -160,7 +178,15 @@
         {% for stat in stats %}
         <tr id="salary-row-{{ stat.id }}" class="{% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
             <td class="salary-table__num">{{ forloop.counter }}</td>
-            <td class="salary-table__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</td>
+            <td class="salary-table__name">
+                <span class="salary-table__person">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</span>
+            </td>
+            <td class="salary-table__position">
+                <span class="salary-table__position-title" title="{{ stat.employee.position }}">{{ stat.employee.position|default:"—" }}</span>
+                {% if stat.employee.department %}
+                <span class="salary-table__department">{{ stat.employee.department }}</span>
+                {% endif %}
+            </td>
             <td>
                 <span class="salary-type-badge 
                     {% if stat.employee.role == 'nalivshik' %}salary-type-badge--dark
@@ -177,7 +203,12 @@
                 </span>
             </td>
             <td class="salary-money-cell"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
+            <td class="salary-money-cell">
+                {% if stat.production_bonus_eligible_this_month and production_bonus_active and not stat.bonus_override and stat.currency == 'UZS' and stat.bonus > 0 %}
+                <span class="salary-bonus-pill" title="Ishlab chiqarish premiyasi"><i class="bi bi-fuel-pump"></i> avto</span>
+                {% endif %}
+                <span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button>
+            </td>
             <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
@@ -190,7 +221,9 @@
             <td class="salary-money-cell"><span class="salary-money">{{ stat.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">
                 <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
-                {% if stat.paid_at %}<br><small class="text-muted" title="To'lov sanasi"><i class="bi bi-calendar-check"></i> {{ stat.paid_at|date:"d.m.Y" }}</small>{% endif %}
+                {% for p in stat.salary_payments.all %}
+                <br><small class="text-muted" title="To'lov"><i class="bi bi-calendar-check"></i> {{ p.paid_at|date:"d.m.Y" }} · {{ p.amount|floatformat:0|intcomma }}</small>
+                {% endfor %}
                 <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button>
             </td>
             <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
@@ -198,7 +231,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="14" class="salary-empty-cell">
+            <td colspan="15" class="salary-empty-cell">
                 <div class="salary-empty">
                   <div class="salary-empty__icon"><i class="bi bi-inbox"></i></div>
                   <p class="salary-empty__title">Ma'lumot topilmadi</p>
@@ -210,7 +243,7 @@
     </tbody>
     <tfoot>
         <tr class="text-center">
-            <td colspan="9">Jami</td>
+            <td colspan="10">Jami</td>
             <td>{{ total_absent }}</td>
             <td>
                 {% for cur, vals in currency_totals.items %}
@@ -243,7 +276,12 @@
     {% for stat in stats %}
         <div class="salary-mobile-card {% if stat.employee.employee_type == 'office' %}office-card{% endif %}">
             <div class="salary-mobile-card__head">
-                <div class="salary-mobile-card__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
+                <div>
+                    <div class="salary-mobile-card__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
+                    {% if stat.employee.position %}
+                    <div class="salary-mobile-card__position"><i class="bi bi-briefcase"></i> {{ stat.employee.position }}{% if stat.employee.department %} · {{ stat.employee.department }}{% endif %}</div>
+                    {% endif %}
+                </div>
                 <span class="salary-type-badge 
                     {% if stat.employee.role == 'nalivshik' %}salary-type-badge--dark
                     {% elif stat.employee.employee_type == 'office' %}salary-type-badge--sky
@@ -291,7 +329,9 @@
                     <span class="salary-mobile-card__label">To'langan:</span>
                     <span class="salary-mobile-card__value">
                         <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
-                        {% if stat.paid_at %}<br><small class="text-muted"><i class="bi bi-calendar-check"></i> {{ stat.paid_at|date:"d.m.Y" }}</small>{% endif %}
+                        {% for p in stat.salary_payments.all %}
+                        <br><small class="text-muted"><i class="bi bi-calendar-check"></i> {{ p.paid_at|date:"d.m.Y" }} · {{ p.amount|floatformat:0|intcomma }}</small>
+                        {% endfor %}
                     </span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
@@ -362,7 +402,7 @@
 
 <!-- Modallar salary-page tashqarisida — ekran markazida ochiladi -->
 {% for stat in stats %}
-<div class="modal fade salary-modal" id="editModal{{ stat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ stat.id }}" aria-hidden="true">
+<div class="modal fade salary-modal salary-modal--wide" id="editModal{{ stat.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ stat.id }}" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content salary-modal__panel">
             <div class="modal-header salary-modal__header">
@@ -372,6 +412,9 @@
                     <div class="salary-modal__titles">
                         <span class="salary-modal__eyebrow">Ma'lumotlarni tahrirlash</span>
                         <h2 class="salary-modal__name modal-title" id="editModalLabel{{ stat.id }}">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</h2>
+                        {% if stat.employee.position %}
+                        <span class="salary-modal__position-badge"><i class="bi bi-briefcase"></i> {{ stat.employee.position }}{% if stat.employee.department %} · {{ stat.employee.department }}{% endif %}</span>
+                        {% endif %}
                         <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ stat.year }} · {{ stat.month }}</span>
                     </div>
                 </div>
@@ -380,35 +423,108 @@
             <form method="post" class="salary-modal__form" action="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}">
                 {% csrf_token %}
                 <div class="modal-body salary-modal__body">
-                    <div class="salary-modal__grid">
+                    <div class="salary-modal__section">
+                        <div class="salary-modal__section-head">
+                            <span class="salary-modal__section-icon"><i class="bi bi-wallet2"></i></span>
+                            <span class="salary-modal__section-title">Asosiy ma'lumotlar</span>
+                        </div>
+                        <div class="salary-modal__grid">
                         <div class="salary-modal__field">
-                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-wallet2"></i> Oylik</label>
+                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label">Oylik</label>
                             <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
                         </div>
                         <div class="salary-modal__field">
-                            <label for="id_currency_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-currency-exchange"></i> Valyuta</label>
+                            <label for="id_currency_{{ stat.id }}" class="salary-modal__label">Valyuta</label>
                             <select name="currency" class="form-select salary-modal__input" id="id_currency_{{ stat.id }}">
                                 <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>So'm (UZS)</option>
                                 <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>Dollar (USD)</option>
                                 <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>Yevro (EUR)</option>
                             </select>
                         </div>
+                        </div>
+                    </div>
+
+                    <div class="salary-modal__section">
+                        <div class="salary-modal__section-head">
+                            <span class="salary-modal__section-icon salary-modal__section-icon--emerald"><i class="bi bi-check2-circle"></i></span>
+                            <span class="salary-modal__section-title">To'lovlar</span>
+                        </div>
+                        <div class="salary-modal__grid">
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_paid_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-check2-circle"></i> To'langan</label>
-                            <input type="number" name="paid" value="{{ stat.paid|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_paid_{{ stat.id }}">
+                            {% if stat.salary_payments.all %}
+                            <ul class="salary-payment-list">
+                                {% for p in stat.salary_payments.all %}
+                                <li class="salary-payment-item">
+                                    <div class="salary-payment-item__main">
+                                        <span class="salary-payment-item__date"><i class="bi bi-calendar-check"></i> {{ p.paid_at|date:"d.m.Y" }}</span>
+                                        <span class="salary-payment-item__amount">{{ p.amount|floatformat:0|intcomma }} {{ stat.currency }}</span>
+                                        {% if p.note %}<span class="salary-payment-item__note">{{ p.note }}</span>{% endif %}
+                                    </div>
+                                    <label class="salary-payment-item__delete">
+                                        <input type="checkbox" class="form-check-input" name="delete_payments" value="{{ p.id }}">
+                                        <span>O'chirish</span>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="salary-payment-total">Jami to'langan: <strong>{{ stat.paid|floatformat:0|intcomma }} {{ stat.currency }}</strong></div>
+                            {% else %}
+                            <div class="salary-payment-empty"><i class="bi bi-inbox"></i> Hali to'lov kiritilmagan</div>
+                            {% endif %}
+                        </div>
+                        <div class="salary-modal__field">
+                            <label for="new_payment_amount_{{ stat.id }}" class="salary-modal__label">Yangi to'lov summasi</label>
+                            <input type="number" name="new_payment_amount" step="any" min="0" class="form-control salary-modal__input" id="new_payment_amount_{{ stat.id }}" placeholder="Masalan: 2 000 000">
+                        </div>
+                        <div class="salary-modal__field">
+                            <label for="new_payment_date_{{ stat.id }}" class="salary-modal__label">To'lov sanasi</label>
+                            <input type="date" name="new_payment_date" class="form-control salary-modal__input" id="new_payment_date_{{ stat.id }}">
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_paid_at_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-calendar-event"></i> To'lov sanasi</label>
-                            <input type="date" name="paid_at" value="{% if stat.paid_at %}{{ stat.paid_at|date:'Y-m-d' }}{% endif %}" class="form-control salary-modal__input" id="id_paid_at_{{ stat.id }}">
-                            <small class="text-muted">To'lov kiritilsa, sana majburiy (dalil uchun).</small>
+                            <label for="new_payment_note_{{ stat.id }}" class="salary-modal__label">Izoh (ixtiyoriy)</label>
+                            <input type="text" name="new_payment_note" class="form-control salary-modal__input" id="new_payment_note_{{ stat.id }}" placeholder="Masalan: avans, qisman to'lov">
+                            <small class="salary-modal__field-hint">Har bir to'lov alohida saqlanadi — isbot uchun sana muhim.</small>
                         </div>
+                        </div>
+                    </div>
+
+                    <div class="salary-modal__section">
+                        <div class="salary-modal__section-head">
+                            <span class="salary-modal__section-icon salary-modal__section-icon--amber"><i class="bi bi-gift"></i></span>
+                            <span class="salary-modal__section-title">Mukofot va jarima</span>
+                        </div>
+                        <div class="salary-modal__grid">
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_bonus_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-gift"></i> Mukofot</label>
+                            <label for="id_bonus_{{ stat.id }}" class="salary-modal__label">Mukofot</label>
+                            {% if stat.production_bonus_eligible_this_month and stat.currency == 'UZS' and not stat.bonus_override and production_bonus_active %}
+                            <div class="salary-bonus-auto">
+                                <div class="salary-bonus-auto__value">{{ stat.bonus|floatformat:0|intcomma }} <span>so'm</span></div>
+                                <span class="salary-bonus-auto__badge"><i class="bi bi-fuel-pump"></i> Avtomatik premiya</span>
+                            </div>
+                            <input type="hidden" name="bonus" value="{{ stat.bonus|floatformat:2 }}">
+                            <div class="salary-bonus-auto__actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary js-open-prod-bonus">
+                                    <i class="bi bi-sliders"></i> Premiyani sozlash
+                                </button>
+                                <button type="submit" name="remove_production_bonus" value="1" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Shu xodimning premiyasi bekor qilinsinmi?');">
+                                    <i class="bi bi-x-circle"></i> Bekor qilish
+                                </button>
+                            </div>
+                            {% else %}
                             <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
+                            {% if stat.bonus > 0 or stat.production_bonus_eligible_this_month %}
+                            <button type="submit" name="remove_production_bonus" value="1" class="btn btn-sm btn-outline-danger mt-2"
+                                    onclick="return confirm('Shu xodimning premiyasi bekor qilinsinmi?');">
+                                <i class="bi bi-x-circle"></i> Premiyani bekor qilish
+                            </button>
+                            {% endif %}
+                            {% endif %}
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_penalty_{{ stat.id }}" class="salary-modal__label"><i class="bi bi-dash-circle"></i> Jarima</label>
+                            <label for="id_penalty_{{ stat.id }}" class="salary-modal__label">Jarima</label>
                             <input type="number" name="penalty" value="{{ stat.penalty|floatformat:2 }}" step="any" min="0" class="form-control salary-modal__input" id="id_penalty_{{ stat.id }}">
+                        </div>
                         </div>
                     </div>
                     <p class="salary-modal__hint"><i class="bi bi-info-circle"></i> Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi.</p>
@@ -423,16 +539,326 @@
 </div>
 {% endfor %}
 
+<!-- Ishlab chiqarish premiyasi -->
+<div class="modal fade salary-modal salary-modal--prod" id="productionBonusModal" tabindex="-1" aria-labelledby="productionBonusModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content salary-modal__panel">
+      <div class="modal-header salary-modal__header salary-modal__header--amber">
+        <div class="salary-modal__header-bg" aria-hidden="true"></div>
+        <div class="salary-modal__header-inner">
+          <div class="salary-modal__avatar salary-modal__avatar--amber" aria-hidden="true"><i class="bi bi-fuel-pump"></i></div>
+          <div class="salary-modal__titles">
+            <span class="salary-modal__eyebrow">Ishlab chiqarish</span>
+            <h2 class="salary-modal__name modal-title" id="productionBonusModalLabel">Premiya</h2>
+            <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ year }} · {{ month }}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+      </div>
+      <form method="post" id="productionBonusForm" action="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}{% if q %}&q={{ q|urlencode }}{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="month" value="{{ month }}">
+        <div class="modal-body salary-modal__body prod-bonus-body">
+          {% if production_bonus_active %}
+          <div class="prod-bonus-status" role="status">
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <div>
+              <strong>Faol premiya</strong>
+              <span>{{ production_tons|floatformat:0|intcomma }} t · {{ eligible_employees_count }} xodim · {{ current_production_bonus|floatformat:0|intcomma }} so'm</span>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="prod-bonus-tiers" aria-label="Premiya qoidalari">
+            <div class="prod-bonus-tier">
+              <span class="prod-bonus-tier__range">&lt; {{ production_bonus_low_min_tons|floatformat:0|intcomma }} t</span>
+              <span class="prod-bonus-tier__amount prod-bonus-tier__amount--muted">Premiya yo'q</span>
+            </div>
+            <div class="prod-bonus-tier prod-bonus-tier--active">
+              <span class="prod-bonus-tier__range">{{ production_bonus_low_min_tons|floatformat:0|intcomma }}–{{ production_bonus_high_threshold_tons|floatformat:0|intcomma }} t</span>
+              <span class="prod-bonus-tier__amount">{{ production_bonus_low|floatformat:0|intcomma }} so'm</span>
+            </div>
+            <div class="prod-bonus-tier">
+              <span class="prod-bonus-tier__range">&gt; {{ production_bonus_high_threshold_tons|floatformat:0|intcomma }} t</span>
+              <span class="prod-bonus-tier__amount">{{ production_bonus_high|floatformat:0|intcomma }} so'm</span>
+            </div>
+          </div>
+
+          <div class="prod-bonus-modes" role="tablist" aria-label="Amal turi">
+            <button type="button" class="prod-bonus-mode prod-bonus-mode--active" data-prod-mode="assign" role="tab" aria-selected="true">
+              <i class="bi bi-plus-circle"></i> Premiya berish
+            </button>
+            <button type="button" class="prod-bonus-mode prod-bonus-mode--danger" data-prod-mode="remove" role="tab" aria-selected="false">
+              <i class="bi bi-x-circle"></i> Bekor qilish
+            </button>
+          </div>
+
+          <p class="prod-bonus-hint" data-hint-assign>
+            <i class="bi bi-lightbulb"></i> Tonna kiriting, keyin premiya oladigan xodimlarni belgilang va <strong>Saqlash</strong> ni bosing.
+          </p>
+          <p class="prod-bonus-hint prod-bonus-hint--danger" data-hint-remove hidden>
+            <i class="bi bi-exclamation-triangle"></i> Faqat bekor qilmoqchi bo'lgan xodim(lar)ni belgilang — boshqalarga tegilmaydi.
+          </p>
+
+          <div class="prod-bonus-tons" data-prod-assign-only>
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="salary-modal__label" for="id_production_tons">Oylik ishlab chiqarish (tonna)</label>
+                <div class="prod-bonus-input-wrap">
+                  <i class="bi bi-box-seam" aria-hidden="true"></i>
+                  <input type="number" name="production_tons" id="id_production_tons" class="form-control salary-modal__input"
+                         value="{% if production_bonus_active %}{{ production_tons|floatformat:2 }}{% endif %}"
+                         step="0.01" min="0" placeholder="Masalan: 2500"
+                         data-min="{{ production_bonus_low_min_tons }}"
+                         data-high-threshold="{{ production_bonus_high_threshold_tons }}"
+                         data-low="{{ production_bonus_low }}" data-high="{{ production_bonus_high }}">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <label class="salary-modal__label">Hisoblangan premiya</label>
+                <div class="prod-bonus-preview" id="productionBonusPreview" aria-live="polite">
+                  <span class="prod-bonus-preview__label">Summa</span>
+                  <span class="prod-bonus-preview__value">{% if current_production_bonus %}{{ current_production_bonus|floatformat:0|intcomma }} so'm{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="prod-bonus-picker">
+            <div class="prod-bonus-picker__head">
+              <label class="salary-modal__label mb-0">Xodimlar</label>
+              <span class="prod-bonus-picker__count" id="prodBonusSelectedCount">0 tanlandi</span>
+            </div>
+            <div class="prod-bonus-picker__toolbar">
+              <div class="prod-bonus-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" id="prodBonusSearch" class="form-control" placeholder="Ism yoki lavozim bo'yicha qidirish..." autocomplete="off">
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusSelectAll">Hammasi</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusClearAll">Tozalash</button>
+            </div>
+            <div class="prod-bonus-picker__list" id="prodBonusEmployeeList">
+              {% for emp in active_employees_for_bonus %}
+              <label class="prod-bonus-emp{% if emp.id in production_bonus_eligible_ids %} prod-bonus-emp--has-bonus{% endif %}"
+                     data-name="{{ emp.last_name }} {{ emp.first_name }} {{ emp.position|default:'' }}"
+                     for="prod_eligible_{{ emp.id }}">
+                <input class="prod-bonus-emp__check" type="checkbox" name="eligible_employees" value="{{ emp.id }}"
+                       id="prod_eligible_{{ emp.id }}"
+                       {% if emp.id in production_bonus_eligible_ids %}checked{% endif %}>
+                <span class="prod-bonus-emp__avatar">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</span>
+                <span class="prod-bonus-emp__info">
+                  <span class="prod-bonus-emp__name">{{ emp.last_name }} {{ emp.first_name }}</span>
+                  {% if emp.position %}<span class="prod-bonus-emp__role">{{ emp.position }}</span>{% endif %}
+                </span>
+                {% if emp.id in production_bonus_eligible_ids %}
+                <span class="prod-bonus-emp__badge"><i class="bi bi-check-lg"></i> Faol</span>
+                {% endif %}
+                <span class="prod-bonus-emp__tick" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              </label>
+              {% empty %}
+              <p class="prod-bonus-picker__empty">Aktiv xodim yo'q</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer salary-modal__footer prod-bonus-footer">
+          <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">Yopish</button>
+          <button type="submit" name="form_type" value="production_bonus_remove" class="btn salary-modal__btn-danger" data-prod-remove hidden>
+            <i class="bi bi-x-circle"></i> Tanlanganlardan olib tashlash
+          </button>
+          <button type="submit" name="form_type" value="production_bonus" class="btn salary-modal__btn-save" data-prod-save>
+            <i class="bi bi-check-lg"></i> Saqlash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    function formatMoney(n) {
+        return Math.round(Number(n)).toLocaleString('uz-UZ');
+    }
+
+    const prodTonsInput = document.getElementById('id_production_tons');
+    const prodPreview = document.getElementById('productionBonusPreview');
+    const prodPreviewValue = prodPreview ? prodPreview.querySelector('.prod-bonus-preview__value') : null;
+    if (prodTonsInput && prodPreviewValue) {
+        const updateProdPreview = function() {
+            const tons = Number(prodTonsInput.value);
+            const min = Number(prodTonsInput.dataset.min);
+            const highThreshold = Number(prodTonsInput.dataset.highThreshold);
+            const low = Number(prodTonsInput.dataset.low);
+            const high = Number(prodTonsInput.dataset.high);
+            prodPreview.classList.remove('prod-bonus-preview--low', 'prod-bonus-preview--high', 'prod-bonus-preview--empty');
+            if (!prodTonsInput.value.trim() || isNaN(tons) || tons < min) {
+                prodPreviewValue.textContent = '—';
+                prodPreview.classList.add('prod-bonus-preview--empty');
+                return;
+            }
+            const amount = tons <= highThreshold ? low : high;
+            prodPreviewValue.textContent = formatMoney(amount) + " so'm";
+            prodPreview.classList.add(tons <= highThreshold ? 'prod-bonus-preview--low' : 'prod-bonus-preview--high');
+        };
+        prodTonsInput.addEventListener('input', updateProdPreview);
+        updateProdPreview();
+    }
+
+    const prodBonusModal = document.getElementById('productionBonusModal');
+    const prodBonusForm = document.getElementById('productionBonusForm');
+    if (prodBonusModal && prodBonusForm) {
+        let prodMode = 'assign';
+        const modeBtns = prodBonusModal.querySelectorAll('[data-prod-mode]');
+        const tonsBlock = prodBonusModal.querySelector('[data-prod-assign-only]');
+        const saveBtn = prodBonusModal.querySelector('[data-prod-save]');
+        const removeBtn = prodBonusModal.querySelector('[data-prod-remove]');
+        const hintAssign = prodBonusModal.querySelector('[data-hint-assign]');
+        const hintRemove = prodBonusModal.querySelector('[data-hint-remove]');
+        const countEl = document.getElementById('prodBonusSelectedCount');
+        const searchInput = document.getElementById('prodBonusSearch');
+        const selectAllBtn = document.getElementById('prodBonusSelectAll');
+        const clearAllBtn = document.getElementById('prodBonusClearAll');
+        const empList = document.getElementById('prodBonusEmployeeList');
+
+        function getVisibleEmpChecks() {
+            return Array.from(empList.querySelectorAll('.prod-bonus-emp:not([hidden]) .prod-bonus-emp__check'));
+        }
+
+        function getCheckedCount() {
+            return empList.querySelectorAll('.prod-bonus-emp__check:checked').length;
+        }
+
+        function updateEmpCardState(label) {
+            const check = label.querySelector('.prod-bonus-emp__check');
+            label.classList.toggle('prod-bonus-emp--selected', check.checked);
+        }
+
+        function updateSelectedCount() {
+            const n = getCheckedCount();
+            if (countEl) {
+                countEl.textContent = n + ' tanlandi';
+                countEl.classList.toggle('prod-bonus-picker__count--active', n > 0);
+            }
+        }
+
+        function setProdMode(mode) {
+            prodMode = mode;
+            modeBtns.forEach(function(btn) {
+                const active = btn.dataset.prodMode === mode;
+                btn.classList.toggle('prod-bonus-mode--active', active);
+                btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            if (tonsBlock) tonsBlock.hidden = mode === 'remove';
+            if (saveBtn) saveBtn.hidden = mode === 'remove';
+            if (removeBtn) removeBtn.hidden = mode === 'assign';
+            if (hintAssign) hintAssign.hidden = mode === 'remove';
+            if (hintRemove) hintRemove.hidden = mode === 'assign';
+            prodBonusModal.classList.toggle('prod-bonus-modal--remove', mode === 'remove');
+        }
+
+        modeBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                setProdMode(btn.dataset.prodMode);
+            });
+        });
+
+        empList.querySelectorAll('.prod-bonus-emp').forEach(function(label) {
+            const check = label.querySelector('.prod-bonus-emp__check');
+            updateEmpCardState(label);
+            check.addEventListener('change', function() {
+                updateEmpCardState(label);
+                updateSelectedCount();
+            });
+        });
+        updateSelectedCount();
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const q = searchInput.value.trim().toLowerCase();
+                empList.querySelectorAll('.prod-bonus-emp').forEach(function(label) {
+                    const name = (label.dataset.name || '').toLowerCase();
+                    label.hidden = q && !name.includes(q);
+                });
+            });
+        }
+
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function() {
+                getVisibleEmpChecks().forEach(function(c) { c.checked = true; });
+                empList.querySelectorAll('.prod-bonus-emp:not([hidden])').forEach(updateEmpCardState);
+                updateSelectedCount();
+            });
+        }
+
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function() {
+                getVisibleEmpChecks().forEach(function(c) { c.checked = false; });
+                empList.querySelectorAll('.prod-bonus-emp:not([hidden])').forEach(updateEmpCardState);
+                updateSelectedCount();
+            });
+        }
+
+        prodBonusForm.addEventListener('submit', function(e) {
+            const checked = getCheckedCount();
+            if (prodMode === 'assign') {
+                const tons = prodTonsInput ? Number(prodTonsInput.value) : 0;
+                const min = prodTonsInput ? Number(prodTonsInput.dataset.min) : 0;
+                if (!checked) {
+                    e.preventDefault();
+                    alert('Kamida bitta xodim belgilang.');
+                    return;
+                }
+                if (!prodTonsInput || !prodTonsInput.value.trim() || isNaN(tons) || tons < min) {
+                    e.preventDefault();
+                    alert('Premiya uchun kamida ' + min.toLocaleString('uz-UZ') + ' tonna kiriting.');
+                    return;
+                }
+            } else {
+                if (!checked) {
+                    e.preventDefault();
+                    alert('Bekor qilish uchun kamida bitta xodim belgilang.');
+                    return;
+                }
+                if (!confirm('Tanlangan ' + checked + ' ta xodimdan premiya olib tashlansinmi?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        prodBonusModal.addEventListener('show.bs.modal', function() {
+            setProdMode('assign');
+            if (searchInput) searchInput.value = '';
+            empList.querySelectorAll('.prod-bonus-emp').forEach(function(label) {
+                label.hidden = false;
+            });
+        });
+    }
+
+    document.querySelectorAll('.js-open-prod-bonus').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const editModalEl = btn.closest('.modal');
+            const prodEl = document.getElementById('productionBonusModal');
+            if (!prodEl) return;
+            if (editModalEl) {
+                const inst = bootstrap.Modal.getInstance(editModalEl);
+                if (inst) inst.hide();
+            }
+            setTimeout(function() {
+                bootstrap.Modal.getOrCreateInstance(prodEl).show();
+            }, 280);
+        });
+    });
+
     // Modal ochilish/yopilish animatsiyasi va blur fon
     document.querySelectorAll('.salary-modal').forEach(function(modalEl) {
         modalEl.addEventListener('show.bs.modal', function() {
             document.body.classList.add('salary-modal-open');
-            const firstInput = modalEl.querySelector('.salary-modal__input');
+            const firstInput = modalEl.querySelector('.salary-modal__input:not([readonly])');
             modalEl.addEventListener('shown.bs.modal', function focusOnce() {
                 if (firstInput) firstInput.focus();
                 modalEl.removeEventListener('shown.bs.modal', focusOnce);
@@ -467,10 +893,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function formatMoney(n) {
-        return Math.round(Number(n)).toLocaleString('uz-UZ');
-    }
-
     function setMoneyCell(td, amount, currency, keepEditButton) {
         const text = formatMoney(amount) + ' ' + currency;
         if (keepEditButton) {
@@ -493,29 +915,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = document.getElementById('salary-row-' + stat.id);
         if (!row) return false;
         const cells = row.querySelectorAll('td');
-        if (cells.length < 14) return false;
+        if (cells.length < 15) return false;
         const cur = stat.currency;
-        setMoneyCell(cells[3], stat.salary, cur, false);
-        setMoneyCell(cells[4], stat.bonus, cur, true);
-        setMoneyCell(cells[5], stat.penalty, cur, true);
-        setMoneyCell(cells[10], stat.accrued, cur, false);
-        const paidBtn = cells[11].querySelector('button');
+        setMoneyCell(cells[4], stat.salary, cur, false);
+        setMoneyCell(cells[5], stat.bonus, cur, true);
+        setMoneyCell(cells[6], stat.penalty, cur, true);
+        setMoneyCell(cells[11], stat.accrued, cur, false);
+        const paidBtn = cells[12].querySelector('button');
         let paidHtml = formatMoney(stat.paid) + ' ' + cur;
-        if (stat.paid_at) {
+        if (stat.payments && stat.payments.length) {
+            stat.payments.forEach(function(p) {
+                paidHtml += '<br><small class="text-muted" title="To\'lov"><i class="bi bi-calendar-check"></i> ' +
+                    formatDateUz(p.paid_at) + ' · ' + formatMoney(p.amount) + '</small>';
+            });
+        } else if (stat.paid_at) {
             paidHtml += '<br><small class="text-muted" title="To\'lov sanasi"><i class="bi bi-calendar-check"></i> ' + formatDateUz(stat.paid_at) + '</small>';
         }
-        cells[11].innerHTML = paidHtml + ' ';
-        if (paidBtn) cells[11].appendChild(paidBtn);
-        setMoneyCell(cells[12], stat.debt_start, cur, false);
-        setMoneyCell(cells[13], stat.debt_end, cur, false);
-        cells[11].classList.remove('table-success', 'table-warning');
+        cells[12].innerHTML = paidHtml + ' ';
+        if (paidBtn) cells[12].appendChild(paidBtn);
+        setMoneyCell(cells[13], stat.debt_start, cur, false);
+        setMoneyCell(cells[14], stat.debt_end, cur, false);
+        cells[12].classList.remove('table-success', 'table-warning');
         if (stat.paid >= stat.accrued) {
-            cells[11].classList.add('table-success');
+            cells[12].classList.add('table-success');
         } else if (stat.paid === 0) {
-            cells[11].classList.add('table-warning');
+            cells[12].classList.add('table-warning');
         }
-        cells[12].classList.toggle('table-danger', stat.debt_start < 0);
-        cells[13].classList.toggle('table-danger', stat.debt_end < 0);
+        cells[13].classList.toggle('table-danger', stat.debt_start < 0);
+        cells[14].classList.toggle('table-danger', stat.debt_end < 0);
         return true;
     }
 

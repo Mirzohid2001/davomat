@@ -1,0 +1,134 @@
+{% extends 'attendance/base.html' %}
+{% load humanize %}
+{% block title %}Oylik to'lovlar tarixi{% endblock %}
+
+{% block content %}
+{% include 'attendance/partials/page_hero.html' with title="Oylik to'lovlar tarixi" subtitle="Barcha xodimlar bo'yicha to'langan summalar va sanalar" icon="bi-receipt-cutoff" %}
+
+{% if selected_employee %}
+<div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <span>
+    <i class="bi bi-person-fill me-1"></i>
+    <strong>{{ selected_employee.last_name }} {{ selected_employee.first_name }}</strong>
+    {% if selected_employee.position %}· {{ selected_employee.position }}{% endif %}
+  </span>
+  <a href="{% url 'salary_payment_history' %}?year={{ year }}" class="btn btn-sm btn-outline-primary">Barcha xodimlar</a>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-lg-3">
+    <div class="app-panel app-panel-body text-center h-100">
+      <div class="text-muted small">To'lovlar soni</div>
+      <div class="fs-4 fw-bold">{{ payments_count }}</div>
+    </div>
+  </div>
+  {% for cur, total in currency_totals.items %}
+  <div class="col-sm-6 col-lg-3">
+    <div class="app-panel app-panel-body text-center h-100">
+      <div class="text-muted small">Jami · {{ cur }}</div>
+      <div class="fs-5 fw-bold">{{ total|floatformat:0|intcomma }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="app-toolbar mb-3">
+  <form class="d-flex flex-wrap gap-2 align-items-end" method="get" id="paymentHistoryFilterForm">
+    <div>
+      <label class="form-label small mb-1">Yil</label>
+      <input type="number" name="year" class="form-control" style="max-width:110px" value="{{ year }}" min="2000" max="2100">
+    </div>
+    <div>
+      <label class="form-label small mb-1">Oy</label>
+      <select name="month" class="form-select" style="max-width:150px">
+        <option value="">Barcha oylar</option>
+        {% for m, label in month_names %}
+        <option value="{{ m }}" {% if month == m %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label small mb-1">Xodim</label>
+      <select name="employee" class="form-select" style="min-width:200px">
+        <option value="">Barcha xodimlar</option>
+        {% for emp in employees %}
+        <option value="{{ emp.id }}" {% if employee_id == emp.id %}selected{% endif %}>
+          {{ emp.last_name }} {{ emp.first_name }}{% if emp.position %} — {{ emp.position }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label small mb-1">Sanadan</label>
+      <input type="date" name="date_from" class="form-control" value="{% if date_from %}{{ date_from|date:'Y-m-d' }}{% endif %}">
+    </div>
+    <div>
+      <label class="form-label small mb-1">Sanagacha</label>
+      <input type="date" name="date_to" class="form-control" value="{% if date_to %}{{ date_to|date:'Y-m-d' }}{% endif %}">
+    </div>
+    <div>
+      <label class="form-label small mb-1">Qidiruv</label>
+      <input type="text" name="q" class="form-control" placeholder="Ism, lavozim, izoh..." value="{{ q }}" style="min-width:180px">
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Ko'rsatish</button>
+    <a href="{% url 'salary_payment_history' %}" class="btn btn-outline-secondary">Tozalash</a>
+  </form>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'salary_statistics' %}?year={{ year }}{% if month %}&month={{ month }}{% endif %}" class="btn btn-outline-info">
+      <i class="bi bi-wallet2 me-1"></i>Oylik statistika
+    </a>
+    <a href="{% url 'salary_payment_history_export' %}{% if export_query %}?{{ export_query }}{% endif %}" class="btn btn-success">
+      <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
+    </a>
+  </div>
+</div>
+
+<div class="app-panel">
+  <div class="table-responsive">
+    <table class="table app-table table-hover mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>To'lov sanasi</th>
+          <th class="text-start">Xodim</th>
+          <th>Lavozim</th>
+          <th>Hisobot oyi</th>
+          <th class="text-end">Summa</th>
+          <th>Izoh</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <span class="fw-semibold">{{ p.paid_at|date:"d.m.Y" }}</span>
+            <br><small class="text-muted">kiritilgan: {{ p.created_at|date:"d.m.Y H:i" }}</small>
+          </td>
+          <td class="text-start fw-semibold">
+            {{ p.stat.employee.last_name }} {{ p.stat.employee.first_name }}
+          </td>
+          <td>{{ p.stat.employee.position|default:"—" }}</td>
+          <td>
+            <a href="{% url 'salary_statistics' %}?year={{ p.stat.year }}&month={{ p.stat.month }}" class="text-decoration-none">
+              {% for m, label in month_names %}{% if m == p.stat.month %}{{ label }}{% endif %}{% endfor %} {{ p.stat.year }}
+            </a>
+          </td>
+          <td class="text-end fw-semibold text-nowrap">
+            {{ p.amount|floatformat:0|intcomma }} <span class="text-muted">{{ p.stat.currency }}</span>
+          </td>
+          <td>{{ p.note|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="border-0">
+            {% include 'attendance/partials/empty_state.html' with title="To'lovlar topilmadi" text="Filtrlarni o'zgartiring yoki boshqa davr tanlang." %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -8,7 +8,8 @@ from collections import defaultdict
 from django.db.models import Q, Count, F, Max
 from django.utils import timezone
 from datetime import timedelta, date
-from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride
+from urllib.parse import quote
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
 from .forms import (
     EmployeeForm,
     EmployeeCreateForm,
@@ -17,6 +18,7 @@ from .forms import (
     AttendanceImportForm,
     DayOffForm,
     SalaryStatEditForm,
+    ProductionBonusSettingsForm,
 )
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -37,6 +39,18 @@ from .services import (
     sync_monthly_stats_for_date,
     sync_monthly_stats_for_month,
     YEARLY_ABSENCE_FREE_LIMIT,
+    save_production_bonus_settings,
+    clear_production_bonus_for_month,
+    remove_production_bonus_for_employees,
+    production_bonus_amount_for_tons,
+    get_monthly_production_record,
+    get_production_bonus_eligible_ids,
+    ensure_monthly_stats_for_month,
+    apply_salary_payment_changes,
+    PRODUCTION_BONUS_LOW_MIN_TONS,
+    PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
+    PRODUCTION_BONUS_UP_TO_THRESHOLD,
+    PRODUCTION_BONUS_ABOVE_THRESHOLD,
 )
 from openpyxl.utils import get_column_letter
 
@@ -50,6 +64,89 @@ from openpyxl.formatting.rule import CellIsRule
 class SalaryStatFilterForm(forms.Form):
     year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)
     month = forms.IntegerField(label="Oy", min_value=1, max_value=12)
+
+
+MONTH_NAME_CHOICES = [
+    (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+    (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+    (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
+]
+
+
+def _parse_salary_payment_filters(request):
+    today = date.today()
+    year_param = request.GET.get('year', '').strip()
+    month_param = request.GET.get('month', '').strip()
+    employee_param = request.GET.get('employee', '').strip()
+    date_from_param = request.GET.get('date_from', '').strip()
+    date_to_param = request.GET.get('date_to', '').strip()
+    q = request.GET.get('q', '').strip()
+
+    year = int(year_param) if year_param.isdigit() else today.year
+    month = int(month_param) if month_param.isdigit() else None
+    employee_id = int(employee_param) if employee_param.isdigit() else None
+
+    date_from = None
+    date_to = None
+    if date_from_param:
+        try:
+            date_from = date.fromisoformat(date_from_param)
+        except ValueError:
+            pass
+    if date_to_param:
+        try:
+            date_to = date.fromisoformat(date_to_param)
+        except ValueError:
+            pass
+
+    return {
+        'year': year,
+        'month': month,
+        'employee_id': employee_id,
+        'date_from': date_from,
+        'date_to': date_to,
+        'q': q,
+    }
+
+
+def _salary_payments_queryset(filters):
+    qs = SalaryPayment.objects.select_related('stat__employee').order_by('-paid_at', '-pk')
+
+    if filters['year']:
+        qs = qs.filter(stat__year=filters['year'])
+    if filters['month']:
+        qs = qs.filter(stat__month=filters['month'])
+    if filters['employee_id']:
+        qs = qs.filter(stat__employee_id=filters['employee_id'])
+    if filters['date_from']:
+        qs = qs.filter(paid_at__gte=filters['date_from'])
+    if filters['date_to']:
+        qs = qs.filter(paid_at__lte=filters['date_to'])
+    if filters['q']:
+        qs = qs.filter(
+            Q(stat__employee__first_name__icontains=filters['q'])
+            | Q(stat__employee__last_name__icontains=filters['q'])
+            | Q(stat__employee__position__icontains=filters['q'])
+            | Q(note__icontains=filters['q'])
+        )
+    return qs
+
+
+def _salary_payment_export_query(filters):
+    parts = []
+    if filters['year']:
+        parts.append(f"year={filters['year']}")
+    if filters['month']:
+        parts.append(f"month={filters['month']}")
+    if filters['employee_id']:
+        parts.append(f"employee={filters['employee_id']}")
+    if filters['date_from']:
+        parts.append(f"date_from={filters['date_from'].isoformat()}")
+    if filters['date_to']:
+        parts.append(f"date_to={filters['date_to'].isoformat()}")
+    if filters['q']:
+        parts.append(f"q={quote(filters['q'])}")
+    return '&'.join(parts)
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -1279,11 +1376,69 @@ def salary_statistics_view(request):
     role = request.GET.get('role', '').strip()
     currency = request.GET.get('currency', '').strip()
     location = request.GET.get('location', '').strip()
-    # Sahifa ochilganda davomat bo'yicha yengil sinxronizatsiya
-    calculate_monthly_stats(year, month)
+    position = request.GET.get('position', '').strip()
+    position = request.GET.get('position', '').strip()
+
+    if request.method == 'POST' and request.POST.get('form_type') == 'production_bonus_remove':
+        year = int(request.POST.get('year', year))
+        month = int(request.POST.get('month', month))
+        remove_ids = request.POST.getlist('eligible_employees')
+        if not remove_ids:
+            messages.error(request, "Premiyani bekor qilish uchun kamida bitta xodim belgilang.")
+        else:
+            count = remove_production_bonus_for_employees(year, month, remove_ids)
+            messages.success(request, f"{count} ta xodimning premiyasi bekor qilindi.")
+        return redirect(
+            f"{request.path}?year={year}&month={month}"
+            f"{f'&q={q}' if q else ''}"
+            f"{f'&employee_type={employee_type}' if employee_type else ''}"
+            f"{f'&role={role}' if role else ''}"
+            f"{f'&currency={currency}' if currency else ''}"
+            f"{f'&location={location}' if location else ''}"
+            f"{f'&position={quote(position)}' if position else ''}"
+        )
+
+    if request.method == 'POST' and request.POST.get('form_type') == 'production_bonus':
+        year = int(request.POST.get('year', year))
+        month = int(request.POST.get('month', month))
+        prod_form = ProductionBonusSettingsForm(request.POST)
+        if prod_form.is_valid():
+            eligible_ids = prod_form.cleaned_data['eligible_employees'].values_list('id', flat=True)
+            tons = prod_form.cleaned_data.get('production_tons')
+            if not eligible_ids:
+                messages.error(
+                    request,
+                    "Kamida bitta xodim belgilang. "
+                    "Premiyani olib tashlash uchun xodimni belgilab «Premiyani bekor qilish» ni bosing.",
+                )
+            elif tons is None or tons < PRODUCTION_BONUS_LOW_MIN_TONS:
+                messages.error(
+                    request,
+                    f"Premiya uchun kamida {PRODUCTION_BONUS_LOW_MIN_TONS:.0f} tonna kiriting.",
+                )
+            else:
+                save_production_bonus_settings(year, month, tons, eligible_ids)
+                messages.success(request, "Premiya saqlandi — mukofotlar yangilandi.")
+        else:
+            messages.error(request, "Tonna yoki xodimlar ro'yxatini tekshiring.")
+        return redirect(
+            f"{request.path}?year={year}&month={month}"
+            f"{f'&q={q}' if q else ''}"
+            f"{f'&employee_type={employee_type}' if employee_type else ''}"
+            f"{f'&role={role}' if role else ''}"
+            f"{f'&currency={currency}' if currency else ''}"
+            f"{f'&location={location}' if location else ''}"
+            f"{f'&position={quote(position)}' if position else ''}"
+        )
+
+    # Qayta hisoblash faqat «Qayta hisoblash» tugmasi orqali
     if request.GET.get('recalc') == '1':
+        calculate_monthly_stats(year, month)
         messages.info(request, "Oylik statistika qayta hisoblandi.")
-    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
+    else:
+        ensure_monthly_stats_for_month(year, month)
+
+    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related('salary_payments')
 
     # Kengaytirilgan filterlar
     if q:
@@ -1301,8 +1456,17 @@ def salary_statistics_view(request):
         stats = stats.filter(currency=currency)
     if location:
         stats = stats.filter(employee__location=location)
+    if position:
+        stats = stats.filter(employee__position=position)
 
     form = SalaryStatFilterForm(initial={'year': year, 'month': month})
+    position_choices = (
+        Employee.objects.filter(is_active=True)
+        .exclude(position='')
+        .values_list('position', flat=True)
+        .distinct()
+        .order_by('position')
+    )
     
     # Ишчи кунларни ҳисоблаш
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
@@ -1314,6 +1478,14 @@ def salary_statistics_view(request):
 
     stats = list(stats)
     nalivshik_planned_cache = {}
+
+    monthly_production = (
+        MonthlyProduction.objects.filter(year=year, month=month)
+        .prefetch_related('eligible_employees')
+        .first()
+    )
+    production_bonus_eligible_ids = get_production_bonus_eligible_ids(year, month)
+
     for stat in stats:
         if stat.employee.role == 'nalivshik':
             if stat.employee_id not in nalivshik_planned_cache:
@@ -1341,6 +1513,7 @@ def salary_statistics_view(request):
     for stat in stats:
         stat.absent_count = absent_count_map.get(stat.employee_id, 0)
         stat.absent_dates = absent_dates_map.get(stat.employee_id, [])
+        stat.production_bonus_eligible_this_month = stat.employee_id in production_bonus_eligible_ids
     # Umumiy summalar
     total_salary = sum([s.salary for s in stats])
     total_bonus = sum([s.bonus for s in stats])
@@ -1370,6 +1543,28 @@ def salary_statistics_view(request):
     stats_calculated_at = MonthlyEmployeeStat.objects.filter(
         year=year, month=month
     ).aggregate(latest=Max('calculated_at'))['latest']
+
+    production_tons = monthly_production.production_tons if monthly_production else Decimal('0')
+    production_bonus_active = bool(
+        monthly_production and production_tons >= PRODUCTION_BONUS_LOW_MIN_TONS
+    )
+    current_production_bonus = (
+        production_bonus_amount_for_tons(production_tons) if production_bonus_active else None
+    )
+    eligible_employees = (
+        monthly_production.eligible_employees.filter(is_active=True)
+        if monthly_production else Employee.objects.none()
+    )
+    active_employees_for_bonus = Employee.objects.filter(is_active=True).order_by(
+        'last_name', 'first_name'
+    )
+    production_bonus_form = ProductionBonusSettingsForm(
+        initial={'production_tons': production_tons},
+    )
+    production_bonus_form.fields['eligible_employees'].initial = list(
+        eligible_employees.values_list('pk', flat=True)
+    )
+
     return render(request, 'attendance/salary_statistics.html', {
         'stats': stats,
         'form': form,
@@ -1380,6 +1575,8 @@ def salary_statistics_view(request):
         'selected_role': role,
         'selected_currency': currency,
         'selected_location': location,
+        'selected_position': position,
+        'position_choices': position_choices,
         'employee_type_choices': Employee.EMPLOYEE_TYPE_CHOICES,
         'role_choices': Employee.ROLE_CHOICES,
         'location_choices': Employee.LOCATION_CHOICES,
@@ -1395,6 +1592,18 @@ def salary_statistics_view(request):
         'total_currency': total_currency,
         'currency_totals': currency_totals,
         'stats_calculated_at': stats_calculated_at,
+        'production_bonus_form': production_bonus_form,
+        'monthly_production': monthly_production,
+        'production_tons': production_tons,
+        'production_bonus_active': production_bonus_active,
+        'current_production_bonus': current_production_bonus,
+        'eligible_employees_count': len(production_bonus_eligible_ids),
+        'production_bonus_eligible_ids': production_bonus_eligible_ids,
+        'active_employees_for_bonus': active_employees_for_bonus,
+        'production_bonus_low_min_tons': PRODUCTION_BONUS_LOW_MIN_TONS,
+        'production_bonus_high_threshold_tons': PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
+        'production_bonus_low': PRODUCTION_BONUS_UP_TO_THRESHOLD,
+        'production_bonus_high': PRODUCTION_BONUS_ABOVE_THRESHOLD,
     })
 
 @login_required
@@ -1410,7 +1619,7 @@ def export_salary_statistics_excel(request):
     year = int(request.GET.get('year', today.year))
     month = int(request.GET.get('month', today.month))
     calculate_monthly_stats(year, month)
-    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee')
+    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related('salary_payments')
     
     # Excel faylini yaratish
     wb = Workbook()
@@ -1790,7 +1999,8 @@ def export_salary_statistics_excel(request):
                 
                 row_data = {
                     1: employee_number,
-                    2: f"{stat.employee.last_name} {stat.employee.first_name}",
+                    2: f"{stat.employee.last_name} {stat.employee.first_name}"
+                        + (f" — {stat.employee.position}" if stat.employee.position else ""),
                     3: None, 4: None,  # oylik
                     5: None, 6: None,  # hisoblandi
                     7: None, 8: None,  # tulandi
@@ -2044,49 +2254,208 @@ def export_salary_statistics_excel(request):
     wb.save(response)
     return response
 
+
+@login_required
+def salary_payment_history_view(request):
+    """Barcha oylik to'lovlari — umumiy tarix va filtrlar."""
+    filters = _parse_salary_payment_filters(request)
+    payments = list(_salary_payments_queryset(filters))
+
+    currency_totals = {}
+    for payment in payments:
+        cur = payment.stat.currency
+        currency_totals[cur] = currency_totals.get(cur, Decimal('0')) + payment.amount
+
+    selected_employee = None
+    if filters['employee_id']:
+        selected_employee = Employee.objects.filter(pk=filters['employee_id']).first()
+
+    return render(request, 'attendance/salary_payment_history.html', {
+        'payments': payments,
+        'year': filters['year'],
+        'month': filters['month'],
+        'employee_id': filters['employee_id'],
+        'date_from': filters['date_from'],
+        'date_to': filters['date_to'],
+        'q': filters['q'],
+        'month_names': MONTH_NAME_CHOICES,
+        'currency_totals': currency_totals,
+        'payments_count': len(payments),
+        'selected_employee': selected_employee,
+        'employees': Employee.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+        'export_query': _salary_payment_export_query(filters),
+    })
+
+
+@login_required
+def export_salary_payment_history_excel(request):
+    """Oylik to'lovlar tarixini Excelga eksport."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+
+    filters = _parse_salary_payment_filters(request)
+    payments = _salary_payments_queryset(filters)
+    month_labels = dict(MONTH_NAME_CHOICES)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "To'lovlar"
+
+    headers = [
+        '№', 'To\'lov sanasi', 'Familiya', 'Ism', 'Lavozim',
+        'Hisobot yili', 'Hisobot oyi', 'Summa', 'Valyuta', 'Izoh', 'Kiritilgan',
+    ]
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for idx, payment in enumerate(payments, start=1):
+        emp = payment.stat.employee
+        row = idx + 1
+        ws.cell(row=row, column=1, value=idx)
+        ws.cell(row=row, column=2, value=payment.paid_at.strftime('%d.%m.%Y'))
+        ws.cell(row=row, column=3, value=emp.last_name)
+        ws.cell(row=row, column=4, value=emp.first_name)
+        ws.cell(row=row, column=5, value=emp.position or '')
+        ws.cell(row=row, column=6, value=payment.stat.year)
+        ws.cell(row=row, column=7, value=month_labels.get(payment.stat.month, payment.stat.month))
+        ws.cell(row=row, column=8, value=float(payment.amount))
+        ws.cell(row=row, column=9, value=payment.stat.currency)
+        ws.cell(row=row, column=10, value=payment.note)
+        ws.cell(row=row, column=11, value=payment.created_at.strftime('%d.%m.%Y %H:%M'))
+
+    for col in range(1, len(headers) + 1):
+        col_letter = get_column_letter(col)
+        max_len = max(len(str(ws.cell(row=r, column=col).value or '')) for r in range(1, ws.max_row + 1))
+        ws.column_dimensions[col_letter].width = min(max_len + 2, 40)
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"Oylik_tolovlar_{filters['year']}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response
+
+
 @login_required
 def edit_salary_stat(request, stat_id):
-    stat = MonthlyEmployeeStat.objects.get(id=stat_id)
+    stat = MonthlyEmployeeStat.objects.select_related('employee').prefetch_related('salary_payments').get(id=stat_id)
+
+    def payments_payload(target_stat):
+        return [
+            {
+                'id': p.id,
+                'amount': float(p.amount),
+                'paid_at': p.paid_at.isoformat(),
+                'note': p.note,
+            }
+            for p in target_stat.salary_payments.all()
+        ]
+
+    def stat_json_payload(target_stat):
+        return {
+            'id': target_stat.id,
+            'salary': float(target_stat.salary),
+            'bonus': float(target_stat.bonus),
+            'penalty': float(target_stat.penalty),
+            'paid': float(target_stat.paid),
+            'paid_at': target_stat.paid_at.isoformat() if target_stat.paid_at else None,
+            'payments': payments_payload(target_stat),
+            'accrued': float(target_stat.accrued),
+            'debt_start': float(target_stat.debt_start),
+            'debt_end': float(target_stat.debt_end),
+            'currency': target_stat.currency,
+        }
+
     if request.method == 'POST':
-        form = SalaryStatEditForm(request.POST, instance=stat)
-        if form.is_valid():
-            # Eski oylik va valyutani saqlash
-            old_salary = stat.salary
-            old_currency = stat.currency
-            
-            # Save the form first
-            form.save()
-            
-            # Agar oylik yoki valyuta o'zgargan bo'lsa, keyingi oylarga o'tkazish
-            if stat.salary != old_salary or stat.currency != old_currency:
-                from .services import update_future_months_salary
-                update_future_months_salary(stat.employee, stat.salary, stat.currency, stat.year, stat.month)
-            
-            # Faqat shu xodim uchun qayta hisoblash (butun oyni emas — tez)
-            from .services import calculate_monthly_stats
-            calculate_monthly_stats(stat.year, stat.month, employee=stat.employee)
+        delete_ids = [int(x) for x in request.POST.getlist('delete_payments') if str(x).isdigit()]
+        amount_raw = request.POST.get('new_payment_amount', '').strip()
+        date_raw = request.POST.get('new_payment_date', '').strip()
+        note = request.POST.get('new_payment_note', '').strip()
+        payment_error = None
+        new_amount = None
+        new_date = None
+
+        if amount_raw or date_raw:
+            if not amount_raw or not date_raw:
+                payment_error = "Yangi to'lov uchun summa va sana birga kiritilishi kerak."
+            else:
+                try:
+                    new_amount = Decimal(amount_raw)
+                    if new_amount <= 0:
+                        payment_error = "To'lov summasi musbat bo'lishi kerak."
+                    else:
+                        new_date = date.fromisoformat(date_raw)
+                except (ValueError, ArithmeticError):
+                    payment_error = "To'lov summasi yoki sanasi noto'g'ri."
+
+        if payment_error:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'message': payment_error}, status=400)
+            messages.error(request, payment_error)
+            return redirect(request.GET.get('next', '/statistics/salary/'))
+
+        if request.POST.get('remove_production_bonus'):
+            from .services import remove_production_bonus_for_employees
+
+            remove_production_bonus_for_employees(stat.year, stat.month, [stat.employee_id])
             stat.refresh_from_db()
 
-            # AJAX request uchun JSON response qaytarish
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': True,
+                    'message': "Premiya bekor qilindi.",
+                    'stat': stat_json_payload(stat),
+                })
+            messages.success(request, "Premiya bekor qilindi.")
+            return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
+
+        form = SalaryStatEditForm(request.POST, instance=stat)
+        if form.is_valid():
+            old_salary = stat.salary
+            old_currency = stat.currency
+
+            form.save()
+            stat.refresh_from_db()
+
+            salary_changed = (
+                'salary' in form.changed_data
+                or 'currency' in form.changed_data
+                or stat.salary != old_salary
+                or stat.currency != old_currency
+            )
+            if salary_changed:
+                stat.salary_override = True
+                stat.save(update_fields=['salary_override'])
+
+            if 'bonus' in form.changed_data:
+                stat.bonus_override = True
+                stat.save(update_fields=['bonus_override'])
+
+            apply_salary_payment_changes(stat, delete_ids, new_amount, new_date, note)
+
+            if salary_changed:
+                from .services import update_future_months_salary
+                update_future_months_salary(stat.employee, stat.salary, stat.currency, stat.year, stat.month)
+
+            from .services import calculate_monthly_stats
+            calculate_monthly_stats(
+                stat.year, stat.month, employee=stat.employee, preserve_salary=True
+            )
+            stat.refresh_from_db()
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
                     'message': "Ma'lumotlar saqlandi.",
-                    'stat': {
-                        'id': stat.id,
-                        'salary': float(stat.salary),
-                        'bonus': float(stat.bonus),
-                        'penalty': float(stat.penalty),
-                        'paid': float(stat.paid),
-                        'paid_at': stat.paid_at.isoformat() if stat.paid_at else None,
-                        'accrued': float(stat.accrued),
-                        'debt_start': float(stat.debt_start),
-                        'debt_end': float(stat.debt_end),
-                        'currency': stat.currency,
-                    },
+                    'stat': stat_json_payload(stat),
                 })
-            
+
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse

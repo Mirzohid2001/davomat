@@ -4,7 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride
+from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
 
 
 # Oylik hisobda ishlangan kun sifatida qabul qilinadigan davomat holatlari
@@ -12,6 +12,135 @@ WORKED_DAY_STATUSES = ('present', 'sick', 'late')
 
 # Yillik ruxsat etilgan kelmagan kunlar (oylik hisob va kvota sahifasi)
 YEARLY_ABSENCE_FREE_LIMIT = 21
+
+# Ishlab chiqarish premiyasi (benzin, tonna → so'm)
+PRODUCTION_BONUS_LOW_MIN_TONS = Decimal('1500')       # kamida shuncha — premiya boshlanadi
+PRODUCTION_BONUS_HIGH_THRESHOLD_TONS = Decimal('3000')  # undan yuqori → 4.8 mln
+PRODUCTION_BONUS_UP_TO_THRESHOLD = Decimal('2400000')   # 1500–3000 t
+PRODUCTION_BONUS_ABOVE_THRESHOLD = Decimal('4800000')   # 3000 t dan yuqori
+
+
+def production_bonus_amount_for_tons(production_tons):
+    """
+    1500–3000 t → 2.4 mln. 3000 t dan yuqori → 4.8 mln.
+    1500 t dan kam — premiya yo'q.
+    """
+    tons = Decimal(str(production_tons))
+    if tons < PRODUCTION_BONUS_LOW_MIN_TONS:
+        return None
+    if tons <= PRODUCTION_BONUS_HIGH_THRESHOLD_TONS:
+        return PRODUCTION_BONUS_UP_TO_THRESHOLD
+    return PRODUCTION_BONUS_ABOVE_THRESHOLD
+
+
+def get_monthly_production_record(year: int, month: int):
+    return MonthlyProduction.objects.filter(year=year, month=month).first()
+
+
+def is_production_bonus_eligible_for_month(employee, year: int, month: int) -> bool:
+    record = get_monthly_production_record(year, month)
+    if not record:
+        return False
+    return record.eligible_employees.filter(pk=employee.pk).exists()
+
+
+def get_production_bonus_eligible_ids(year: int, month: int) -> set:
+    record = get_monthly_production_record(year, month)
+    if not record:
+        return set()
+    return set(record.eligible_employees.values_list('id', flat=True))
+
+
+def resolve_production_bonus(employee, year: int, month: int, currency: str, current_bonus, bonus_override: bool):
+    """
+    Ishlab chiqarish premiyasini qaytaradi yoki None (qo'lda saqlash kerak).
+    Faqat UZS valyutadagi, shu oy ro'yxatiga kiritilgan xodimlar uchun.
+    """
+    if bonus_override or currency != 'UZS':
+        return None
+    record = get_monthly_production_record(year, month)
+    if not record:
+        return None
+    if not record.eligible_employees.filter(pk=employee.pk).exists():
+        return None
+    return production_bonus_amount_for_tons(record.production_tons)
+
+
+def save_production_bonus_settings(year: int, month: int, production_tons, eligible_employee_ids):
+    """Oylik ishlab chiqarish va premiya oluvchi xodimlarni saqlaydi, mukofotlarni yangilaydi."""
+    tons = Decimal(str(production_tons or 0))
+    eligible_ids = {int(pk) for pk in eligible_employee_ids}
+    if not eligible_ids:
+        return
+
+    if tons >= PRODUCTION_BONUS_LOW_MIN_TONS:
+        record, _ = MonthlyProduction.objects.update_or_create(
+            year=year,
+            month=month,
+            defaults={'production_tons': tons},
+        )
+        if record.production_tons != tons:
+            record.production_tons = tons
+            record.save(update_fields=['production_tons'])
+        record.eligible_employees.set(
+            Employee.objects.filter(id__in=eligible_ids, is_active=True)
+        )
+    else:
+        MonthlyProduction.objects.filter(year=year, month=month).delete()
+
+    MonthlyEmployeeStat.objects.filter(
+        year=year,
+        month=month,
+        bonus_override=False,
+    ).exclude(employee_id__in=eligible_ids).update(bonus=Decimal('0'))
+
+    if tons >= PRODUCTION_BONUS_LOW_MIN_TONS:
+        MonthlyEmployeeStat.objects.filter(
+            year=year,
+            month=month,
+            employee_id__in=eligible_ids,
+        ).update(bonus_override=False)
+
+    calculate_monthly_stats(year, month)
+
+
+def remove_production_bonus_for_employees(year: int, month: int, employee_ids) -> int:
+    """Faqat tanlangan xodimlardan shu oy uchun ishlab chiqarish premiyasini olib tashlaydi."""
+    ids = {int(pk) for pk in employee_ids}
+    if not ids:
+        return 0
+
+    record = get_monthly_production_record(year, month)
+    if record:
+        record.eligible_employees.remove(*Employee.objects.filter(id__in=ids))
+
+    MonthlyEmployeeStat.objects.filter(
+        year=year,
+        month=month,
+        employee_id__in=ids,
+        bonus_override=False,
+    ).update(bonus=Decimal('0'))
+
+    calculate_monthly_stats(year, month)
+    return len(ids)
+
+
+def clear_production_bonus_for_month(year: int, month: int):
+    """Shu oy uchun barcha ishlab chiqarish premiyalarini bekor qiladi."""
+    MonthlyProduction.objects.filter(year=year, month=month).delete()
+    MonthlyEmployeeStat.objects.filter(
+        year=year,
+        month=month,
+        bonus_override=False,
+    ).update(bonus=Decimal('0'))
+    calculate_monthly_stats(year, month)
+
+
+def is_auto_production_bonus(amount) -> bool:
+    return Decimal(str(amount or 0)) in (
+        PRODUCTION_BONUS_UP_TO_THRESHOLD,
+        PRODUCTION_BONUS_ABOVE_THRESHOLD,
+    )
 
 VALID_ATTENDANCE_STATUSES = {choice[0] for choice in Attendance.STATUS_CHOICES}
 ATTENDANCE_STATUS_LABELS = {choice[1].lower(): choice[0] for choice in Attendance.STATUS_CHOICES}
@@ -354,11 +483,43 @@ def ensure_initial_monthly_stat(employee: Employee, hire_date: date):
     )
 
 
+def get_previous_month_stat(employee, year: int, month: int):
+    if month > 1:
+        prev_year, prev_month = year, month - 1
+    else:
+        prev_year, prev_month = year - 1, 12
+    return MonthlyEmployeeStat.objects.filter(
+        employee=employee,
+        year=prev_year,
+        month=prev_month,
+    ).first()
+
+
+def sync_salary_from_previous_month(year: int, month: int, employee=None):
+    """Qo'lda belgilanmagan oyliklarni avvalgi oydan sinxronlaydi."""
+    stats = MonthlyEmployeeStat.objects.filter(
+        year=year,
+        month=month,
+        employee__is_active=True,
+        salary_override=False,
+    )
+    if employee is not None:
+        stats = stats.filter(employee=employee)
+
+    for stat in stats.select_related('employee'):
+        prev_stat = get_previous_month_stat(stat.employee, year, month)
+        if not prev_stat:
+            continue
+        if stat.salary == prev_stat.salary and stat.currency == prev_stat.currency:
+            continue
+        stat.salary = prev_stat.salary
+        stat.currency = prev_stat.currency
+        stat.save(update_fields=['salary', 'currency'])
+        calculate_monthly_stats(year, month, employee=stat.employee)
+
+
 def update_future_months_salary(employee, new_salary, new_currency, current_year, current_month):
     """Oylik o'zgartirilganda keyingi oylarga yangi oylikni o'tkazish"""
-    from datetime import date
-    from calendar import monthrange
-    
     # Keyingi oylarni topish
     next_month = current_month + 1
     next_year = current_year
@@ -367,43 +528,82 @@ def update_future_months_salary(employee, new_salary, new_currency, current_year
         next_month = 1
         next_year += 1
     
-    # Hozirgi sanadan keyingi barcha oylarni yangilash
     current_date = date(next_year, next_month, 1)
-    today = date.today()
-    
-    # Keyingi 12 oyga qarab tekshirish
+
+    # Keyingi 12 oyga yangi oylikni ko'chirish
     for i in range(12):
         check_year = current_date.year
         check_month = current_date.month
-        
-        # Bu oy uchun stat mavjudmi?
+
         future_stat = MonthlyEmployeeStat.objects.filter(
             employee=employee,
             year=check_year,
-            month=check_month
+            month=check_month,
         ).first()
-        
+
         if future_stat:
-            # Agar bu oy uchun stat mavjud bo'lsa, oylik va valyutani yangilash
-            future_stat.salary = new_salary
-            future_stat.currency = new_currency
-            future_stat.save()
-        
+            if future_stat.salary_override:
+                pass
+            else:
+                future_stat.salary = new_salary
+                future_stat.currency = new_currency
+                future_stat.save(update_fields=['salary', 'currency'])
+                calculate_monthly_stats(
+                    check_year, check_month, employee=employee, preserve_salary=True
+                )
+        else:
+            calculate_monthly_stats(check_year, check_month, employee=employee)
+            future_stat = MonthlyEmployeeStat.objects.filter(
+                employee=employee,
+                year=check_year,
+                month=check_month,
+            ).first()
+            if future_stat and not future_stat.salary_override:
+                if future_stat.salary != new_salary or future_stat.currency != new_currency:
+                    future_stat.salary = new_salary
+                    future_stat.currency = new_currency
+                    future_stat.save(update_fields=['salary', 'currency'])
+                    calculate_monthly_stats(
+                        check_year, check_month, employee=employee, preserve_salary=True
+                    )
+
         # Keyingi oyga o'tish
         if current_date.month == 12:
             current_date = current_date.replace(year=current_date.year + 1, month=1)
         else:
             current_date = current_date.replace(month=current_date.month + 1)
-        
-        # Agar kelajakdagi sana hozirgi sanadan katta bo'lsa, to'xtash
-        if current_date > today.replace(day=1):
-            break
 
 
-def calculate_monthly_stats(year, month, employee=None):
+def sync_stat_paid_from_payments(stat: MonthlyEmployeeStat):
+    """To'lovlar jadvalidan jami summa va oxirgi sanani statistikaga yozadi."""
+    from django.db.models import Sum
+
+    total = stat.salary_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    stat.paid = round_money(total, stat.currency)
+    latest = stat.salary_payments.order_by('-paid_at', '-pk').first()
+    stat.paid_at = latest.paid_at if latest else None
+    stat.save(update_fields=['paid', 'paid_at'])
+
+
+def apply_salary_payment_changes(stat, delete_ids, new_amount=None, new_date=None, note=''):
+    """To'lovlarni qo'shish/o'chirish va statistikani sinxronlash."""
+    if delete_ids:
+        stat.salary_payments.filter(pk__in=delete_ids).delete()
+    if new_amount is not None and new_amount > 0 and new_date is not None:
+        SalaryPayment.objects.create(
+            stat=stat,
+            amount=round_money(new_amount, stat.currency),
+            paid_at=new_date,
+            note=(note or '').strip(),
+        )
+    sync_stat_paid_from_payments(stat)
+
+
+def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
     """
     Oylik statistikani hisoblaydi.
     employee berilsa — faqat shu xodim (modal saqlash uchun tez).
+    preserve_salary=True — oylikni DB dagi qiymatda qoldiradi (keyingi oyga ko'chirishda).
     """
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
     employees = Employee.objects.filter(is_active=True)
@@ -413,20 +613,29 @@ def calculate_monthly_stats(year, month, employee=None):
         # Stat yozuvini olish (agar mavjud bo'lsa)
         stat = MonthlyEmployeeStat.objects.filter(employee=employee, year=year, month=month).first()
         if stat:
-            salary = stat.salary
             bonus = stat.bonus
-            paid = stat.paid
-            paid_at = stat.paid_at
+            bonus_override = stat.bonus_override
             penalty = stat.penalty
             manual_salary = stat.manual_salary
-            currency = stat.currency
+            if stat.salary_override or preserve_salary:
+                salary = stat.salary
+                currency = stat.currency
+            else:
+                prev_stat = get_previous_month_stat(employee, year, month)
+                if prev_stat:
+                    salary = prev_stat.salary
+                    currency = prev_stat.currency
+                else:
+                    salary = stat.salary
+                    currency = stat.currency
+            if stat.salary_payments.exists():
+                sync_stat_paid_from_payments(stat)
+                stat.refresh_from_db()
+            paid = stat.paid
+            paid_at = stat.paid_at
         else:
             # Oldingi oyning ma'lumotlarini olish
-            prev_stat = MonthlyEmployeeStat.objects.filter(
-                employee=employee,
-                year=year if month > 1 else year-1,
-                month=month-1 if month > 1 else 12
-            ).first()
+            prev_stat = get_previous_month_stat(employee, year, month)
             
             # Agar oldingi oy ma'lumoti mavjud bo'lsa, undan oylikni va valyutani olish
             if prev_stat:
@@ -442,6 +651,17 @@ def calculate_monthly_stats(year, month, employee=None):
             paid_at = None
             manual_salary = (employee.employee_type == 'office')
             penalty = Decimal('0')
+            bonus_override = False
+
+        eligible_this_month = is_production_bonus_eligible_for_month(employee, year, month)
+        if eligible_this_month and currency == 'UZS' and not bonus_override:
+            production_bonus = resolve_production_bonus(
+                employee, year, month, currency, bonus, bonus_override
+            )
+            bonus = production_bonus if production_bonus is not None else Decimal('0')
+        elif not bonus_override and not eligible_this_month:
+            if is_auto_production_bonus(bonus):
+                bonus = Decimal('0')
 
         # Ishlangan kunlar hisoblash
         worked_days = Attendance.objects.filter(
@@ -521,11 +741,7 @@ def calculate_monthly_stats(year, month, employee=None):
         paid = round_money(paid, currency)
 
         # Oldingi oy oxiridagi qarzdorlik
-        prev_stat = MonthlyEmployeeStat.objects.filter(
-            employee=employee,
-            year=year if month > 1 else year-1,
-            month=month-1 if month > 1 else 12
-        ).first()
+        prev_stat = get_previous_month_stat(employee, year, month)
         debt_start = round_money(prev_stat.debt_end if prev_stat else Decimal('0'), currency)
         debt_end = calculate_debt_end(debt_start, accrued, paid, currency)
         now = timezone.now()
@@ -537,6 +753,7 @@ def calculate_monthly_stats(year, month, employee=None):
                 defaults={
                     'salary': salary,
                     'bonus': bonus,
+                    'bonus_override': bonus_override,
                     'penalty': penalty,
                     'days_in_month': total_days_in_month,
                     'worked_days': worked_days,
@@ -553,6 +770,7 @@ def calculate_monthly_stats(year, month, employee=None):
             if not created:
                 stat_obj.salary = salary
                 stat_obj.bonus = bonus
+                stat_obj.bonus_override = bonus_override
                 stat_obj.penalty = penalty
                 stat_obj.days_in_month = total_days_in_month
                 stat_obj.worked_days = worked_days
@@ -564,7 +782,12 @@ def calculate_monthly_stats(year, month, employee=None):
                 stat_obj.manual_salary = manual_salary
                 stat_obj.currency = currency
                 stat_obj.calculated_at = now
-                stat_obj.save()
+                update_fields = [
+                    'salary', 'bonus', 'bonus_override', 'penalty', 'days_in_month',
+                    'worked_days', 'accrued', 'paid', 'paid_at', 'debt_start',
+                    'debt_end', 'manual_salary', 'currency', 'calculated_at',
+                ]
+                stat_obj.save(update_fields=update_fields)
 
 
 def sync_monthly_stats_for_date(employee, day: date):
@@ -575,3 +798,26 @@ def sync_monthly_stats_for_date(employee, day: date):
 def sync_monthly_stats_for_month(year: int, month: int, employee=None):
     """Berilgan oy uchun oylik statistikani qayta hisoblaydi."""
     calculate_monthly_stats(year, month, employee=employee)
+
+
+def ensure_monthly_stats_for_month(year: int, month: int):
+    """
+    Yangi oy ochilganda faqat yo'q bo'lgan xodim statlarini yaratadi.
+    Mavjud yozuvlarni qayta hisoblamaydi — bu «Qayta hisoblash» tugmasi vazifasi.
+    """
+    active_ids = set(Employee.objects.filter(is_active=True).values_list('id', flat=True))
+    if not active_ids:
+        return
+
+    existing_ids = set(
+        MonthlyEmployeeStat.objects.filter(year=year, month=month).values_list('employee_id', flat=True)
+    )
+    missing_ids = active_ids - existing_ids
+    if missing_ids:
+        if missing_ids == active_ids:
+            calculate_monthly_stats(year, month)
+        else:
+            for emp in Employee.objects.filter(id__in=missing_ids):
+                calculate_monthly_stats(year, month, employee=emp)
+
+    sync_salary_from_previous_month(year, month)

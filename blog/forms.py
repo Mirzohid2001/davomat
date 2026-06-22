@@ -1,5 +1,5 @@
 from django import forms
-from .models import Attendance, Employee, DayOff, NalivshikShiftOverride, Team
+from .models import Attendance, Employee, DayOff, NalivshikShiftOverride, Team, MonthlyProduction
 import datetime
 import os
 from .models import MonthlyEmployeeStat
@@ -75,6 +75,7 @@ class EmployeeForm(forms.ModelForm):
             'location',
             'phone_number',
             'hire_date',
+            'production_bonus_eligible',
             'is_active',
             'employee_type',
             'role',
@@ -88,6 +89,7 @@ class EmployeeForm(forms.ModelForm):
             'location': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'hire_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'production_bonus_eligible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'employee_type': forms.Select(attrs={'class': 'form-select'}),
             'role': forms.Select(attrs={'class': 'form-select'}),
@@ -111,6 +113,7 @@ class EmployeeCreateForm(EmployeeForm):
         self.fields['hire_date'].required = True
         if not self.instance.pk:
             self.fields['hire_date'].initial = datetime.date.today
+        self.fields.pop('production_bonus_eligible', None)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -144,26 +147,27 @@ class NalivshikShiftOverrideForm(forms.ModelForm):
 class SalaryStatEditForm(forms.ModelForm):
     class Meta:
         model = MonthlyEmployeeStat
-        fields = ['salary', 'currency', 'paid', 'paid_at', 'bonus', 'penalty']
+        fields = ['salary', 'currency', 'bonus', 'penalty']
         widgets = {
             'salary': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
-            'paid': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-            'paid_at': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'penalty': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'min': '0'}),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        from decimal import Decimal
 
-        paid = Decimal(str(cleaned_data.get('paid') or 0))
-        paid_at = cleaned_data.get('paid_at')
-        if paid > 0 and not paid_at:
-            raise forms.ValidationError(
-                "To'lov summasi kiritilsa, to'lov sanasini ham kiriting."
-            )
-        if paid <= 0:
-            cleaned_data['paid_at'] = None
-        return cleaned_data
+class ProductionBonusSettingsForm(forms.Form):
+    production_tons = forms.DecimalField(
+        label="Oylik ishlab chiqarish (tonna)",
+        min_value=0,
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+    )
+    eligible_employees = forms.ModelMultipleChoiceField(
+        label="Premiya oluvchi xodimlar",
+        queryset=Employee.objects.filter(is_active=True).order_by('last_name', 'first_name'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+    )
