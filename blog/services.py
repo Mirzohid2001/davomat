@@ -220,14 +220,11 @@ def round_money(amount, currency: str) -> Decimal:
 def calculate_debt_end(debt_start, accrued, paid, currency: str) -> Decimal:
     """
     Qarzdorlik oxirini hisoblaydi.
-    To'langan summa jami majburiyat (boshlang'ich + hisoblangan) dan oshsa — qarz 0.
+    Musbat — kompaniya xodimga qarzdor; manfiy — xodim ortiqcha olgan (avans).
     """
     debt_start = round_money(debt_start, currency)
     accrued = round_money(accrued, currency)
     paid = round_money(paid, currency)
-    total_due = debt_start + accrued
-    if paid >= total_due:
-        return Decimal("0")
     return round_money(debt_start + accrued - paid, currency)
 
 

@@ -79,6 +79,25 @@ class CalculateDebtEndTests(TestCase):
         )
         self.assertEqual(debt_end, Decimal("0"))
 
+    def test_overpayment_creates_negative_debt(self):
+        """Ortiqcha to'lov — xodim kompaniyaga qarzdor (manfiy oxirgi qarz)."""
+        debt_end = calculate_debt_end(
+            debt_start=Decimal("0"),
+            accrued=Decimal("24000000"),
+            paid=Decimal("27100000"),
+            currency="UZS",
+        )
+        self.assertEqual(debt_end, Decimal("-3100000"))
+
+    def test_overpayment_with_start_debt(self):
+        debt_end = calculate_debt_end(
+            debt_start=Decimal("1000000"),
+            accrued=Decimal("24000000"),
+            paid=Decimal("27100000"),
+            currency="UZS",
+        )
+        self.assertEqual(debt_end, Decimal("-2100000"))
+
 
 class NewEmployeeTests(TestCase):
     def test_ensure_initial_monthly_stat_salary_zero(self):
@@ -682,7 +701,7 @@ class CalculateMonthlyStatsDebtIntegrationTests(TestCase):
         self.assertEqual(stat.debt_end, Decimal("1000"))
 
     def test_full_settlement_clears_debt_on_recalc(self):
-        emp = self._create_full_employee(last_name="Toza")
+        emp = self._create_full_employee(last_name="Toza", employee_type="office")
         MonthlyEmployeeStat.objects.create(
             employee=emp,
             year=self.year,
@@ -692,8 +711,9 @@ class CalculateMonthlyStatsDebtIntegrationTests(TestCase):
             paid=Decimal("15000000"),
             accrued=Decimal("15000000"),
             currency="UZS",
+            manual_salary=True,
             days_in_month=31,
-            worked_days=24,
+            worked_days=0,
             debt_start=Decimal("0"),
             debt_end=Decimal("1000"),
         )
@@ -706,8 +726,9 @@ class CalculateMonthlyStatsDebtIntegrationTests(TestCase):
             paid=Decimal("15001000"),
             accrued=Decimal("15000000"),
             currency="UZS",
+            manual_salary=True,
             days_in_month=28,
-            worked_days=24,
+            worked_days=0,
             debt_start=Decimal("1000"),
             debt_end=Decimal("1000"),
         )
@@ -715,6 +736,35 @@ class CalculateMonthlyStatsDebtIntegrationTests(TestCase):
         calculate_monthly_stats(self.year, self.month)
         stat = MonthlyEmployeeStat.objects.get(employee=emp, year=self.year, month=self.month)
         self.assertEqual(stat.debt_end, Decimal("0"))
+
+    def test_overpayment_carries_negative_debt_to_next_month(self):
+        """Ortiqcha to'lov keyingi oy boshlang'ich qarziga manfiy sifatida o'tadi."""
+        emp = self._create_full_employee(last_name="Bobir", employee_type="office")
+        MonthlyEmployeeStat.objects.create(
+            employee=emp,
+            year=self.year,
+            month=1,
+            salary=Decimal("24000000"),
+            bonus=Decimal("0"),
+            paid=Decimal("27100000"),
+            accrued=Decimal("24000000"),
+            currency="UZS",
+            manual_salary=True,
+            days_in_month=31,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+
+        calculate_monthly_stats(self.year, 1)
+        january = MonthlyEmployeeStat.objects.get(employee=emp, year=self.year, month=1)
+        self.assertEqual(january.debt_end, Decimal("-3100000"))
+
+        calculate_monthly_stats(self.year, self.month)
+        february = MonthlyEmployeeStat.objects.get(employee=emp, year=self.year, month=self.month)
+        self.assertEqual(february.debt_start, Decimal("-3100000"))
+        self.assertEqual(february.accrued, Decimal("24000000"))
+        self.assertEqual(february.debt_end, Decimal("20900000"))
 
     def test_proportional_full_pay_no_phantom_debt(self):
         """To'liq ishlangan oy — to'langan = hisoblangan bo'lsa qarz 0."""
