@@ -1,32 +1,34 @@
 {% extends 'attendance/base.html' %}
-{% load humanize %}
-{% block title %}Oylik to'lovlar tarixi{% endblock %}
+{% load humanize i18n %}
+{% block title %}{% trans "Oylik to'lovlar tarixi" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Oylik to'lovlar tarixi" subtitle="Barcha xodimlar bo'yicha to'langan summalar va sanalar" icon="bi-receipt-cutoff" %}
+{% trans "Oylik to'lovlar tarixi" as page_title %}
+{% trans "Barcha xodimlar bo'yicha to'langan summalar va sanalar" as payment_history_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=payment_history_subtitle icon="bi-receipt-cutoff" %}
 
 {% if selected_employee %}
 <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
   <span>
     <i class="bi bi-person-fill me-1"></i>
-    <strong>{{ selected_employee.last_name }} {{ selected_employee.first_name }}</strong>
+    <strong>{{ selected_employee.get_full_name }}</strong>
     {% if selected_employee.position %}· {{ selected_employee.position }}{% endif %}
   </span>
-  <a href="{% url 'salary_payment_history' %}?year={{ year }}" class="btn btn-sm btn-outline-primary">Barcha xodimlar</a>
+  <a href="{% url 'salary_payment_history' %}?year={{ year }}" class="btn btn-sm btn-outline-primary">{% trans "Barcha xodimlar" %}</a>
 </div>
 {% endif %}
 
 <div class="row g-3 mb-3">
   <div class="col-sm-6 col-lg-3">
     <div class="app-panel app-panel-body text-center h-100">
-      <div class="text-muted small">To'lovlar soni</div>
+      <div class="text-muted small">{% trans "To'lovlar soni" %}</div>
       <div class="fs-4 fw-bold">{{ payments_count }}</div>
     </div>
   </div>
   {% for cur, total in currency_totals.items %}
   <div class="col-sm-6 col-lg-3">
     <div class="app-panel app-panel-body text-center h-100">
-      <div class="text-muted small">Jami · {{ cur }}</div>
+      <div class="text-muted small">{% trans "Jami" %} · {{ cur }}</div>
       <div class="fs-5 fw-bold">{{ total|floatformat:0|intcomma }}</div>
     </div>
   </div>
@@ -36,50 +38,50 @@
 <div class="app-toolbar mb-3">
   <form class="d-flex flex-wrap gap-2 align-items-end" method="get" id="paymentHistoryFilterForm">
     <div>
-      <label class="form-label small mb-1">Yil</label>
+      <label class="form-label small mb-1">{% trans "Yil" %}</label>
       <input type="number" name="year" class="form-control" style="max-width:110px" value="{{ year }}" min="2000" max="2100">
     </div>
     <div>
-      <label class="form-label small mb-1">Oy</label>
+      <label class="form-label small mb-1">{% trans "Oy" %}</label>
       <select name="month" class="form-select" style="max-width:150px">
-        <option value="">Barcha oylar</option>
+        <option value="">{% trans "Barcha oylar" %}</option>
         {% for m, label in month_names %}
         <option value="{{ m }}" {% if month == m %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label small mb-1">Xodim</label>
+      <label class="form-label small mb-1">{% trans "Xodim" %}</label>
       <select name="employee" class="form-select" style="min-width:200px">
-        <option value="">Barcha xodimlar</option>
+        <option value="">{% trans "Barcha xodimlar" %}</option>
         {% for emp in employees %}
         <option value="{{ emp.id }}" {% if employee_id == emp.id %}selected{% endif %}>
-          {{ emp.last_name }} {{ emp.first_name }}{% if emp.position %} — {{ emp.position }}{% endif %}
+          {{ emp.get_full_name }}{% if emp.position %} — {{ emp.position }}{% endif %}
         </option>
         {% endfor %}
       </select>
     </div>
     <div>
-      <label class="form-label small mb-1">Sanadan</label>
+      <label class="form-label small mb-1">{% trans "Sanadan" %}</label>
       <input type="date" name="date_from" class="form-control" value="{% if date_from %}{{ date_from|date:'Y-m-d' }}{% endif %}">
     </div>
     <div>
-      <label class="form-label small mb-1">Sanagacha</label>
+      <label class="form-label small mb-1">{% trans "Sanagacha" %}</label>
       <input type="date" name="date_to" class="form-control" value="{% if date_to %}{{ date_to|date:'Y-m-d' }}{% endif %}">
     </div>
     <div>
-      <label class="form-label small mb-1">Qidiruv</label>
-      <input type="text" name="q" class="form-control" placeholder="Ism, lavozim, izoh..." value="{{ q }}" style="min-width:180px">
+      <label class="form-label small mb-1">{% trans "Qidiruv" %}</label>
+      <input type="text" name="q" class="form-control" placeholder="{% trans 'Ism, lavozim, izoh...' %}" value="{{ q }}" style="min-width:180px">
     </div>
-    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Ko'rsatish</button>
-    <a href="{% url 'salary_payment_history' %}" class="btn btn-outline-secondary">Tozalash</a>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>{% trans "Ko'rsatish" %}</button>
+    <a href="{% url 'salary_payment_history' %}" class="btn btn-outline-secondary">{% trans "Tozalash" %}</a>
   </form>
   <div class="d-flex flex-wrap gap-2">
     <a href="{% url 'salary_statistics' %}?year={{ year }}{% if month %}&month={{ month }}{% endif %}" class="btn btn-outline-info">
-      <i class="bi bi-wallet2 me-1"></i>Oylik statistika
+      <i class="bi bi-wallet2 me-1"></i>{% trans "Oylik statistika" %}
     </a>
     <a href="{% url 'salary_payment_history_export' %}{% if export_query %}?{{ export_query }}{% endif %}" class="btn btn-success">
-      <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
+      <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}
     </a>
   </div>
 </div>
@@ -90,12 +92,12 @@
       <thead>
         <tr>
           <th>№</th>
-          <th>To'lov sanasi</th>
-          <th class="text-start">Xodim</th>
-          <th>Lavozim</th>
-          <th>Hisobot oyi</th>
-          <th class="text-end">Summa</th>
-          <th>Izoh</th>
+          <th>{% trans "To'lov sanasi" %}</th>
+          <th class="text-start">{% trans "Xodim" %}</th>
+          <th>{% trans "Lavozim" %}</th>
+          <th>{% trans "Hisobot oyi" %}</th>
+          <th class="text-end">{% trans "Summa" %}</th>
+          <th>{% trans "Izoh" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -104,10 +106,10 @@
           <td>{{ forloop.counter }}</td>
           <td>
             <span class="fw-semibold">{{ p.paid_at|date:"d.m.Y" }}</span>
-            <br><small class="text-muted">kiritilgan: {{ p.created_at|date:"d.m.Y H:i" }}</small>
+            <br><small class="text-muted">{% trans "kiritilgan" %}: {{ p.created_at|date:"d.m.Y H:i" }}</small>
           </td>
           <td class="text-start fw-semibold">
-            {{ p.stat.employee.last_name }} {{ p.stat.employee.first_name }}
+            {{ p.stat.employee.get_full_name }}
           </td>
           <td>{{ p.stat.employee.position|default:"—" }}</td>
           <td>
@@ -123,7 +125,9 @@
         {% empty %}
         <tr>
           <td colspan="7" class="border-0">
-            {% include 'attendance/partials/empty_state.html' with title="To'lovlar topilmadi" text="Filtrlarni o'zgartiring yoki boshqa davr tanlang." %}
+            {% trans "To'lovlar topilmadi" as empty_title %}
+            {% trans "Filtrlarni o'zgartiring yoki boshqa davr tanlang." as empty_text %}
+            {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text %}
           </td>
         </tr>
         {% endfor %}

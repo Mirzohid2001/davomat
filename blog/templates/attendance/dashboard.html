@@ -1,38 +1,42 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Dashboard" subtitle="Davomat tizimi boshqaruv paneli" icon="bi-speedometer2" meta=today_date|date:"d.m.Y" meta_label="Bugun" %}
+{% trans "Dashboard" as page_title %}
+{% trans "Davomat tizimi boshqaruv paneli" as dashboard_subtitle %}
+{% trans "Bugun" as today_label %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=dashboard_subtitle icon="bi-speedometer2" meta=today_date|date:"d.m.Y" meta_label=today_label %}
 
 <div class="app-toolbar mb-4">
   <a href="{% url 'select_employee_attendance' %}" class="btn btn-light border">
-    <i class="bi bi-person-plus-fill me-2"></i>Individual davomat
+    <i class="bi bi-person-plus-fill me-2"></i>{% trans "Individual davomat" %}
   </a>
   <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary">
-    <i class="bi bi-journal-check me-1"></i>Davomat ro'yxati
+    <i class="bi bi-journal-check me-1"></i>{% trans "Davomat ro'yxati" %}
   </a>
 </div>
 
 {% if is_restricted_day %}
 <div class="alert alert-info border-0 mb-3 py-2 small">
-  <i class="bi bi-info-circle me-2"></i>Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun davomat kuzatiladi.
+  <i class="bi bi-info-circle me-2"></i>{% blocktrans %}Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun davomat kuzatiladi.{% endblocktrans %}
 </div>
 {% endif %}
 
 <div class="row g-4 mb-4 app-stagger">
   <div class="col-lg-4 col-md-6">
     <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-calendar-check me-2"></i>Bugungi davomat</div>
+      <div class="app-stat-card-head"><i class="bi bi-calendar-check me-2"></i>{% trans "Bugungi davomat" %}</div>
       <div class="app-stat-card-body text-center">
         <div class="app-stat-number">{{ attendance_today.count }}</div>
-        <p class="text-muted small mb-3">Jami yozuvlar</p>
+        <p class="text-muted small mb-3">{% trans "Jami yozuvlar" %}</p>
         <div class="d-flex flex-wrap justify-content-center gap-1">
           {% for item in stats_today %}
           <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
             {{ item.label }}: {{ item.count }}
           </span>
           {% empty %}
-          <p class="text-muted small mb-0 w-100">Bugun uchun yozuv yo'q</p>
+          <p class="text-muted small mb-0 w-100">{% trans "Bugun uchun yozuv yo'q" %}</p>
           {% endfor %}
         </div>
       </div>
@@ -41,7 +45,7 @@
 
   <div class="col-lg-4 col-md-6">
     <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-calendar-week me-2"></i>Haftalik davomat</div>
+      <div class="app-stat-card-head"><i class="bi bi-calendar-week me-2"></i>{% trans "Haftalik davomat" %}</div>
       <div class="app-stat-card-body text-center">
         <div class="app-stat-number">{{ week_total }}</div>
         <p class="text-muted small mb-3">{{ week_start|date:"d.m" }} — {{ today_date|date:"d.m.Y" }}</p>
@@ -51,7 +55,7 @@
             {{ item.label }}: {{ item.count }}
           </span>
           {% empty %}
-          <p class="text-muted small mb-0 w-100">Bu hafta yozuv yo'q</p>
+          <p class="text-muted small mb-0 w-100">{% trans "Bu hafta yozuv yo'q" %}</p>
           {% endfor %}
         </div>
       </div>
@@ -60,11 +64,11 @@
 
   <div class="col-lg-4 col-md-12">
     <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-person-x me-2"></i>Kiritilmaganlar</div>
+      <div class="app-stat-card-head"><i class="bi bi-person-x me-2"></i>{% trans "Kiritilmaganlar" %}</div>
       <div class="app-stat-card-body">
         <div class="text-center mb-3">
           <div class="app-stat-number text-danger">{{ not_filled|length }}</div>
-          <p class="text-muted small">Davomat kiritilmagan</p>
+          <p class="text-muted small">{% trans "Davomat kiritilmagan" %}</p>
         </div>
         {% for emp in not_filled %}
         <div class="d-flex align-items-center gap-2 mb-2 small">
@@ -73,7 +77,7 @@
         </div>
         {% empty %}
         <div class="alert alert-success border-0 mb-0 py-2 small">
-          <i class="bi bi-check-circle-fill me-2"></i>Hamma uchun kiritilgan
+          <i class="bi bi-check-circle-fill me-2"></i>{% trans "Hamma uchun kiritilgan" %}
         </div>
         {% endfor %}
       </div>
@@ -84,16 +88,16 @@
 <div class="row g-4 mb-4">
   <div class="col-lg-12">
     <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-trophy me-2"></i>Top xodimlar (30 kun)</div>
+      <div class="app-stat-card-head"><i class="bi bi-trophy me-2"></i>{% trans "Top xodimlar (30 kun)" %}</div>
       <div class="app-stat-card-body">
         <ol class="list-unstyled mb-0">
           {% for emp in best_employees %}
           <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
             <span>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
-            <span class="badge bg-success rounded-pill">{{ emp.present_count }} kun</span>
+            <span class="badge bg-success rounded-pill">{% blocktrans with days=emp.present_count %}{{ days }} kun{% endblocktrans %}</span>
           </li>
           {% empty %}
-          <p class="text-muted small mb-0">Ma'lumot yo'q</p>
+          <p class="text-muted small mb-0">{% trans "Ma'lumot yo'q" %}</p>
           {% endfor %}
         </ol>
       </div>
@@ -102,22 +106,22 @@
 </div>
 
 <div class="app-panel app-reveal-on-scroll">
-  <div class="app-panel-header"><i class="bi bi-lightning-charge me-2"></i>Tezkor havolalar</div>
+  <div class="app-panel-header"><i class="bi bi-lightning-charge me-2"></i>{% trans "Tezkor havolalar" %}</div>
   <div class="app-panel-body">
     <div class="row g-4">
       <div class="col-md-6">
         <div class="app-quick-links list-group list-group-flush">
           <a href="{% url 'attendance_list' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-journal-check me-2"></i>Davomat ro'yxati <i class="bi bi-chevron-right float-end"></i>
+            <i class="bi bi-journal-check me-2"></i>{% trans "Davomat ro'yxati" %} <i class="bi bi-chevron-right float-end"></i>
           </a>
           <a href="{% url 'attendance_statistics' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-bar-chart-line me-2"></i>Statistika <i class="bi bi-chevron-right float-end"></i>
+            <i class="bi bi-bar-chart-line me-2"></i>{% trans "Statistika" %} <i class="bi bi-chevron-right float-end"></i>
           </a>
           <a href="{% url 'employee_list' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-people me-2"></i>Xodimlar <i class="bi bi-chevron-right float-end"></i>
+            <i class="bi bi-people me-2"></i>{% trans "Xodimlar" %} <i class="bi bi-chevron-right float-end"></i>
           </a>
           <a href="{% url 'salary_statistics' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-cash-coin me-2"></i>Oylik statistika <i class="bi bi-chevron-right float-end"></i>
+            <i class="bi bi-cash-coin me-2"></i>{% trans "Oylik statistika" %} <i class="bi bi-chevron-right float-end"></i>
           </a>
         </div>
       </div>
@@ -126,19 +130,19 @@
           <div class="col-4">
             <div class="p-3 rounded-3 bg-light">
               <div class="fs-3 fw-bold text-primary">{{ today_date|date:"d" }}</div>
-              <small class="text-muted">Kun</small>
+              <small class="text-muted">{% trans "Kun" %}</small>
             </div>
           </div>
           <div class="col-4">
             <div class="p-3 rounded-3 bg-light">
               <div class="fs-3 fw-bold text-success">{{ attendance_today.count }}</div>
-              <small class="text-muted">Bugun</small>
+              <small class="text-muted">{% trans "Bugun" %}</small>
             </div>
           </div>
           <div class="col-4">
             <div class="p-3 rounded-3 bg-light">
               <div class="fs-3 fw-bold text-danger">{{ not_filled|length }}</div>
-              <small class="text-muted">Qolgan</small>
+              <small class="text-muted">{% trans "Qolgan" %}</small>
             </div>
           </div>
         </div>

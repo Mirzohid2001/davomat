@@ -1,11 +1,14 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomat formasi{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Davomat formasi" %}{% endblock %}
 
 {% block content %}
+{% trans "Davomatni tahrirlash" as edit_title %}
+{% trans "Davomat qo'shish" as add_title %}
 {% if record %}
-{% include 'attendance/partials/page_hero.html' with title="Davomatni tahrirlash" icon="bi-pencil-square" %}
+{% include 'attendance/partials/page_hero.html' with title=edit_title icon="bi-pencil-square" %}
 {% else %}
-{% include 'attendance/partials/page_hero.html' with title="Davomat qo'shish" icon="bi-calendar-plus" %}
+{% include 'attendance/partials/page_hero.html' with title=add_title icon="bi-calendar-plus" %}
 {% endif %}
 
 <div class="app-form-panel">
@@ -21,8 +24,8 @@
         </div>
         {% endfor %}
         <div class="d-grid gap-2 d-md-flex mt-3">
-          <button class="btn btn-success" type="submit">Saqlash</button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+          <button class="btn btn-success" type="submit">{% trans "Saqlash" %}</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
         </div>
       </form>
     </div>

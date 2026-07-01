@@ -33,13 +33,10 @@
   .navbar-premium .navbar-brand {
     font-size: 1rem;
     max-width: calc(100vw - 4.5rem);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
-  .navbar-premium .navbar-brand .fs-6 {
-    display: none;
+  .navbar-brand-text {
+    font-size: 0.95rem;
   }
 
   .navbar-premium .nav-link {

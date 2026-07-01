@@ -140,6 +140,16 @@ class NewEmployeeTests(TestCase):
         stat = MonthlyEmployeeStat.objects.get(employee=emp, year=2026, month=4)
         self.assertEqual(stat.salary, Decimal("0"))
 
+    def test_get_full_name_with_middle_name(self):
+        emp = Employee.objects.create(
+            first_name="Mirzohid",
+            last_name="Kenjayev",
+            middle_name="Xasanovich",
+            position="Test",
+            employee_type="full",
+        )
+        self.assertEqual(emp.get_full_name(), "Kenjayev Mirzohid Xasanovich")
+
     def test_full_flow_hire_date_and_worked_days_reflect_in_stats(self):
         """Kelgan kunlar → davomat → oylik statistikada worked_days mos kelishi."""
         emp = Employee.objects.create(
@@ -200,6 +210,7 @@ class EmployeeCreateViewTests(TestCase):
             {
                 "first_name": "Yangi",
                 "last_name": "Xodim",
+                "middle_name": "Testovich",
                 "position": "Haydovchi",
                 "department": "Zavod",
                 "location": "factory",
@@ -215,6 +226,7 @@ class EmployeeCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
         emp = Employee.objects.get(last_name="Xodim", first_name="Yangi")
+        self.assertEqual(emp.middle_name, "Testovich")
         self.assertEqual(emp.hire_date, date(2026, 3, 10))
         self.assertEqual(
             Attendance.objects.filter(employee=emp, status="present").count(), 5
@@ -228,6 +240,21 @@ class EmployeeCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Ishga kirgan sana")
         self.assertContains(response, "Kelgan kunlar soni")
+        self.assertContains(response, "Otchestvasi")
+
+    def test_language_switch_to_russian(self):
+        response = self.client.post(
+            reverse("set_language"),
+            {"language": "ru", "next": reverse("employee_create")},
+        )
+        self.assertEqual(response.status_code, 302)
+        response = self.client.get(reverse("employee_create"))
+        self.assertContains(response, "Отчество")
+
+    def test_language_switch_dayoff_list_russian(self):
+        self.client.post(reverse("set_language"), {"language": "ru", "next": reverse("dayoff_list")})
+        response = self.client.get(reverse("dayoff_list"))
+        self.assertContains(response, "Выходные дни")
 
     def test_employee_list_shows_hire_date(self):
         Employee.objects.create(
@@ -273,6 +300,39 @@ class EmployeeCreateViewTests(TestCase):
         response = self.client.get(reverse("employee_list_export"), {"q": "Top"})
         self.assertEqual(response.status_code, 200)
         self.assertGreater(len(response.content), 500)
+
+    def test_employee_list_filters_by_department_and_status(self):
+        Employee.objects.create(
+            first_name="Ali",
+            last_name="Zavod",
+            position="Operator",
+            department="Zavod",
+            employee_type="full",
+            is_active=True,
+        )
+        Employee.objects.create(
+            first_name="Vali",
+            last_name="Ofis",
+            position="Menejer",
+            department="Ofis",
+            employee_type="office",
+            is_active=False,
+        )
+        response = self.client.get(
+            reverse("employee_list"),
+            {"department": "Zavod", "status": "active"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ali")
+        self.assertContains(response, "Zavod")
+        self.assertNotContains(response, ">Vali<")
+
+        response = self.client.get(
+            reverse("employee_list"),
+            {"status": "inactive"},
+        )
+        self.assertContains(response, "Vali")
+        self.assertNotContains(response, ">Ali<")
 
 
 class BulkAttendanceViewTests(TestCase):

@@ -1,7 +1,8 @@
 {% extends 'attendance/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Davomat kiritish - {{ employee }}{% endblock %}
+{% block title %}{% trans "Davomat kiritish" %} - {{ employee }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -111,7 +112,10 @@
 {% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Individual davomat" subtitle="Kunlik holatni kiriting" icon="bi-person-check" meta=date_val|date:"d.m.Y" meta_label="Sana" %}
+{% trans "Individual davomat" as page_title %}
+{% trans "Kunlik holatni kiriting" as indiv_subtitle %}
+{% trans "Sana" as sana_label %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=indiv_subtitle icon="bi-person-check" meta=date_val|date:"d.m.Y" meta_label=sana_label %}
 <p class="mb-3 fw-semibold">{{ employee.last_name }} {{ employee.first_name }}</p>
 
 <div class="mb-3">
@@ -130,12 +134,12 @@
     {% if restricted_day and employee.role == 'nalivshik' %}
         <div class="alert alert-info">
             <i class="bi bi-info-circle"></i>
-            Yakshanba/yopiq kun — nalivshik smenasi bo'yicha davomat kiritiladi.
+            {% trans "Yakshanba/yopiq kun — nalivshik smenasi bo'yicha davomat kiritiladi." %}
         </div>
     {% elif dayoff %}
         <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle"></i>
-            Bu sana dam olish kuni: {{ dayoff.reason }}
+            {% trans "Bu sana dam olish kuni:" %} {{ dayoff.reason }}
         </div>
     {% endif %}
     
@@ -143,9 +147,9 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <strong>Sana:</strong> {{ date_val|date:"d.m.Y" }} 
+                    <strong>{% trans "Sana:" %}</strong> {{ date_val|date:"d.m.Y" }} 
                     <a href="?date={{ date_val|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary ms-2">
-                        <i class="fas fa-calendar"></i> Sanani o'zgartirish
+                        <i class="fas fa-calendar"></i> {% trans "Sanani o'zgartirish" %}
                     </a>
                 </div>
             </div>
@@ -157,16 +161,16 @@
                 <input type="hidden" name="date" value="{{ date_val|date:'Y-m-d' }}">
                 
                 <div class="mb-3">
-                    <label for="id_status" class="form-label">Davomat holati:</label>
+                    <label for="id_status" class="form-label">{% trans "Davomat holati:" %}</label>
                     <select name="status" id="id_status" class="form-select" required>
-                        <option value="">-- Tanlang --</option>
-                        <option value="present" {% if form.instance.status == 'present' %}selected{% endif %}>Keldi</option>
-                        <option value="absent" {% if form.instance.status == 'absent' %}selected{% endif %}>Kelmagan</option>
-                        <option value="late" {% if form.instance.status == 'late' %}selected{% endif %}>Kechikdi</option>
-                        <option value="vacation" {% if form.instance.status == 'vacation' %}selected{% endif %}>Ta'til</option>
-                        <option value="sick" {% if form.instance.status == 'sick' %}selected{% endif %}>Kasal</option>
-                        <option value="business" {% if form.instance.status == 'business' %}selected{% endif %}>Ish safarida</option>
-                        <option value="offday" {% if form.instance.status == 'offday' %}selected{% endif %}>Ish kuni emas</option>
+                        <option value="">{% trans "-- Tanlang --" %}</option>
+                        <option value="present" {% if form.instance.status == 'present' %}selected{% endif %}>{% trans "Keldi" %}</option>
+                        <option value="absent" {% if form.instance.status == 'absent' %}selected{% endif %}>{% trans "Kelmagan" %}</option>
+                        <option value="late" {% if form.instance.status == 'late' %}selected{% endif %}>{% trans "Kechikdi" %}</option>
+                        <option value="vacation" {% if form.instance.status == 'vacation' %}selected{% endif %}>{% trans "Ta'til" %}</option>
+                        <option value="sick" {% if form.instance.status == 'sick' %}selected{% endif %}>{% trans "Kasal" %}</option>
+                        <option value="business" {% if form.instance.status == 'business' %}selected{% endif %}>{% trans "Ish safarida" %}</option>
+                        <option value="offday" {% if form.instance.status == 'offday' %}selected{% endif %}>{% trans "Ish kuni emas" %}</option>
                     </select>
                     {% if form.status.errors %}
                         <div class="text-danger">{{ form.status.errors }}</div>
@@ -174,7 +178,7 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="id_comment" class="form-label">Izoh/sabab:</label>
+                    <label for="id_comment" class="form-label">{% trans "Izoh/sabab:" %}</label>
                     <textarea name="comment" id="id_comment" class="form-control" rows="3">{{ form.instance.comment }}</textarea>
                     {% if form.comment.errors %}
                         <div class="text-danger">{{ form.comment.errors }}</div>
@@ -183,12 +187,12 @@
                 
                 <div class="d-flex justify-content-between">
                     <div>
-                        <button type="submit" class="btn btn-primary">Saqlash</button>
-                        <a href="{% url 'select_employee_attendance' %}" class="btn btn-secondary">Boshqa xodim</a>
+                        <button type="submit" class="btn btn-primary">{% trans "Saqlash" %}</button>
+                        <a href="{% url 'select_employee_attendance' %}" class="btn btn-secondary">{% trans "Boshqa xodim" %}</a>
                     </div>
                     <div>
                         <button type="submit" name="next_action" value="next_employee" class="btn btn-success">
-                            Saqlash va keyingi xodimga o'tish
+                            {% trans "Saqlash va keyingi xodimga o'tish" %}
                         </button>
                     </div>
                 </div>
@@ -223,14 +227,14 @@
         form.addEventListener('submit', function(e) {
             if (statusSelect.value === '') {
                 e.preventDefault();
-                alert('Iltimos, davomat holatini tanlang!');
+                alert('{% trans 'Iltimos, davomat holatini tanlang!' %}');
                 return false;
             }
             
             const selectedStatus = statusSelect.value;
             if (['absent', 'sick', 'vacation'].includes(selectedStatus) && !commentField.value.trim()) {
                 e.preventDefault();
-                alert('Iltimos, izoh/sabab kiriting!');
+                alert('{% trans 'Iltimos, izoh/sabab kiriting!' %}');
                 commentField.focus();
                 return false;
             }

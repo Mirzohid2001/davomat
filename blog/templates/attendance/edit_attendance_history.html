@@ -1,5 +1,6 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomat tahrirlash{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Davomat tahrirlash" %}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -106,27 +107,29 @@
 {% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Davomat tahrirlash" subtitle="Tarixdagi yozuvlarni qidirish va o'zgartirish" icon="bi-pencil-square" %}
+{% trans "Davomat tahrirlash" as page_title %}
+{% trans "Tarixdagi yozuvlarni qidirish va o'zgartirish" as edit_hist_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=edit_hist_subtitle icon="bi-pencil-square" %}
 
 <div class="app-toolbar mb-3">
-  <a href="{% url 'attendance_statistics' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Orqaga</a>
+  <a href="{% url 'attendance_statistics' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Orqaga" %}</a>
 </div>
 
 <div class="app-filter-card mb-4">
-    <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> Filtrlash</div>
+    <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> {% trans "Filtrlash" %}</div>
         <form class="row g-3 align-items-end" method="get">
             <div class="col-md-3">
-                <label class="form-label">Sana dan:</label>
+                <label class="form-label">{% trans "Sana dan:" %}</label>
                 <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Sana gacha:</label>
+                <label class="form-label">{% trans "Sana gacha:" %}</label>
                 <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Xodim:</label>
+                <label class="form-label">{% trans "Xodim:" %}</label>
                 <select name="employee" class="form-select">
-                    <option value="">Barcha xodimlar</option>
+                    <option value="">{% trans "Barcha xodimlar" %}</option>
                     {% for emp in employees %}
                     <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
                         {{ emp.last_name }} {{ emp.first_name }}
@@ -135,9 +138,9 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Bo'lim:</label>
+                <label class="form-label">{% trans "Bo'lim:" %}</label>
                 <select name="department" class="form-select">
-                    <option value="">Barcha bo'limlar</option>
+                    <option value="">{% trans "Barcha bo'limlar" %}</option>
                     {% for dept in departments %}
                     <option value="{{ dept }}" {% if selected_department == dept %}selected{% endif %}>
                         {{ dept }}
@@ -147,10 +150,10 @@
             </div>
             <div class="col-12">
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search me-2"></i>Qidirish
+                    <i class="bi bi-search me-2"></i>{% trans "Qidirish" %}
                 </button>
                 <a href="{% url 'edit_attendance_history' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+                    <i class="bi bi-arrow-clockwise me-2"></i>{% trans "Tozalash" %}
                 </a>
             </div>
         </form>
@@ -158,8 +161,8 @@
 
 <div class="app-panel">
     <div class="app-panel-header">
-        <i class="bi bi-calendar-check me-2"></i>Davomat ma'lumotlari
-        <span class="badge bg-primary ms-2">{{ attendances|length }} ta</span>
+        <i class="bi bi-calendar-check me-2"></i>{% trans "Davomat ma'lumotlari" %}
+        <span class="badge bg-primary ms-2">{{ attendances|length }} {% trans "ta" %}</span>
     </div>
     <div class="app-panel-body">
         {% if attendances %}
@@ -172,11 +175,11 @@
                     <thead>
                         <tr>
                             <th width="5%">#</th>
-                            <th width="15%">Sana</th>
-                            <th width="20%">Xodim</th>
-                            <th width="15%">Holat</th>
-                            <th width="30%">Izoh</th>
-                            <th width="10%">O'chirish</th>
+                            <th width="15%">{% trans "Sana" %}</th>
+                            <th width="20%">{% trans "Xodim" %}</th>
+                            <th width="15%">{% trans "Holat" %}</th>
+                            <th width="30%">{% trans "Izoh" %}</th>
+                            <th width="10%">{% trans "O'chirish" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -222,16 +225,16 @@
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <div>
                     <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle me-2"></i>Saqlash
+                        <i class="bi bi-check-circle me-2"></i>{% trans "Saqlash" %}
                     </button>
                     <a href="{% url 'attendance_statistics' %}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle me-2"></i>Bekor qilish
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Bekor qilish" %}
                     </a>
                 </div>
                 <div class="text-muted">
                     <small>
                         <i class="bi bi-info-circle me-1"></i>
-                        O'chirish uchun checkbox'ni belgilang
+                        {% trans "O'chirish uchun checkbox'ni belgilang" %}
                     </small>
                 </div>
             </div>
@@ -239,10 +242,10 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-calendar-x display-1 text-muted"></i>
-            <h4 class="text-muted mt-3">Davomat ma'lumotlari topilmadi</h4>
-            <p class="text-muted">Filtrlash parametrlarini o'zgartiring yoki yangi davomat qo'shing</p>
+            <h4 class="text-muted mt-3">{% trans "Davomat ma'lumotlari topilmadi" %}</h4>
+            <p class="text-muted">{% trans "Filtrlash parametrlarini o'zgartiring yoki yangi davomat qo'shing" %}</p>
             <a href="{% url 'select_employee_attendance' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Yangi davomat
+                <i class="bi bi-plus-circle me-2"></i>{% trans "Yangi davomat" %}
             </a>
         </div>
         {% endif %}
@@ -260,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             const deleteCheckboxes = document.querySelectorAll('input[name$="-DELETE"]:checked');
             if (deleteCheckboxes.length > 0) {
-                if (!confirm(`${deleteCheckboxes.length} ta davomat yozuvini o'chirishni tasdiqlaysizmi?`)) {
+                if (!confirm(`${deleteCheckboxes.length} {% trans "ta davomat yozuvini o'chirishni tasdiqlaysizmi?" %}`) {
                     e.preventDefault();
                 }
             }

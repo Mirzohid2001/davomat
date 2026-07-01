@@ -1,8 +1,11 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomat export{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Davomat export" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Excel export" subtitle="Davomatni filtrlab yuklab olish" icon="bi-download" %}
+{% trans "Excel export" as page_title %}
+{% trans "Davomatni filtrlab yuklab olish" as export_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=export_subtitle icon="bi-download" %}
 
 <div class="app-form-panel" style="max-width:640px">
   <div class="app-panel">
@@ -11,36 +14,36 @@
         {% csrf_token %}
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label">Sana (dan)</label>
+            <label class="form-label">{% trans "Sana (dan)" %}</label>
             <input type="date" name="date_from" class="form-control" value="{{ start_of_month|date:'Y-m-d' }}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Sana (gacha)</label>
+            <label class="form-label">{% trans "Sana (gacha)" %}</label>
             <input type="date" name="date_to" class="form-control" value="{{ today|date:'Y-m-d' }}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Bo'lim</label>
+            <label class="form-label">{% trans "Bo'lim" %}</label>
             <select name="department" class="form-select">
-              <option value="">Hammasi</option>
+              <option value="">{% trans "Hammasi" %}</option>
               {% for dept in departments %}{% if dept %}<option value="{{ dept }}">{{ dept }}</option>{% endif %}{% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Holat</label>
+            <label class="form-label">{% trans "Holat" %}</label>
             <select name="status" class="form-select">
-              <option value="">Hammasi</option>
+              <option value="">{% trans "Hammasi" %}</option>
               {% for value, label in statuses %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="d-grid gap-2 d-md-flex">
-          <button class="btn btn-primary" type="submit"><i class="bi bi-download me-1"></i>Excel yuklash</button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Ortga</a>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-download me-1"></i>{% trans "Excel yuklash" %}</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">{% trans "Ortga" %}</a>
         </div>
       </form>
       <div class="alert alert-light border mt-4 mb-0 small">
         <i class="bi bi-info-circle text-primary me-1"></i>
-        Bo'sh filtrlar e'tiborsiz qolinadi.
+        {% trans "Bo'sh filtrlar e'tiborsiz qolinadi." %}
       </div>
     </div>
   </div>

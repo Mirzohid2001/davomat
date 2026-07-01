@@ -1,37 +1,37 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomatlar{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Davomatlar" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Davomatlar" subtitle="Kunlik davomat ro'yxati va filtrlash" icon="bi-journal-check" meta=today|date:"d.m.Y" meta_label="Tanlangan sana" %}
+{% trans "Davomatlar" as page_title %}
+{% trans "Kunlik davomat ro'yxati va filtrlash" as attendance_subtitle %}
+{% trans "Tanlangan sana" as selected_date_label %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=attendance_subtitle icon="bi-journal-check" meta=today|date:"d.m.Y" meta_label=selected_date_label %}
 
 <div class="app-toolbar mb-3">
   <a href="{% url 'select_employee_attendance' %}" class="btn btn-success">
-    <i class="bi bi-plus-circle me-1"></i>Yangi davomat
+    <i class="bi bi-plus-circle me-1"></i>{% trans "Yangi davomat" %}
   </a>
 </div>
 
 <div class="app-filter-card">
-  <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> Filtrlash</div>
+  <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> {% trans "Filtrlash" %}</div>
   <form class="row g-3 align-items-end" method="get">
     <div class="col-md-4">
-      <label for="date" class="form-label">Sana</label>
+      <label for="date" class="form-label">{% trans "Sana" %}</label>
       <input type="date" id="date" name="date" value="{{ today|date:'Y-m-d' }}" class="form-control">
     </div>
     <div class="col-md-5">
-      <label for="status" class="form-label">Holat</label>
+      <label for="status" class="form-label">{% trans "Holat" %}</label>
       <select name="status" id="status" class="form-select">
-        <option value="">Barcha holatlar</option>
-        <option value="present">Keldi</option>
-        <option value="late">Kechikdi</option>
-        <option value="absent">Kelmagan</option>
-        <option value="vacation">Ta'til</option>
-        <option value="sick">Kasal</option>
-        <option value="business">Ish safarida</option>
-        <option value="offday">Yopiq kun</option>
+        <option value="">{% trans "Barcha holatlar" %}</option>
+        {% for value, label in status_choices %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
       </select>
     </div>
     <div class="col-md-3">
-      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Qidirish</button>
+      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>{% trans "Qidirish" %}</button>
     </div>
   </form>
 </div>
@@ -42,13 +42,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Ismi</th>
-          <th>Familiyasi</th>
-          <th>Bo'limi</th>
-          <th>Lavozimi</th>
-          <th>Holat</th>
-          <th>Izoh</th>
-          <th>Amal</th>
+          <th>{% trans "Ismi" %}</th>
+          <th>{% trans "Familiyasi" %}</th>
+          <th>{% trans "Bo'limi" %}</th>
+          <th>{% trans "Lavozimi" %}</th>
+          <th>{% trans "Holat" %}</th>
+          <th>{% trans "Izoh" %}</th>
+          <th>{% trans "Amal" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -67,8 +67,8 @@
           <td class="small">{{ att.comment|default:"—" }}</td>
           <td>
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'attendance_update' att.id %}" class="btn btn-outline-warning" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
-              <a href="{% url 'attendance_delete' att.id %}" class="btn btn-outline-danger" title="O'chirish"><i class="bi bi-trash"></i></a>
+              <a href="{% url 'attendance_update' att.id %}" class="btn btn-outline-warning" title="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'attendance_delete' att.id %}" class="btn btn-outline-danger" title="{% trans "O'chirish" %}"><i class="bi bi-trash"></i></a>
             </div>
           </td>
         </tr>
@@ -76,7 +76,10 @@
         <tr>
           <td colspan="8" class="border-0">
             {% url 'select_employee_attendance' as sel_url %}
-            {% include 'attendance/partials/empty_state.html' with title="Davomat topilmadi" text="Boshqa sana yoki filtrni tanlang." action_url=sel_url action_label="Yangi davomat" %}
+            {% trans "Davomat topilmadi" as empty_title %}
+            {% trans "Boshqa sana yoki filtrni tanlang." as empty_text %}
+            {% trans "Yangi davomat" as empty_action %}
+            {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text action_url=sel_url action_label=empty_action %}
           </td>
         </tr>
         {% endfor %}
@@ -100,13 +103,16 @@
       {% if att.comment %}<span><i class="bi bi-chat-left-text me-1"></i>{{ att.comment }}</span>{% endif %}
     </div>
     <div class="app-mobile-card__actions">
-      <a href="{% url 'attendance_update' att.id %}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i> Tahrirlash</a>
-      <a href="{% url 'attendance_delete' att.id %}" class="btn btn-outline-danger"><i class="bi bi-trash"></i> O'chirish</a>
+      <a href="{% url 'attendance_update' att.id %}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i> {% trans "Tahrirlash" %}</a>
+      <a href="{% url 'attendance_delete' att.id %}" class="btn btn-outline-danger"><i class="bi bi-trash"></i> {% trans "O'chirish" %}</a>
     </div>
   </div>
   {% empty %}
   {% url 'select_employee_attendance' as sel_url %}
-  {% include 'attendance/partials/empty_state.html' with title="Davomat topilmadi" text="Boshqa sana yoki filtrni tanlang." action_url=sel_url action_label="Yangi davomat" %}
+  {% trans "Davomat topilmadi" as empty_title %}
+  {% trans "Boshqa sana yoki filtrni tanlang." as empty_text %}
+  {% trans "Yangi davomat" as empty_action %}
+  {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text action_url=sel_url action_label=empty_action %}
   {% endfor %}
 </div>
 {% endblock %}

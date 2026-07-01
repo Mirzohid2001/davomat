@@ -1,32 +1,35 @@
 {% extends 'attendance/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{{ employee.first_name }} {{ employee.last_name }} - Individual Statistika{% endblock %}
+{% block title %}{{ employee.first_name }} {{ employee.last_name }} - {% trans "Individual Statistika" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Xodim statistikasi" subtitle="Individual davomat tahlili" icon="bi-graph-up" %}
+{% trans "Xodim statistikasi" as page_title %}
+{% trans "Individual davomat tahlili" as ind_stats_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=ind_stats_subtitle icon="bi-graph-up" %}
 <p class="mb-3 fw-semibold">{{ employee.last_name }} {{ employee.first_name }}</p>
 
 <div class="app-panel mb-4">
   <div class="app-panel-body">
     <div class="row align-items-center g-3 mb-3">
       <div class="col-md-4 text-center">
-        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary w-100">← Oldingi oy</a>
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary w-100">← {% trans "Oldingi oy" %}</a>
       </div>
       <div class="col-md-4 text-center">
-        <h2 class="h4 fw-bold text-primary mb-0">{{ year }} · {{ month }}-oy</h2>
+        <h2 class="h4 fw-bold text-primary mb-0">{{ year }} · {{ month }}-{% trans "oy" %}</h2>
       </div>
       <div class="col-md-4 text-center">
-        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary w-100">Keyingi oy →</a>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary w-100">{% trans "Keyingi oy" %} →</a>
       </div>
     </div>
     <form method="get" class="row g-3 align-items-end border-top pt-3">
       <div class="col-md-4">
-        <label class="form-label">Yil</label>
+        <label class="form-label">{% trans "Yil" %}</label>
         <input type="number" name="year" value="{{ year }}" class="form-control" min="2020" max="2030">
       </div>
       <div class="col-md-4">
-        <label class="form-label">Oy</label>
+        <label class="form-label">{% trans "Oy" %}</label>
         <select name="month" class="form-select">
           {% for m in months %}
           <option value="{{ m.0 }}" {% if m.0 == month %}selected{% endif %}>{{ m.1 }}</option>
@@ -34,7 +37,7 @@
         </select>
       </div>
       <div class="col-md-4">
-        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Ko'rsatish</button>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>{% trans "Ko'rsatish" %}</button>
       </div>
     </form>
   </div>
@@ -49,7 +52,7 @@
                             <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-success">{{ stats.present }}</h3>
-                        <p class="fs-5 text-muted">Keldi</p>
+                        <p class="fs-5 text-muted">{% trans "Keldi" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-success" style="width: {{ stats.present_percentage }}%"></div>
                         </div>
@@ -64,7 +67,7 @@
                             <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
-                        <p class="fs-5 text-muted">Kelmadi</p>
+                        <p class="fs-5 text-muted">{% trans "Kelmadi" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-danger" style="width: {{ stats.absent_percentage }}%"></div>
                         </div>
@@ -79,7 +82,7 @@
                             <i class="bi bi-clock-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-warning">{{ stats.late }}</h3>
-                        <p class="fs-5 text-muted">Kechikdi</p>
+                        <p class="fs-5 text-muted">{% trans "Kechikdi" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-warning" style="width: {{ stats.late_percentage }}%"></div>
                         </div>
@@ -94,7 +97,7 @@
                             <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
-                        <p class="fs-5 text-muted">Kasal</p>
+                        <p class="fs-5 text-muted">{% trans "Kasal" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-info" style="width: {{ stats.sick_percentage }}%"></div>
                         </div>
@@ -113,7 +116,7 @@
                             <i class="bi bi-umbrella-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-primary">{{ stats.vacation }}</h3>
-                        <p class="fs-5 text-muted">Ta'til</p>
+                        <p class="fs-5 text-muted">{% trans "Ta'til" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-primary" style="width: {{ stats.vacation_percentage }}%"></div>
                         </div>
@@ -128,7 +131,7 @@
                             <i class="bi bi-airplane-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-success">{{ stats.business }}</h3>
-                        <p class="fs-5 text-muted">Ish safari</p>
+                        <p class="fs-5 text-muted">{% trans "Ish safari" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-success" style="width: {{ stats.business_percentage }}%"></div>
                         </div>
@@ -143,7 +146,7 @@
                             <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
-                        <p class="fs-5 text-muted">Yakshanba</p>
+                        <p class="fs-5 text-muted">{% trans "Yakshanba" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-warning" style="width: {{ stats.sunday_percentage }}%"></div>
                         </div>
@@ -158,7 +161,7 @@
                             <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-secondary">{{ stats.unknown }}</h3>
-                        <p class="fs-5 text-muted">Ma'lumot yo'q</p>
+                        <p class="fs-5 text-muted">{% trans "Ma'lumot yo'q" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-secondary" style="width: {{ stats.unknown_percentage }}%"></div>
                         </div>
@@ -174,7 +177,7 @@
                 <div class="card border-0 shadow">
                     <div class="card-header bg-info text-white">
                         <h4 class="card-title mb-0 text-center">
-                            <i class="bi bi-graph-up"></i> Umumiy Ma'lumotlar
+                            <i class="bi bi-graph-up"></i> {% trans "Umumiy Ma'lumotlar" %}
                         </h4>
                     </div>
                     <div class="card-body">
@@ -182,13 +185,13 @@
                             <div class="col-md-3 text-center">
                                 <div class="p-3 bg-light rounded">
                                     <h5 class="text-primary">{{ stats.total_days }}</h5>
-                                    <p class="text-muted mb-0">Jami kunlar</p>
+                                    <p class="text-muted mb-0">{% trans "Jami kunlar" %}</p>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="p-3 bg-light rounded">
                                     <h5 class="text-success">{{ stats.working_days }}</h5>
-                                    <p class="text-muted mb-0">Ishchi kunlar</p>
+                                    <p class="text-muted mb-0">{% trans "Ishchi kunlar" %}</p>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center">
@@ -200,7 +203,7 @@
                             <div class="col-md-3 text-center">
                                 <div class="p-3 bg-light rounded">
                                     <h5 class="text-info">{{ stats.dayoff }}</h5>
-                                    <p class="text-muted mb-0">Yopiq kunlar</p>
+                                    <p class="text-muted mb-0">{% trans "Yopiq kunlar" %}</p>
                                 </div>
                             </div>
                         </div>
@@ -215,7 +218,7 @@
                 <div class="card border-0 shadow">
                     <div class="card-header bg-primary text-white">
                         <h4 class="card-title mb-0 text-center">
-                            <i class="bi bi-calendar3"></i> Kunlik Davomat Jadvali
+                            <i class="bi bi-calendar3"></i> {% trans "Kunlik Davomat Jadvali" %}
                         </h4>
                     </div>
                     <div class="card-body">
@@ -223,10 +226,10 @@
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Sana</th>
-                                        <th>Hafta kuni</th>
-                                        <th>Holat</th>
-                                        <th>Izoh</th>
+                                        <th>{% trans "Sana" %}</th>
+                                        <th>{% trans "Hafta kuni" %}</th>
+                                        <th>{% trans "Holat" %}</th>
+                                        <th>{% trans "Izoh" %}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -235,12 +238,12 @@
                                             <td>{{ day_data.date|date:"d.m.Y" }}</td>
                                             <td>
                                                 {% if day_data.date.weekday == 0 %}Dushanba
-                                                {% elif day_data.date.weekday == 1 %}Seshanba
-                                                {% elif day_data.date.weekday == 2 %}Chorshanba
-                                                {% elif day_data.date.weekday == 3 %}Payshanba
-                                                {% elif day_data.date.weekday == 4 %}Juma
-                                                {% elif day_data.date.weekday == 5 %}Shanba
-                                                {% elif day_data.date.weekday == 6 %}Yakshanba
+                                                {% elif day_data.date.weekday == 1 %}{% trans "Seshanba" %}
+                                                {% elif day_data.date.weekday == 2 %}{% trans "Chorshanba" %}
+                                                {% elif day_data.date.weekday == 3 %}{% trans "Payshanba" %}
+                                                {% elif day_data.date.weekday == 4 %}{% trans "Juma" %}
+                                                {% elif day_data.date.weekday == 5 %}{% trans "Shanba" %}
+                                                {% elif day_data.date.weekday == 6 %}{% trans "Yakshanba" %}
                                                 {% endif %}
                                             </td>
                                             <td>
@@ -254,15 +257,15 @@
                                                     {% elif day_data.status == 'sunday' %}bg-warning
                                                     {% elif day_data.status == 'dayoff' %}bg-secondary
                                                     {% else %}bg-secondary{% endif %}">
-                                                    {% if day_data.status == 'present' %}Keldi
-                                                    {% elif day_data.status == 'absent' %}Kelmadi
-                                                    {% elif day_data.status == 'late' %}Kechikdi
-                                                    {% elif day_data.status == 'sick' %}Kasal
-                                                    {% elif day_data.status == 'vacation' %}Ta'til
-                                                    {% elif day_data.status == 'business' %}Ish safari
-                                                    {% elif day_data.status == 'sunday' %}Yakshanba
-                                                    {% elif day_data.status == 'dayoff' %}Yopiq kun
-                                                    {% else %}Ma'lumot yo'q{% endif %}
+                                                    {% if day_data.status == 'present' %}{% trans "Keldi" %}
+                                                    {% elif day_data.status == 'absent' %}{% trans "Kelmadi" %}
+                                                    {% elif day_data.status == 'late' %}{% trans "Kechikdi" %}
+                                                    {% elif day_data.status == 'sick' %}{% trans "Kasal" %}
+                                                    {% elif day_data.status == 'vacation' %}{% trans "Ta'til" %}
+                                                    {% elif day_data.status == 'business' %}{% trans "Ish safari" %}
+                                                    {% elif day_data.status == 'sunday' %}{% trans "Yakshanba" %}
+                                                    {% elif day_data.status == 'dayoff' %}{% trans "Yopiq kun" %}
+                                                    {% else %}{% trans "Ma'lumot yo'q" %}{% endif %}
                                                 </span>
                                             </td>
                                             <td>{{ day_data.comment|default:"-" }}</td>

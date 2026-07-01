@@ -1,22 +1,27 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Kelmagan kun kvotasi{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Kelmagan kun kvotasi" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Kelmagan kun kvotasi" subtitle="Oylik hisob bilan bir xil 21 kun kvota formulasi" icon="bi-calendar-minus" meta=year meta_label="Yil" %}
+{% trans "Kelmagan kun kvotasi" as page_title %}
+{% trans "Yil" as yil_label %}
+{% trans "Ma'lumot yo'q" as empty_title %}
+{% trans "Oylik hisob bilan bir xil 21 kun kvota formulasi" as quota_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=quota_subtitle icon="bi-calendar-minus" meta=year meta_label=yil_label %}
 
 <div class="app-toolbar mb-3">
   <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
     <input type="number" name="year" class="form-control" style="max-width:120px" value="{{ year }}" min="2000" max="2100">
     <select name="month" class="form-select" style="max-width:160px">
-      <option value="">Yil oxirigacha</option>
+      <option value="">{% trans "Yil oxirigacha" %}</option>
       {% for m, label in month_names %}
       <option value="{{ m }}" {% if month == m %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Ko'rsat</button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>{% trans "Ko'rsat" %}</button>
   </form>
   <a href="{% url 'absence_quota_export' %}?year={{ year }}{% if month %}&month={{ month }}{% endif %}" class="btn btn-success">
-    <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
+    <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}
   </a>
 </div>
 
@@ -26,16 +31,16 @@
       <thead>
         <tr>
           <th>№</th>
-          <th class="text-start">F.I.O</th>
-          <th>Lavozim</th>
-          <th>Oldingi oylar</th>
-          <th>Joriy oy</th>
-          <th>Yil boshidan jami</th>
-          <th>Kvotadan kechirilgan</th>
-          <th>Oylikka ta'sir</th>
-          <th>Kvotadan foydalangan</th>
-          <th>Qolgan</th>
-          <th>Limitdan ortiq</th>
+          <th class="text-start">{% trans "F.I.O" %}</th>
+          <th>{% trans "Lavozim" %}</th>
+          <th>{% trans "Oldingi oylar" %}</th>
+          <th>{% trans "Joriy oy" %}</th>
+          <th>{% trans "Yil boshidan jami" %}</th>
+          <th>{% trans "Kvotadan kechirilgan" %}</th>
+          <th>{% trans "Oylikka ta'sir" %}</th>
+          <th>{% trans "Kvotadan foydalangan" %}</th>
+          <th>{% trans "Qolgan" %}</th>
+          <th>{% trans "Limitdan ortiq" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -63,16 +68,16 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="11">{% include 'attendance/partials/empty_state.html' with title="Ma'lumot yo'q" %}</td></tr>
+        <tr><td colspan="11">{% include 'attendance/partials/empty_state.html' with title=empty_title %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   <div class="app-panel-body border-top small text-muted">
-    <strong>Formula (oylik hisob bilan bir xil):</strong>
-    yil boshidan {{ free_limit }} ta <code>absent</code> kvota beriladi.
-    Oldingi oylardagi kelmaganlar kvotadan ayiriladi; joriy oyda qolgan kvota <em>kechirilgan</em> deb ko'rsatiladi.
-    Ortiqcha kunlar <em>oylikka ta'sir</em> qiladi.
+    {% trans "Formula (oylik hisob bilan bir xil):" as formula_label %}<strong>{{ formula_label }}</strong>
+    yil boshidan {{ free_limit }} ta <code>absent</code> {% trans "kvota beriladi." %}
+    {% trans "Oldingi oylardagi kelmaganlar kvotadan ayiriladi; joriy oyda qolgan kvota kechirilgan deb ko'rsatiladi." %}
+    {% trans "Ortiqcha kunlar oylikka ta'sir qiladi." %}
   </div>
 </div>
 {% endblock %}

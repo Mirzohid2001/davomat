@@ -3,6 +3,7 @@ from calendar import monthrange
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
 
@@ -237,9 +238,9 @@ def is_restricted_attendance_date(for_date: date) -> bool:
 
 def get_restricted_day_reason(for_date: date) -> str:
     if for_date.weekday() == 6:
-        return "Yakshanba"
+        return str(_("Yakshanba"))
     dayoff = DayOff.objects.filter(date=for_date).first()
-    return dayoff.reason if dayoff else "Yopiq kun"
+    return dayoff.reason if dayoff else str(_("Yopiq kun"))
 
 
 def employee_can_attend_on_date(employee, for_date: date) -> bool:

@@ -1,8 +1,11 @@
 {% extends 'attendance/base.html' %}
-{% block title %}{% if form.instance.pk %}Yopiq kunni tahrirlash{% else %}Yangi yopiq kun{% endif %}{% endblock %}
+{% load i18n %}
+{% block title %}{% if form.instance.pk %}{% trans "Yopiq kunni tahrirlash" %}{% else %}{% trans "Yangi yopiq kun" %}{% endif %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Yopiq kun" subtitle="Sana va sababni kiriting" icon="bi-calendar-plus" %}
+{% trans "Yopiq kun" as page_title %}
+{% trans "Sana va sababni kiriting" as dayoff_form_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=dayoff_form_subtitle icon="bi-calendar-plus" %}
 
 <div class="app-form-panel">
   <div class="app-panel">
@@ -17,8 +20,8 @@
         </div>
         {% endfor %}
         <div class="d-grid gap-2 d-md-flex mt-3">
-          <button class="btn btn-success" type="submit">Saqlash</button>
-          <a href="{% url 'dayoff_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+          <button class="btn btn-success" type="submit">{% trans "Saqlash" %}</button>
+          <a href="{% url 'dayoff_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
         </div>
       </form>
     </div>

@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 def attendance_attachment_path(instance, filename):
@@ -31,38 +32,41 @@ class Team(models.Model):
 
 class Employee(models.Model):
     LOCATION_CHOICES = [
-        ('office', 'Ofis'),
-        ('factory', 'Zavod'),
-        ('remote', 'Masofaviy'),
-        ('field', 'Dala'),
-        ('other', 'Boshqa'),
+        ('office', _('Ofis')),
+        ('factory', _('Zavod')),
+        ('remote', _('Masofaviy')),
+        ('field', _('Dala')),
+        ('other', _('Boshqa')),
     ]
     EMPLOYEE_TYPE_CHOICES = [
-        ('full', 'To‘liq stavka'),
-        ('half', '15 kunlik/yarim stavka'),
-        ('office', 'Ofis xodimi (davomatsiz)'),
-        ('weekly', 'Haftada 1 kun (to‘liq stavka)'),
-        ('guard', 'Qorovul (oyda 10 kun)'),
+        ('full', _('To‘liq stavka')),
+        ('half', _('15 kunlik/smena')),
+        ('office', _('Ofis xodimi (davomatsiz)')),
+        ('weekly', _('Haftada 1 kun (to‘liq stavka)')),
+        ('guard', _('Qorovul (oyda 10 kun)')),
     ]
     ROLE_CHOICES = [
-        ('nalivshik', "Nalivshik"),
-        ('other', "Boshqa"),
+        ('production', _('Ishlab chiqarish xodimlari')),
+        ('boshqarma', _('Boshqarma xodimlari')),
+        ('nalivshik', _('Nalivshik')),
+        ('other', _('Boshqa')),
     ]
 
-    first_name = models.CharField("Ismi", max_length=64)
-    last_name = models.CharField("Familiyasi", max_length=64)
-    position = models.CharField("Lavozimi", max_length=128)
-    department = models.CharField("Bo'limi", max_length=128, blank=True, null=True)
-    location = models.CharField("Joylashuv", max_length=20, choices=LOCATION_CHOICES, default='office')
+    first_name = models.CharField(_("Ismi"), max_length=64)
+    last_name = models.CharField(_("Familiyasi"), max_length=64)
+    middle_name = models.CharField(_("Otchestvasi"), max_length=64, blank=True, default='')
+    position = models.CharField(_("Lavozimi"), max_length=128)
+    department = models.CharField(_("Bo'limi"), max_length=128, blank=True, null=True)
+    location = models.CharField(_("Joylashuv"), max_length=20, choices=LOCATION_CHOICES, default='office')
     phone_number = models.CharField(
         "Telefon raqami", max_length=20, blank=True, null=True,
         validators=[RegexValidator(
             regex=r"^\+?998\d{9}$",
-            message="Telefon raqamini to'g'ri (+998xxxxxxxxx) formatda kiriting."
+            message=_("Telefon raqamini to'g'ri (+998xxxxxxxxx) formatda kiriting.")
         )]
     )
-    is_active = models.BooleanField("Aktiv", default=True)
-    hire_date = models.DateField("Ishga kirgan sana", blank=True, null=True)
+    is_active = models.BooleanField(_("Aktiv"), default=True)
+    hire_date = models.DateField(_("Ishga kirgan sana"), blank=True, null=True)
     production_bonus_eligible = models.BooleanField(
         "Ishlab chiqarish premiyasiga mos",
         default=False,
@@ -70,15 +74,15 @@ class Employee(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    employee_type = models.CharField("Xodim turi", max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
-    role = models.CharField("Lavozim turi", max_length=32, choices=ROLE_CHOICES, default='other')
+    employee_type = models.CharField(_("Xodim turi"), max_length=10, choices=EMPLOYEE_TYPE_CHOICES, default='full')
+    role = models.CharField(_("Lavozim turi"), max_length=32, choices=ROLE_CHOICES, default='other')
     team = models.ForeignKey(
         Team,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name="employees",
-        verbose_name="Komanda",
+        verbose_name=_("Komanda"),
     )
 
     class Meta:
@@ -87,7 +91,13 @@ class Employee(models.Model):
         ordering = ['last_name', 'first_name']
 
     def __str__(self):
-        return f"{self.last_name} {self.first_name} ({self.position})"
+        return f"{self.get_full_name()} ({self.position})"
+
+    def get_full_name(self):
+        parts = [self.last_name, self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return " ".join(parts)
 
 
 class NalivshikShiftOverride(models.Model):
@@ -134,13 +144,13 @@ class DayOff(models.Model):
 
 class Attendance(models.Model):
     STATUS_CHOICES = [
-        ('present', "Keldi"),
-        ('absent', "Kelmagan"),
-        ('late', "Kechikdi"),
-        ('vacation', "Ta'til"),
-        ('sick', "Kasal"),
-        ('business', "Ish safarida"),
-        ('offday', "Ish kuni emas"),
+        ('present', _("Keldi")),
+        ('absent', _("Kelmagan")),
+        ('late', _("Kechikdi")),
+        ('vacation', _("Ta'til")),
+        ('sick', _("Kasal")),
+        ('business', _("Ish safarida")),
+        ('offday', _("Ish kuni emas")),
     ]
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendances', verbose_name="Xodim")
     date = models.DateField("Sana")

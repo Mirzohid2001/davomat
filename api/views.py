@@ -71,7 +71,7 @@ class SalaryStatisticsAPIView(APIView):
         for stat in stats:
             emp = stat.employee
             counts = attendance_map.get(emp.id, {})
-            full_name = f"{emp.last_name} {emp.first_name}".strip()
+            full_name = emp.get_full_name()
             data.append(
                 {
                     "worker_code": str(emp.id),

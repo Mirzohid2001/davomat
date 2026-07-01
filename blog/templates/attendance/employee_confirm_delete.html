@@ -1,21 +1,24 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Xodimni o'chirish{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Xodimni o'chirish" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Xodimni o'chirish" subtitle="Bu amalni qaytarib bo'lmaydi" icon="bi-trash" %}
+{% trans "Xodimni o'chirish" as page_title %}
+{% trans "Bu amalni qaytarib bo'lmaydi" as delete_warning %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=delete_warning icon="bi-trash" %}
 
 <div class="app-confirm-panel">
   <div class="app-panel">
     <div class="app-panel-body text-center">
       <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-3"></i>
       <div class="alert alert-warning border-0">
-        <strong>{{ employee.first_name }} {{ employee.last_name }}</strong> xodimini o'chirmoqchimisiz?
+        <strong>{{ employee.first_name }} {{ employee.last_name }}</strong> {% trans "xodimini o'chirmoqchimisiz?" %}
       </div>
       <p class="text-muted small">{{ employee.position }} · {{ employee.department }}</p>
       <form method="post" class="d-grid gap-2 d-md-flex justify-content-center mt-4">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>O'chirish</button>
-        <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>{% trans "O'chirish" %}</button>
+        <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
       </form>
     </div>
   </div>

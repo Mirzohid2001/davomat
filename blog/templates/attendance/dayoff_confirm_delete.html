@@ -1,8 +1,10 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Yopiq kunni o'chirish{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Yopiq kunni o'chirish" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Yopiq kunni o'chirish" icon="bi-trash" %}
+{% trans "Yopiq kunni o'chirish" as page_title %}
+{% include 'attendance/partials/page_hero.html' with title=page_title icon="bi-trash" %}
 
 <div class="app-confirm-panel">
   <div class="app-panel">
@@ -10,8 +12,8 @@
       <p class="mb-4"><strong>{{ day.date|date:"d.m.Y" }}</strong> — {{ day.reason }}</p>
       <form method="post" class="d-grid gap-2 d-md-flex justify-content-center">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">O'chirish</button>
-        <a href="{% url 'dayoff_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+        <button type="submit" class="btn btn-danger">{% trans "O'chirish" %}</button>
+        <a href="{% url 'dayoff_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
       </form>
     </div>
   </div>

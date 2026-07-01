@@ -1,11 +1,16 @@
 {% extends 'attendance/base.html' %}
-{% block title %}{% if is_create %}Yangi xodim{% else %}Xodimni tahrirlash{% endif %}{% endblock %}
+{% load i18n %}
+{% block title %}{% if is_create %}{% trans "Yangi xodim" %}{% else %}{% trans "Xodimni tahrirlash" %}{% endif %}{% endblock %}
 
 {% block content %}
 {% if is_create %}
-{% include 'attendance/partials/page_hero.html' with title="Yangi xodim" subtitle="Xodim ma'lumotlarini kiriting va saqlang" icon="bi-person-plus-fill" %}
+{% trans "Yangi xodim" as page_title %}
+{% trans "Xodim ma'lumotlarini kiriting va saqlang" as create_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=create_subtitle icon="bi-person-plus-fill" %}
 {% else %}
-{% include 'attendance/partials/page_hero.html' with title="Xodimni tahrirlash" subtitle="Ma'lumotlarni yangilang" icon="bi-person-badge" %}
+{% trans "Xodimni tahrirlash" as page_title %}
+{% trans "Ma'lumotlarni yangilang" as edit_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=edit_subtitle icon="bi-person-badge" %}
 {% endif %}
 
 <div class="app-form-panel">
@@ -14,8 +19,9 @@
       {% if is_create %}
       <div class="alert alert-info border-0 small mb-4">
         <i class="bi bi-info-circle me-2"></i>
-        Yangi xodim uchun <strong>kelgan kunlar</strong> majburiy. Oylik avtomatik <strong>0 so'm</strong> —
-        keyin <em>Oylik statistika</em>dan kiritasiz.
+        {% blocktrans %}Yangi xodim uchun <strong>ism, familiya va otchestva</strong> majburiy.
+        <strong>Kelgan kunlar</strong> ham kiritilishi kerak. Oylik avtomatik <strong>0 so'm</strong> —
+        keyin <em>Oylik statistika</em>dan kiritasiz.{% endblocktrans %}
       </div>
       {% endif %}
       <form method="post" novalidate>
@@ -23,17 +29,42 @@
         {% if form.non_field_errors %}
         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
         {% endif %}
-        {% for field in form %}
-        <div class="mb-3">
-          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-          {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+
+        <div class="mb-4">
+          <h3 class="h6 text-uppercase text-muted mb-3">{% trans "F.I.O" %}</h3>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.middle_name.id_for_label }}">{{ form.middle_name.label }}</label>
+              {{ form.middle_name }}
+              {% if form.middle_name.errors %}<div class="text-danger small mt-1">{{ form.middle_name.errors }}</div>{% endif %}
+            </div>
+          </div>
         </div>
+
+        {% for field in form %}
+          {% if field.name != 'first_name' and field.name != 'last_name' and field.name != 'middle_name' %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+          </div>
+          {% endif %}
         {% endfor %}
+
         <div class="d-grid gap-2 d-md-flex mt-4">
-          <button class="btn btn-success flex-md-grow-1" type="submit"><i class="bi bi-check-lg me-1"></i>Saqlash</button>
-          <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+          <button class="btn btn-success flex-md-grow-1" type="submit"><i class="bi bi-check-lg me-1"></i>{% trans "Saqlash" %}</button>
+          <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
         </div>
       </form>
     </div>

@@ -1,10 +1,14 @@
 {% extends 'attendance/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}{{ employee.first_name }} {{ employee.last_name }} - Davomat Tarixi{% endblock %}
+{% block title %}{{ employee.first_name }} {{ employee.last_name }} - {% trans "Davomat tarixi" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Davomat tarixi" subtitle="Kunlik kalendar va tahrirlash" icon="bi-clock-history" meta=year meta_label="Yil" %}
+{% trans "Davomat tarixi" as page_title %}
+{% trans "Kunlik kalendar va tahrirlash" as hist_subtitle %}
+{% trans "Yil" as yil_label %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=hist_subtitle icon="bi-clock-history" meta=year meta_label=yil_label %}
 <p class="mb-3 fw-semibold text-secondary">{{ employee.last_name }} {{ employee.first_name }} · <span class="text-primary">{{ year }}-{{ month|stringformat:"02d" }}</span></p>
 
 <div class="mb-3">
@@ -17,13 +21,13 @@
   <div class="app-panel-body">
     <div class="row align-items-center g-3">
       <div class="col-md-4 text-center">
-        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary w-100">← Oldingi oy</a>
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary w-100">← {% trans "Oldingi oy" %}</a>
       </div>
       <div class="col-md-4 text-center">
-        <h2 class="h4 fw-bold text-primary mb-0">{{ year }} · {{ month }}-oy</h2>
+        <h2 class="h4 fw-bold text-primary mb-0">{{ year }} · {{ month }}-{% trans "oy" %}</h2>
       </div>
       <div class="col-md-4 text-center">
-        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary w-100">Keyingi oy →</a>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary w-100">{% trans "Keyingi oy" %} →</a>
       </div>
     </div>
   </div>
@@ -35,14 +39,14 @@
                 <div class="card border-0 shadow-lg">
                     <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <h4 class="card-title mb-0 text-white text-center">
-                            <i class="bi bi-funnel"></i> Filtrlash va Qidirish
+                            <i class="bi bi-funnel"></i> {% trans "Filtrlash va Qidirish" %}
                         </h4>
                     </div>
                     <div class="card-body p-4">
                         <form method="get" class="row g-4">
                             <div class="col-lg-3 col-md-6">
                                 <label class="form-label fw-bold text-primary">
-                                    <i class="bi bi-calendar-year"></i> Yil
+                                    <i class="bi bi-calendar-year"></i> {% trans "Yil" %}
                                 </label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-primary text-white">
@@ -51,20 +55,20 @@
                                     <input type="number" name="year" value="{{ year }}" 
                                            class="form-control border-primary" 
                                            min="2020" max="2030" 
-                                           placeholder="Yilni kiriting">
+                                           placeholder="{% trans 'Yilni kiriting' %}">
                                 </div>
                             </div>
                             
                             <div class="col-lg-3 col-md-6">
                                 <label class="form-label fw-bold text-primary">
-                                    <i class="bi bi-calendar-month"></i> Oy
+                                    <i class="bi bi-calendar-month"></i> {% trans "Oy" %}
                                 </label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-primary text-white">
                                         <i class="bi bi-calendar-date"></i>
                                     </span>
                                     <select name="month" class="form-select border-primary">
-                                        <option value="">Oy tanlang</option>
+                                        <option value="">{% trans "Oy tanlang" %}</option>
                                         {% for m in months %}
                                             <option value="{{ m.0 }}" {% if m.0 == month %}selected{% endif %}>
                                                 {{ m.1 }}
@@ -76,15 +80,15 @@
                             
                             <div class="col-lg-3 col-md-6">
                                 <label class="form-label fw-bold text-primary">
-                                    <i class="bi bi-lightning"></i> Tezkor tanlov
+                                    <i class="bi bi-lightning"></i> {% trans "Tezkor tanlov" %}
                                 </label>
                                 <div class="d-grid">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-outline-primary" onclick="setCurrentMonth()">
-                                            <i class="bi bi-calendar-check"></i> Joriy oy
+                                            <i class="bi bi-calendar-check"></i> {% trans "Joriy oy" %}
                                         </button>
                                         <button type="button" class="btn btn-outline-primary" onclick="setPreviousMonth()">
-                                            <i class="bi bi-arrow-left"></i> O'tgan oy
+                                            <i class="bi bi-arrow-left"></i> {% trans "O'tgan oy" %}
                                         </button>
                                     </div>
                                 </div>
@@ -93,7 +97,7 @@
                             <div class="col-lg-3 col-md-6 d-flex align-items-end">
                                 <div class="d-grid w-100">
                                     <button type="submit" class="btn btn-danger btn-lg">
-                                        <i class="bi bi-search"></i> Ko'rsatish
+                                        <i class="bi bi-search"></i> {% trans "Ko'rsatish" %}
                                     </button>
                                 </div>
                             </div>
@@ -105,39 +109,39 @@
                                 <div class="card bg-light border-0">
                                     <div class="card-body">
                                         <h6 class="card-title text-muted mb-3">
-                                            <i class="bi bi-sliders"></i> Qo'shimcha filtrlash
+                                            <i class="bi bi-sliders"></i> {% trans "Qo'shimcha filtrlash" %}
                                         </h6>
                                         <div class="row g-3">
                                             <div class="col-md-4">
-                                                <label class="form-label fw-bold text-secondary">Davomat holati</label>
+                                                <label class="form-label fw-bold text-secondary">{% trans "Davomat holati" %}</label>
                                                 <select class="form-select" id="statusFilter">
-                                                    <option value="">Barcha holatlar</option>
-                                                    <option value="present">Keldi</option>
-                                                    <option value="absent">Kelmadi</option>
-                                                    <option value="late">Kechikdi</option>
-                                                    <option value="sick">Kasal</option>
-                                                    <option value="vacation">Ta'til</option>
+                                                    <option value="">{% trans "Barcha holatlar" %}</option>
+                                                    <option value="present">{% trans "Keldi" %}</option>
+                                                    <option value="absent">{% trans "Kelmadi" %}</option>
+                                                    <option value="late">{% trans "Kechikdi" %}</option>
+                                                    <option value="sick">{% trans "Kasal" %}</option>
+                                                    <option value="vacation">{% trans "Ta'til" %}</option>
                                                     <option value="business">Ish safari</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label fw-bold text-secondary">Hafta kuni</label>
+                                                <label class="form-label fw-bold text-secondary">{% trans "Hafta kuni" %}</label>
                                                 <select class="form-select" id="weekdayFilter">
-                                                    <option value="">Barcha kunlar</option>
-                                                    <option value="1">Dushanba</option>
-                                                    <option value="2">Seshanba</option>
-                                                    <option value="3">Chorshanba</option>
-                                                    <option value="4">Payshanba</option>
-                                                    <option value="5">Juma</option>
-                                                    <option value="6">Shanba</option>
-                                                    <option value="0">Yakshanba</option>
+                                                    <option value="">{% trans "Barcha kunlar" %}</option>
+                                                    <option value="1">{% trans "Dushanba" %}</option>
+                                                    <option value="2">{% trans "Seshanba" %}</option>
+                                                    <option value="3">{% trans "Chorshanba" %}</option>
+                                                    <option value="4">{% trans "Payshanba" %}</option>
+                                                    <option value="5">{% trans "Juma" %}</option>
+                                                    <option value="6">{% trans "Shanba" %}</option>
+                                                    <option value="0">{% trans "Yakshanba" %}</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label fw-bold text-secondary">Amallar</label>
+                                                <label class="form-label fw-bold text-secondary">{% trans "Amallar" %}</label>
                                                 <div class="d-grid">
                                                     <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
-                                                        <i class="bi bi-arrow-clockwise"></i> Tozalash
+                                                        <i class="bi bi-arrow-clockwise"></i> {% trans "Tozalash" %}
                                                     </button>
                                                 </div>
                                             </div>
@@ -160,7 +164,7 @@
                             <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-success">{{ stats.present }}</h3>
-                        <p class="fs-5 text-muted">Keldi</p>
+                        <p class="fs-5 text-muted">{% trans "Keldi" %}</p>
                     </div>
                 </div>
             </div>
@@ -171,7 +175,7 @@
                             <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
-                        <p class="fs-5 text-muted">Kelmadi</p>
+                        <p class="fs-5 text-muted">{% trans "Kelmadi" %}</p>
                     </div>
                 </div>
             </div>
@@ -182,7 +186,7 @@
                             <i class="bi bi-clock-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-warning">{{ stats.late }}</h3>
-                        <p class="fs-5 text-muted">Kechikdi</p>
+                        <p class="fs-5 text-muted">{% trans "Kechikdi" %}</p>
                     </div>
                 </div>
             </div>
@@ -193,7 +197,7 @@
                             <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
-                        <p class="fs-5 text-muted">Kasal</p>
+                        <p class="fs-5 text-muted">{% trans "Kasal" %}</p>
                     </div>
                 </div>
             </div>
@@ -207,7 +211,7 @@
                             <i class="bi bi-umbrella-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-primary">{{ stats.vacation }}</h3>
-                        <p class="fs-5 text-muted">Ta'til</p>
+                        <p class="fs-5 text-muted">{% trans "Ta'til" %}</p>
                     </div>
                 </div>
             </div>
@@ -218,7 +222,7 @@
                             <i class="bi bi-airplane-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-success">{{ stats.business }}</h3>
-                        <p class="fs-5 text-muted">Ish safari</p>
+                        <p class="fs-5 text-muted">{% trans "Ish safari" %}</p>
                     </div>
                 </div>
             </div>
@@ -229,7 +233,7 @@
                             <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
-                        <p class="fs-5 text-muted">Yakshanba</p>
+                        <p class="fs-5 text-muted">{% trans "Yakshanba" %}</p>
                     </div>
                 </div>
             </div>
@@ -240,7 +244,7 @@
                             <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-secondary">{{ stats.unknown }}</h3>
-                        <p class="fs-5 text-muted">Ma'lumot yo'q</p>
+                        <p class="fs-5 text-muted">{% trans "Ma'lumot yo'q" %}</p>
                     </div>
                 </div>
             </div>
@@ -252,7 +256,7 @@
                 <div class="card border-0 shadow">
                     <div class="card-header bg-primary text-white">
                         <h3 class="card-title mb-0 text-center">
-                            <i class="bi bi-calendar3"></i> Kunlik Davomat Kalendari
+                            <i class="bi bi-calendar3"></i> {% trans "Kunlik Davomat Kalendari" %}
                         </h3>
                     </div>
                     <div class="card-body">
@@ -260,13 +264,13 @@
                             <!-- Hafta kunlari -->
                             <div class="col-12 mb-3">
                                 <div class="row g-1">
-                                    <div class="col text-center fw-bold text-muted">Dushanba</div>
-                                    <div class="col text-center fw-bold text-muted">Seshanba</div>
-                                    <div class="col text-center fw-bold text-muted">Chorshanba</div>
-                                    <div class="col text-center fw-bold text-muted">Payshanba</div>
-                                    <div class="col text-center fw-bold text-muted">Juma</div>
-                                    <div class="col text-center fw-bold text-muted">Shanba</div>
-                                    <div class="col text-center fw-bold text-muted">Yakshanba</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Dushanba" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Seshanba" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Chorshanba" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Payshanba" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Juma" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Shanba" %}</div>
+                                    <div class="col text-center fw-bold text-muted">{% trans "Yakshanba" %}</div>
                                 </div>
                             </div>
                             
@@ -328,7 +332,7 @@
                 <div class="card border-0 shadow">
                     <div class="card-header bg-info text-white">
                         <h4 class="card-title mb-0 text-center">
-                            <i class="bi bi-palette"></i> Davomat Holatlari
+                            <i class="bi bi-palette"></i> {% trans "Davomat Holatlari" %}
                         </h4>
                     </div>
                     <div class="card-body">
@@ -336,49 +340,49 @@
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Keldi</span>
+                                    <span>{% trans "Keldi" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-danger me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Kelmadi</span>
+                                    <span>{% trans "Kelmadi" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Kechikdi</span>
+                                    <span>{% trans "Kechikdi" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-info me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Kasal</span>
+                                    <span>{% trans "Kasal" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-primary me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Ta'til</span>
+                                    <span>{% trans "Ta'til" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Ish safari</span>
+                                    <span>{% trans "Ish safari" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Yakshanba</span>
+                                    <span>{% trans "Yakshanba" %}</span>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-4 col-sm-6">
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-secondary me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>Ma'lumot yo'q</span>
+                                    <span>{% trans "Ma'lumot yo'q" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -396,14 +400,14 @@
         <div class="modal-content attendance-modal__panel">
             <div class="modal-header attendance-modal__header text-white">
                 <h5 class="modal-title" id="attendanceModalLabel">
-                    <i class="bi bi-calendar-check me-2"></i> Davomat o'zgartirish
+                    <i class="bi bi-calendar-check me-2"></i> {% trans "Davomat o'zgartirish" %}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Yopish' %}"></button>
             </div>
             <div class="modal-body attendance-modal__body">
                 <div id="modalLoading" class="text-center py-4">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Yuklanmoqda...</span>
+                        <span class="visually-hidden">{% trans "Yuklanmoqda..." %}</span>
                     </div>
                 </div>
                 <div id="modalContent" style="display: none;">
@@ -414,30 +418,30 @@
                         <input type="hidden" id="modalDate" name="date">
 
                         <div class="mb-3">
-                            <label for="modalStatus" class="form-label">Davomat holati</label>
+                            <label for="modalStatus" class="form-label">{% trans "Davomat holati" %}</label>
                             <select name="status" id="modalStatus" class="form-select" required>
-                                <option value="">— Tanlang —</option>
-                                <option value="present">Keldi</option>
-                                <option value="absent">Kelmagan</option>
-                                <option value="late">Kechikdi</option>
-                                <option value="vacation">Ta'til</option>
-                                <option value="sick">Kasal</option>
-                                <option value="business">Ish safarida</option>
-                                <option value="offday">Ish kuni emas</option>
+                                <option value="">{% trans "— Tanlang —" %}</option>
+                                <option value="present">{% trans "Keldi" %}</option>
+                                <option value="absent">{% trans "Kelmagan" %}</option>
+                                <option value="late">{% trans "Kechikdi" %}</option>
+                                <option value="vacation">{% trans "Ta'til" %}</option>
+                                <option value="sick">{% trans "Kasal" %}</option>
+                                <option value="business">{% trans "Ish safarida" %}</option>
+                                <option value="offday">{% trans "Ish kuni emas" %}</option>
                             </select>
                         </div>
 
                         <div class="mb-0">
-                            <label for="modalComment" class="form-label">Izoh / sabab</label>
-                            <textarea name="comment" id="modalComment" class="form-control" rows="3" placeholder="Kerak bo'lsa izoh yozing..."></textarea>
+                            <label for="modalComment" class="form-label">{% trans "Izoh / sabab" %}</label>
+                            <textarea name="comment" id="modalComment" class="form-control" rows="3" placeholder="{% trans "Kerak bo'lsa izoh yozing..." %}"></textarea>
                         </div>
                     </form>
                 </div>
             </div>
             <div class="modal-footer attendance-modal__footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Bekor qilish" %}</button>
                 <button type="button" class="btn btn-primary" id="saveAttendanceBtn" onclick="saveAttendance()">
-                    <i class="bi bi-check-lg me-1"></i> Saqlash
+                    <i class="bi bi-check-lg me-1"></i> {% trans "Saqlash" %}
                 </button>
             </div>
         </div>
@@ -471,7 +475,7 @@ function openAttendanceModal(employeeId, date) {
             if (data.success) {
                 // Yopiq kun yoki yakshanba tekshirish
                 if (data.is_dayoff || data.is_sunday) {
-                    modalAlert.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${data.is_dayoff ? data.dayoff_reason : 'Yakshanba'} - bu kunda davomat o'zgartirib bo'lmaydi!`;
+                    modalAlert.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${data.is_dayoff ? data.dayoff_reason : '{% trans "Yakshanba" %}'} - {% trans "bu kunda davomat o'zgartirib bo'lmaydi!" %}`;
                     modalAlert.style.display = 'block';
                     modalContent.style.display = 'none';
                     document.getElementById('saveAttendanceBtn').disabled = true;
@@ -497,7 +501,7 @@ function openAttendanceModal(employeeId, date) {
         })
         .catch(error => {
             modalLoading.style.display = 'none';
-            modalAlert.innerHTML = `<i class="bi bi-exclamation-circle"></i> Xatolik yuz berdi: ${error.message}`;
+            modalAlert.innerHTML = `<i class="bi bi-exclamation-circle"></i> {% trans "Xatolik yuz berdi:" %} ${error.message}`;
             modalAlert.style.display = 'block';
             modalContent.style.display = 'none';
             document.getElementById('saveAttendanceBtn').disabled = true;
@@ -526,14 +530,14 @@ function saveAttendance() {
     
     // Validatsiya
     if (!statusSelect.value) {
-        alert('Iltimos, davomat holatini tanlang!');
+        alert('{% trans 'Iltimos, davomat holatini tanlang!' %}');
         statusSelect.focus();
         return;
     }
     
     const selectedStatus = statusSelect.value;
     if (['absent', 'sick', 'vacation'].includes(selectedStatus) && !commentField.value.trim()) {
-        alert('Iltimos, izoh/sabab kiriting!');
+        alert('{% trans 'Iltimos, izoh/sabab kiriting!' %}');
         commentField.focus();
         return;
     }
@@ -545,7 +549,7 @@ function saveAttendance() {
     
     // AJAX so'rov
     saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saqlanmoqda...';
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> {% trans "Saqlanmoqda..." %}';
     
     fetch(`/attendance/individual/{{ employee.id }}/`, {
         method: 'POST',
@@ -565,15 +569,15 @@ function saveAttendance() {
             // Sahifani yangilash
             location.reload();
         } else {
-            alert(data.message || 'Xatolik yuz berdi!');
+            alert(data.message || '{% trans 'Xatolik yuz berdi!' %}');
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="bi bi-save"></i> Saqlash';
+            saveBtn.innerHTML = '<i class="bi bi-save"></i> {% trans "Saqlash" %}';
         }
     })
     .catch(error => {
-        alert('Xatolik yuz berdi: ' + error.message);
+        alert('{% trans 'Xatolik yuz berdi:' %} ' + error.message);
         saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="bi bi-save"></i> Saqlash';
+        saveBtn.innerHTML = '<i class="bi bi-save"></i> {% trans "Saqlash" %}';
     });
 }
 
@@ -704,7 +708,7 @@ function showFilterResults(visible, total) {
     
     resultsDiv.innerHTML = `
         <i class="bi bi-info-circle"></i> 
-        Filtrlash natijasi: ${visible} ta kun ko'rsatilmoqda (jami ${total} ta kundan)
+        {% trans "Filtrlash natijasi:" %} ${visible} {% trans "ta kun ko'rsatilmoqda (jami" %} ${total} {% trans "ta kundan)" %}
     `;
 }
 

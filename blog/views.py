@@ -56,21 +56,24 @@ from openpyxl.utils import get_column_letter
 
 from django import forms
 from decimal import Decimal
+from django.utils.translation import gettext_lazy as _lazy
+from django.utils.translation import gettext as _
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, NamedStyle
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.comments import Comment
 from openpyxl.formatting.rule import CellIsRule
+from blog.i18n import MONTH_NAME_CHOICES, WEEKDAY_NAMES
+
+
+def _excel_value(value):
+    if value is None:
+        return ''
+    return str(value)
+
 
 class SalaryStatFilterForm(forms.Form):
-    year = forms.IntegerField(label="Yil", min_value=2000, max_value=2100)
-    month = forms.IntegerField(label="Oy", min_value=1, max_value=12)
-
-
-MONTH_NAME_CHOICES = [
-    (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
-    (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
-    (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
-]
+    year = forms.IntegerField(label=_lazy("Yil"), min_value=2000, max_value=2100)
+    month = forms.IntegerField(label=_lazy("Oy"), min_value=1, max_value=12)
 
 
 def _parse_salary_payment_filters(request):
@@ -126,6 +129,7 @@ def _salary_payments_queryset(filters):
         qs = qs.filter(
             Q(stat__employee__first_name__icontains=filters['q'])
             | Q(stat__employee__last_name__icontains=filters['q'])
+            | Q(stat__employee__middle_name__icontains=filters['q'])
             | Q(stat__employee__position__icontains=filters['q'])
             | Q(note__icontains=filters['q'])
         )
@@ -156,17 +160,17 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, "Muvaffaqiyatli tizimga kirdingiz!")
+            messages.success(request, _("Muvaffaqiyatli tizimga kirdingiz!"))
             return redirect('dashboard')
         else:
-            messages.error(request, "Login yoki parol noto'g'ri!")
+            messages.error(request, _("Login yoki parol noto'g'ri!"))
     else:
         form = AuthenticationForm()
     return render(request, 'attendance/login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
-    messages.success(request, "Tizimdan chiqdingiz.")
+    messages.success(request, _("Tizimdan chiqdingiz."))
     return redirect('login')
 
 @login_required
@@ -263,11 +267,7 @@ def absence_quota_view(request):
         quota = get_absence_quota_for_period(emp, year, month)
         rows.append({"employee": emp, **quota})
 
-    month_names = [
-        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
-        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
-        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
-    ]
+    month_names = MONTH_NAME_CHOICES
     context = {
         "year": year,
         "month": month,
@@ -298,17 +298,17 @@ def absence_quota_export(request):
 
     headers = [
         "№",
-        "Familiya",
-        "Ismi",
-        "Lavozim",
-        "Oldingi oylar kelmagan",
-        "Joriy oy kelmagan",
-        "Yil boshidan jami",
-        "Kvotadan kechirilgan (oy)",
-        "Oylikka ta'sir qiladi (oy)",
-        f"Kvotadan foydalangan (0-{YEARLY_ABSENCE_FREE_LIMIT})",
-        "Qolgan kvota",
-        "Limitdan ortiq",
+        _("Familiya"),
+        _("Ismi"),
+        _("Lavozim"),
+        _("Oldingi oylar kelmagan"),
+        _("Joriy oy kelmagan"),
+        _("Yil boshidan jami"),
+        _("Kvotadan kechirilgan (oy)"),
+        _("Oylikka ta'sir qiladi (oy)"),
+        _("Kvotadan foydalangan (0-%(limit)s)") % {"limit": YEARLY_ABSENCE_FREE_LIMIT},
+        _("Qolgan kvota"),
+        _("Limitdan ortiq"),
     ]
     for col, h in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=h)
@@ -379,13 +379,13 @@ def nalivshik_schedule_view(request):
         try:
             override_date = _dt.date.fromisoformat(date_str)
         except Exception:
-            messages.error(request, "Sana formati noto‘g‘ri.")
+            messages.error(request, _("Sana formati noto'g'ri."))
         else:
             day_team = Team.objects.filter(id=day_team_id).first() if day_team_id else None
             night_team = Team.objects.filter(id=night_team_id).first() if night_team_id else None
 
             if not day_team and not night_team:
-                messages.error(request, "Hech bo‘lmaganda bitta komanda tanlang.")
+                messages.error(request, _("Hech bo'lmaganda bitta komanda tanlang."))
             else:
                 # Tanlangan kun uchun override saqlash
                 NalivshikShiftOverride.objects.update_or_create(
@@ -445,7 +445,7 @@ def nalivshik_schedule_view(request):
 
                 messages.success(
                     request,
-                    f"{override_date.strftime('%d.%m.%Y')} sanadan boshlab keyingi kunlar jadvali yangilandi!",
+                    _("%(date)s sanadan boshlab keyingi kunlar jadvali yangilandi!") % {"date": override_date.strftime('%d.%m.%Y')},
                 )
                 # Redirect GET so'rovga qaytish uchun (F5 bosilganda qayta POST bo'lmasin)
                 return redirect(f"{request.path}?month={year}-{month:02d}")
@@ -454,16 +454,8 @@ def nalivshik_schedule_view(request):
     teams = Team.objects.all()
     team_names = {t.code: t.name for t in teams}
 
-    # Hafta kunlari nomlari (uzbekcha)
-    weekday_names_uz = {
-        0: "Dushanba",
-        1: "Seshanba",
-        2: "Chorshanba",
-        3: "Payshanba",
-        4: "Juma",
-        5: "Shanba",
-        6: "Yakshanba",
-    }
+    # Hafta kunlari nomlari
+    weekday_names_uz = dict(WEEKDAY_NAMES)
 
     # Oyning barcha kunlari uchun jadval tayyorlash
     days = []
@@ -498,25 +490,87 @@ def nalivshik_schedule_view(request):
     }
     return render(request, 'attendance/nalivshik_schedule.html', context)
 
-def _employees_queryset(search=''):
+def _parse_employee_filters(request):
+    """Xodimlar ro'yxati filtrlari (GET parametrlar)."""
+    return {
+        'q': request.GET.get('q', '').strip(),
+        'department': request.GET.get('department', '').strip(),
+        'employee_type': request.GET.get('employee_type', '').strip(),
+        'location': request.GET.get('location', '').strip(),
+        'role': request.GET.get('role', '').strip(),
+        'status': request.GET.get('status', '').strip(),
+    }
+
+
+def _employees_queryset(filters=None):
     """Xodimlar ro'yxati va eksport uchun umumiy filtrlash."""
+    if filters is None:
+        filters = {}
     employees = Employee.objects.select_related('team').order_by('last_name', 'first_name')
+
+    search = filters.get('q', '')
     if search:
         employees = employees.filter(
             Q(first_name__icontains=search)
             | Q(last_name__icontains=search)
+            | Q(middle_name__icontains=search)
             | Q(position__icontains=search)
             | Q(department__icontains=search)
             | Q(phone_number__icontains=search)
         )
+
+    department = filters.get('department', '')
+    if department:
+        employees = employees.filter(department=department)
+
+    employee_type = filters.get('employee_type', '')
+    if employee_type:
+        employees = employees.filter(employee_type=employee_type)
+
+    location = filters.get('location', '')
+    if location:
+        employees = employees.filter(location=location)
+
+    role = filters.get('role', '')
+    if role:
+        employees = employees.filter(role=role)
+
+    status = filters.get('status', '')
+    if status == 'active':
+        employees = employees.filter(is_active=True)
+    elif status == 'inactive':
+        employees = employees.filter(is_active=False)
+
     return employees
+
+
+def _employee_filter_options():
+    """Filtrlash uchun ro'yxatlar (bo'limlar va h.k.)."""
+    departments = (
+        Employee.objects.exclude(department__isnull=True)
+        .exclude(department='')
+        .values_list('department', flat=True)
+        .distinct()
+        .order_by('department')
+    )
+    return {
+        'departments': departments,
+        'employee_type_choices': Employee.EMPLOYEE_TYPE_CHOICES,
+        'location_choices': Employee.LOCATION_CHOICES,
+        'role_choices': Employee.ROLE_CHOICES,
+    }
 
 
 @login_required
 def employee_list(request):
-    search = request.GET.get('q', '').strip()
-    employees = _employees_queryset(search)
-    return render(request, 'attendance/employees.html', {'employees': employees, 'search': search})
+    filters = _parse_employee_filters(request)
+    employees = _employees_queryset(filters)
+    context = {
+        'employees': employees,
+        'filters': filters,
+        **_employee_filter_options(),
+    }
+    return render(request, 'attendance/employees.html', context)
 
 
 @login_required
@@ -527,8 +581,8 @@ def employee_list_export(request):
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
 
-    search = request.GET.get('q', '').strip()
-    employees = _employees_queryset(search)
+    filters = _parse_employee_filters(request)
+    employees = _employees_queryset(filters)
     today = date.today()
 
     wb = Workbook()
@@ -545,30 +599,34 @@ def employee_list_export(request):
 
     headers = [
         '№',
-        'Familiya',
-        'Ismi',
-        'Lavozim',
-        "Bo'lim",
-        'Telefon',
-        'Ishga kirgan sana',
-        'Joylashuv',
-        'Xodim turi',
-        'Lavozim turi',
-        'Komanda',
-        'Holat',
+        _('Familiya'),
+        _('Ismi'),
+        _("Otchestvasi"),
+        _('Lavozim'),
+        _("Bo'lim"),
+        _('Telefon'),
+        _('Ishga kirgan sana'),
+        _('Joylashuv'),
+        _('Xodim turi'),
+        _('Lavozim turi'),
+        _('Komanda'),
+        _('Holat'),
     ]
     last_col = len(headers)
 
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=last_col)
-    title_cell = ws.cell(row=1, column=1, value='ISOMER OIL — Xodimlar ro\'yxati')
+    title_cell = ws.cell(row=1, column=1, value=_("ISOMER OIL — Xodimlar ro'yxati"))
     title_cell.font = Font(bold=True, size=16, color='FFFFFF')
     title_cell.fill = title_fill
     title_cell.alignment = Alignment(horizontal='center', vertical='center')
     ws.row_dimensions[1].height = 32
 
-    subtitle_parts = [f"Sana: {today.strftime('%d.%m.%Y')}", f"Jami: {employees.count()} ta xodim"]
-    if search:
-        subtitle_parts.append(f"Qidiruv: «{search}»")
+    subtitle_parts = [
+        _("Sana: %(date)s") % {"date": today.strftime('%d.%m.%Y')},
+        _("Jami: %(count)s ta xodim") % {"count": employees.count()},
+    ]
+    if filters.get('q'):
+        subtitle_parts.append(_("Qidiruv: «%(query)s»") % {"query": filters['q']})
     ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=last_col)
     sub_cell = ws.cell(row=2, column=1, value='  |  '.join(subtitle_parts))
     sub_cell.font = Font(size=10, color='475569')
@@ -587,11 +645,12 @@ def employee_list_export(request):
     for idx, emp in enumerate(employees, start=1):
         row = header_row + idx
         team_name = emp.team.name if emp.team else '—'
-        status_label = 'Aktiv' if emp.is_active else 'Noaktiv'
+        status_label = _('Aktiv') if emp.is_active else _('Noaktiv')
         values = [
             idx,
             emp.last_name,
             emp.first_name,
+            emp.middle_name or '—',
             emp.position or '—',
             emp.department or '—',
             emp.phone_number or '—',
@@ -609,11 +668,11 @@ def employee_list_export(request):
             cell = ws.cell(row=row, column=col, value=value)
             cell.border = border
             cell.alignment = Alignment(
-                horizontal='center' if col in (1, 7, 12) else 'left',
+                horizontal='center' if col in (1, 8, 13) else 'left',
                 vertical='center',
-                wrap_text=col in (4, 5, 8, 9, 10),
+                wrap_text=col in (5, 6, 9, 10, 11),
             )
-            if col == 12:
+            if col == 13:
                 cell.fill = status_fill
                 cell.font = Font(bold=True, color='065F46' if emp.is_active else '6B7280')
             elif row_fill:
@@ -665,8 +724,7 @@ def employee_create(request):
 
             messages.success(
                 request,
-                f"Xodim qo'shildi. Kelgan kunlar: {created_days} ta. "
-                f"Oylik 0 so'm — Oylik statistika sahifasidan kiritasiz.",
+                _("Xodim qo'shildi. Kelgan kunlar: %(days)s ta. Oylik 0 so'm — Oylik statistika sahifasidan kiritasiz.") % {"days": created_days},
             )
             return redirect('employee_list')
     else:
@@ -680,7 +738,7 @@ def employee_update(request, pk):
         form = EmployeeForm(request.POST, instance=employee)
         if form.is_valid():
             form.save()
-            messages.success(request, "Xodim ma'lumoti yangilandi!")
+            messages.success(request, _("Xodim ma'lumoti yangilandi!"))
             return redirect('employee_list')
     else:
         form = EmployeeForm(instance=employee)
@@ -691,7 +749,7 @@ def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     if request.method == 'POST':
         employee.delete()
-        messages.success(request, "Xodim o'chirildi!")
+        messages.success(request, _("Xodim o'chirildi!"))
         return redirect('employee_list')
     return render(request, 'attendance/employee_confirm_delete.html', {'employee': employee})
 
@@ -718,14 +776,14 @@ def bulk_attendance_create(request):
     if restricted_day and not employees.exists():
         dayoff_reason = DayOff.objects.filter(date=date_val).first()
         if date_val.weekday() == 6:
-            reason = "Yakshanba"
+            reason = str(_("Yakshanba"))
         elif dayoff_reason:
             reason = dayoff_reason.reason
         else:
-            reason = "Yopiq kun"
+            reason = str(_("Yopiq kun"))
         messages.error(
             request,
-            f"{date_val.strftime('%d.%m.%Y')} — {reason}. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi.",
+            _("%(date)s — %(reason)s. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi.") % {"date": date_val.strftime('%d.%m.%Y'), "reason": reason},
         )
         return redirect('dashboard')
 
@@ -742,6 +800,8 @@ def bulk_attendance_create(request):
         employee_id_to_fio[str(emp.id)] = {
             "first_name": emp.first_name,
             "last_name": emp.last_name,
+            "middle_name": emp.middle_name,
+            "full_name": emp.get_full_name(),
         }
         rec = attendance_today.filter(employee=emp).first()
         if rec:
@@ -767,7 +827,7 @@ def bulk_attendance_create(request):
         if formset.is_valid():
             formset.save()
             sync_monthly_stats_for_month(date_val.year, date_val.month)
-            messages.success(request, "Davomat muvaffaqiyatli saqlandi!")
+            messages.success(request, _("Davomat muvaffaqiyatli saqlandi!"))
             return redirect('attendance_list')
     else:
         formset = AttendanceFormSet(queryset=Attendance.objects.none(), initial=initial_data)
@@ -810,6 +870,7 @@ def attendance_list(request):
         'attendance': attendance,
         'today': day,
         'employees': employees,
+        'status_choices': Attendance.STATUS_CHOICES,
     })
 
 @login_required
@@ -820,7 +881,7 @@ def attendance_update(request, pk):
         if form.is_valid():
             record = form.save()
             sync_monthly_stats_for_date(record.employee, record.date)
-            messages.success(request, "Davomat yangilandi!")
+            messages.success(request, _("Davomat yangilandi!"))
             return redirect('attendance_list')
     else:
         form = AttendanceForm(instance=record, attendance_employee=record.employee)
@@ -833,7 +894,7 @@ def attendance_delete(request, pk):
         employee, att_date = record.employee, record.date
         record.delete()
         sync_monthly_stats_for_date(employee, att_date)
-        messages.success(request, "Davomat o'chirildi!")
+        messages.success(request, _("Davomat o'chirildi!"))
         return redirect('attendance_list')
     return render(request, 'attendance/attendance_confirm_delete.html', {'record': record})
 
@@ -899,9 +960,9 @@ def attendance_import(request):
                     log='; '.join(errors) if errors else 'OK'
                 )
                 if count:
-                    messages.success(request, f"{count} ta davomat import qilindi!")
+                    messages.success(request, _("%(count)s ta davomat import qilindi!") % {"count": count})
                 if errors:
-                    messages.error(request, f"Quyidagi satrlarda xatoliklar: {'; '.join(errors)}")
+                    messages.error(request, _("Quyidagi satrlarda xatoliklar: %(errors)s") % {"errors": "; ".join(errors)})
             except Exception as e:
                 AttendanceImportLog.objects.create(
                     user=request.user,
@@ -910,7 +971,7 @@ def attendance_import(request):
                     success=False,
                     log=str(e)
                 )
-                messages.error(request, f"Importda xatolik: {str(e)}")
+                messages.error(request, _("Importda xatolik: %(error)s") % {"error": str(e)})
             return redirect('attendance_import')
     else:
         form = AttendanceImportForm()
@@ -933,7 +994,7 @@ def attendance_export(request):
                 date_to_obj = date.fromisoformat(date_to)
                 filters['date__range'] = (date_from_obj, date_to_obj)
             except Exception as e:
-                messages.error(request, f"Sana formatida xatolik: {str(e)}")
+                messages.error(request, _("Sana formatida xatolik: %(error)s") % {"error": str(e)})
                 return redirect('attendance_export')
         if department:
             filters['employee__department'] = department
@@ -946,9 +1007,9 @@ def attendance_export(request):
         # Create Excel file
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "Davomat"
+        ws.title = _("Davomat")
         # Add header row
-        headers = ['Sana', 'Familiya', 'Ismi', 'Lavozim', 'Bo\'lim', 'Status', 'Izoh']
+        headers = [_('Sana'), _('Familiya'), _('Ismi'), _('Lavozim'), _("Bo'lim"), _('Status'), _('Izoh')]
         for col_num, header in enumerate(headers, 1):
             ws.cell(row=1, column=col_num, value=header)
         
@@ -959,7 +1020,7 @@ def attendance_export(request):
             ws.cell(row=row_num, column=3, value=att.employee.first_name)
             ws.cell(row=row_num, column=4, value=att.employee.position)
             ws.cell(row=row_num, column=5, value=att.employee.department)
-            ws.cell(row=row_num, column=6, value=att.get_status_display())
+            ws.cell(row=row_num, column=6, value=_excel_value(att.get_status_display()))
             ws.cell(row=row_num, column=7, value=att.comment)
         
         # Create response
@@ -995,7 +1056,7 @@ def dayoff_create(request):
         form = DayOffForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Yopiq sana qo'shildi!")
+            messages.success(request, _("Yopiq sana qo'shildi!"))
             return redirect('dayoff_list')
     else:
         form = DayOffForm()
@@ -1006,7 +1067,7 @@ def dayoff_delete(request, pk):
     day = get_object_or_404(DayOff, pk=pk)
     if request.method == 'POST':
         day.delete()
-        messages.success(request, "Yopiq sana o'chirildi!")
+        messages.success(request, _("Yopiq sana o'chirildi!"))
         return redirect('dayoff_list')
     return render(request, 'attendance/dayoff_confirm_delete.html', {'day': day})
 
@@ -1022,7 +1083,7 @@ def individual_attendance_create(request, employee_id=None):
             if employee_id:
                 return redirect('individual_attendance_create', employee_id=employee_id)
             else:
-                messages.error(request, "Xodimni tanlang!")
+                messages.error(request, _("Xodimni tanlang!"))
         
         employees = Employee.objects.filter(is_active=True).order_by('location', 'department', 'last_name')
         if is_restricted_attendance_date(date.today()):
@@ -1043,14 +1104,13 @@ def individual_attendance_create(request, employee_id=None):
             date_val = date.today()
     except ValueError:
         date_val = date.today()
-        messages.warning(request, "Noto'g'ri sana formati. Bugungi sana ishlatilmoqda.")
+        messages.warning(request, _("Noto'g'ri sana formati. Bugungi sana ishlatilmoqda."))
     
     if not employee_can_attend_on_date(employee, date_val):
         reason = get_restricted_day_reason(date_val)
         messages.error(
             request,
-            f"{date_val.strftime('%d.%m.%Y')} — {reason}. "
-            f"Bu kunda faqat nalivshiklar davomat kiritishi mumkin.",
+            _("%(date)s — %(reason)s. Bu kunda faqat nalivshiklar davomat kiritishi mumkin.") % {"date": date_val.strftime('%d.%m.%Y'), "reason": reason},
         )
         return redirect('dashboard')
 
@@ -1073,8 +1133,7 @@ def individual_attendance_create(request, employee_id=None):
         if not employee_can_attend_on_date(employee, date_val):
             reason = get_restricted_day_reason(date_val)
             msg = (
-                f"{date_val.strftime('%d.%m.%Y')} — {reason}. "
-                "Bu kunda faqat nalivshiklar davomat kiritishi mumkin."
+                _("%(date)s — %(reason)s. Bu kunda faqat nalivshiklar davomat kiritishi mumkin.") % {"date": date_val.strftime('%d.%m.%Y'), "reason": reason}
             )
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
@@ -1087,7 +1146,7 @@ def individual_attendance_create(request, employee_id=None):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': 'Davomat holatini tanlang!'})
-            messages.error(request, "Davomat holatini tanlang!")
+            messages.error(request, _("Davomat holatini tanlang!"))
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': 'present'})
             return render(request, 'attendance/individual_attendance_form.html', {
                 'form': form,
@@ -1101,7 +1160,7 @@ def individual_attendance_create(request, employee_id=None):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': 'Izoh/sabab kiritish majburiy!'})
-            messages.error(request, "Izoh/sabab kiritish majburiy!")
+            messages.error(request, _("Izoh/sabab kiritish majburiy!"))
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': status})
             return render(request, 'attendance/individual_attendance_form.html', {
                 'form': form,
@@ -1131,7 +1190,7 @@ def individual_attendance_create(request, employee_id=None):
                     'message': f'{employee} uchun davomat saqlandi!'
                 })
             
-            messages.success(request, f"{employee} uchun davomat saqlandi!")
+            messages.success(request, _("%(employee)s uchun davomat saqlandi!") % {"employee": employee})
             
             # Keyingi xodimga o'tish yoki ro'yxatga qaytish
             next_action = request.POST.get('next_action')
@@ -1150,7 +1209,7 @@ def individual_attendance_create(request, employee_id=None):
                 if next_employee:
                     return redirect('individual_attendance_create', employee_id=next_employee.id)
                 else:
-                    messages.info(request, "Siz ushbu joylashuvdagi oxirgi xodimga davomat kiritdingiz.")
+                    messages.info(request, _("Siz ushbu joylashuvdagi oxirgi xodimga davomat kiritdingiz."))
                     return redirect('attendance_list')
             
             return redirect('attendance_list')
@@ -1159,7 +1218,7 @@ def individual_attendance_create(request, employee_id=None):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': f'Xatolik yuz berdi: {str(e)}'})
-            messages.error(request, f"Xatolik yuz berdi: {str(e)}")
+            messages.error(request, _("Xatolik yuz berdi: %(error)s") % {"error": str(e)})
     
     # GET so'rovi uchun forma tayyorlash
     form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': 'present'})
@@ -1219,7 +1278,7 @@ def attendance_statistics(request):
             if date_from > date_to:
                 date_from, date_to = date_to, date_from
         except ValueError:
-            messages.error(request, "Sana formatida xatolik!")
+            messages.error(request, _("Sana formatida xatolik!"))
             date_from, date_to = _statistics_default_dates(period, today)
     else:
         date_from, date_to = _statistics_default_dates(period, today)
@@ -1384,10 +1443,10 @@ def salary_statistics_view(request):
         month = int(request.POST.get('month', month))
         remove_ids = request.POST.getlist('eligible_employees')
         if not remove_ids:
-            messages.error(request, "Premiyani bekor qilish uchun kamida bitta xodim belgilang.")
+            messages.error(request, _("Premiyani bekor qilish uchun kamida bitta xodim belgilang."))
         else:
             count = remove_production_bonus_for_employees(year, month, remove_ids)
-            messages.success(request, f"{count} ta xodimning premiyasi bekor qilindi.")
+            messages.success(request, _("%(count)s ta xodimning premiyasi bekor qilindi.") % {'count': count})
         return redirect(
             f"{request.path}?year={year}&month={month}"
             f"{f'&q={q}' if q else ''}"
@@ -1408,19 +1467,21 @@ def salary_statistics_view(request):
             if not eligible_ids:
                 messages.error(
                     request,
-                    "Kamida bitta xodim belgilang. "
-                    "Premiyani olib tashlash uchun xodimni belgilab «Premiyani bekor qilish» ni bosing.",
+                    _("Kamida bitta xodim belgilang. "
+                      "Premiyani olib tashlash uchun xodimni belgilab «Premiyani bekor qilish» ni bosing."),
                 )
             elif tons is None or tons < PRODUCTION_BONUS_LOW_MIN_TONS:
                 messages.error(
                     request,
-                    f"Premiya uchun kamida {PRODUCTION_BONUS_LOW_MIN_TONS:.0f} tonna kiriting.",
+                    _("Premiya uchun kamida %(min_tons)s tonna kiriting.") % {
+                        'min_tons': f'{PRODUCTION_BONUS_LOW_MIN_TONS:.0f}',
+                    },
                 )
             else:
                 save_production_bonus_settings(year, month, tons, eligible_ids)
-                messages.success(request, "Premiya saqlandi — mukofotlar yangilandi.")
+                messages.success(request, _("Premiya saqlandi — mukofotlar yangilandi."))
         else:
-            messages.error(request, "Tonna yoki xodimlar ro'yxatini tekshiring.")
+            messages.error(request, _("Tonna yoki xodimlar ro'yxatini tekshiring."))
         return redirect(
             f"{request.path}?year={year}&month={month}"
             f"{f'&q={q}' if q else ''}"
@@ -1434,7 +1495,7 @@ def salary_statistics_view(request):
     # Qayta hisoblash faqat «Qayta hisoblash» tugmasi orqali
     if request.GET.get('recalc') == '1':
         calculate_monthly_stats(year, month)
-        messages.info(request, "Oylik statistika qayta hisoblandi.")
+        messages.info(request, _("Oylik statistika qayta hisoblandi."))
     else:
         ensure_monthly_stats_for_month(year, month)
 
@@ -1445,6 +1506,7 @@ def salary_statistics_view(request):
         stats = stats.filter(
             Q(employee__first_name__icontains=q)
             | Q(employee__last_name__icontains=q)
+            | Q(employee__middle_name__icontains=q)
             | Q(employee__position__icontains=q)
             | Q(employee__department__icontains=q)
         )
@@ -1565,11 +1627,14 @@ def salary_statistics_view(request):
         eligible_employees.values_list('pk', flat=True)
     )
 
+    month_names = dict(MONTH_NAME_CHOICES)
     return render(request, 'attendance/salary_statistics.html', {
         'stats': stats,
         'form': form,
         'year': year,
         'month': month,
+        'month_label': month_names.get(month, month),
+        'month_names': MONTH_NAME_CHOICES,
         'q': q,
         'selected_employee_type': employee_type,
         'selected_role': role,
@@ -1677,8 +1742,8 @@ def export_salary_statistics_excel(request):
         
         # Sodda sarlavhalar
         headers = [
-            "Xodim", "Oylik", "Valyuta", "Kelgan/Jami", 
-            "Foiz", "Hisoblangan", "To'langan", "Bonus"
+            _("Xodim"), _("Oylik"), _("Valyuta"), _("Kelgan/Jami"),
+            _("Foiz"), _("Hisoblangan"), _("To'langan"), _("Bonus")
         ]
         
         for col, header in enumerate(headers, 1):
@@ -1704,7 +1769,7 @@ def export_salary_statistics_excel(request):
                 
             # Ma'lumotlarni formatlash
             row_data = [
-                f"{stat.employee.last_name} {stat.employee.first_name}",
+                f"{stat.employee.get_full_name()}",
                 float(stat.salary),
                 stat.currency.upper() if stat.currency else 'UZS',
                 f"{stat.worked_days}/{stat.working_days_in_month}",
@@ -1793,7 +1858,7 @@ def export_salary_statistics_excel(request):
             summary_start_row = data_end_row + 2
             worksheet.merge_cells(f'A{summary_start_row}:H{summary_start_row}')
             summary_header = worksheet.cell(row=summary_start_row, column=1)
-            summary_header.value = "VALYUTA BO'YICHA JAMI"
+            summary_header.value = _("VALYUTA BO'YICHA JAMI")
             summary_header.font = Font(name='Arial', bold=True, size=12, color='FFFFFF')
             summary_header.fill = PatternFill(start_color=color_bg, end_color=color_bg, fill_type='solid')
             summary_header.alignment = Alignment(horizontal='center', vertical='center')
@@ -1805,7 +1870,7 @@ def export_salary_statistics_excel(request):
             )
             
             # Valyuta sarlavhalari
-            headers = ["Valyuta", "Soni", "Jami oylik", "Hisoblangan", "To'langan", "Bonus", "Qarzdorlik", ""]
+            headers = [_("Valyuta"), _("Soni"), _("Jami oylik"), _("Hisoblangan"), _("To'langan"), _("Bonus"), _("Qarzdorlik"), ""]
             
             header_row = summary_start_row + 1
             for col, header in enumerate(headers, 1):
@@ -1912,8 +1977,8 @@ def export_salary_statistics_excel(request):
         worksheet.merge_cells('K3:L3')  # qarzdorlik (oxiri)
         
         main_headers = [
-            "№", "Xodim", "oylik", "hisoblandi", "tulandi",
-            "qarzdorlik (bosh)", "qarzdorlik (oxiri)",
+            "№", _("Xodim"), _("oylik"), _("hisoblandi"), _("tulandi"),
+            _("qarzdorlik (bosh)"), _("qarzdorlik (oxiri)"),
         ]
         main_header_cols = [1, 2, 3, 5, 7, 9, 11]
         
@@ -1950,11 +2015,11 @@ def export_salary_statistics_excel(request):
         
         # Xodimlarni turlariga qarab guruhlash - professional ranglar
         employee_type_groups = {
-            'full': ('⭐ To\'liq stavka xodimlar', '2E75B6'),
-            'half': ('📋 15 kunlik xodimlar', 'FF6B35'),
-            'weekly': ('📆 Haftada 1 kun xodimlar', '6C757D'),
-            'guard': ('🛡️ Qorovul xodimlar', 'DC3545'),
-            'office': ('💼 Ofis xodimlari', '8E44AD'),
+            'full': (_('⭐ To\'liq stavka xodimlar'), '2E75B6'),
+            'half': (_('📋 15 kunlik xodimlar'), 'FF6B35'),
+            'weekly': (_('📆 Haftada 1 kun xodimlar'), '6C757D'),
+            'guard': (_('🛡️ Qorovul xodimlar'), 'DC3545'),
+            'office': (_('💼 Ofis xodimlari'), '8E44AD'),
         }
         
         current_row = 5
@@ -1971,7 +2036,7 @@ def export_salary_statistics_excel(request):
             # Professional guruh sarlavhasi
             worksheet.merge_cells(f'A{current_row}:{get_column_letter(LAST_COL)}{current_row}')
             group_header = worksheet.cell(row=current_row, column=1)
-            group_header.value = group_title.upper()
+            group_header.value = str(group_title).upper()
             group_header.font = Font(name='Calibri', bold=True, size=13, color='FFFFFF')
             # Gradient effekt uchun biroz qorong'i rang
             darker_color = hex(int(group_color, 16) - 0x202020 if int(group_color, 16) > 0x202020 else 0)[2:].upper().zfill(6)
@@ -1999,7 +2064,7 @@ def export_salary_statistics_excel(request):
                 
                 row_data = {
                     1: employee_number,
-                    2: f"{stat.employee.last_name} {stat.employee.first_name}"
+                    2: f"{stat.employee.get_full_name()}"
                         + (f" — {stat.employee.position}" if stat.employee.position else ""),
                     3: None, 4: None,  # oylik
                     5: None, 6: None,  # hisoblandi
@@ -2245,8 +2310,8 @@ def export_salary_statistics_excel(request):
     wb.remove(wb.active)
     
     if stats:
-        ws_all = wb.create_sheet("BARCHA XODIMLAR")
-        create_grouped_worksheet(ws_all, "Barcha xodimlar (umumiy)", stats, '2C3E50', '34495E')
+        ws_all = wb.create_sheet(_("BARCHA XODIMLAR"))
+        create_grouped_worksheet(ws_all, _("Barcha xodimlar (umumiy)"), stats, '2C3E50', '34495E')
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     filename = f"💰_ISOMER_OIL_Oylik_Statistika_{year}_{month:02d}_Professional.xlsx"
@@ -2299,11 +2364,11 @@ def export_salary_payment_history_excel(request):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "To'lovlar"
+    ws.title = _("To'lovlar")
 
     headers = [
-        '№', 'To\'lov sanasi', 'Familiya', 'Ism', 'Lavozim',
-        'Hisobot yili', 'Hisobot oyi', 'Summa', 'Valyuta', 'Izoh', 'Kiritilgan',
+        '№', _("To'lov sanasi"), _('Familiya'), _('Ism'), _("Otchestvasi"), _('Lavozim'),
+        _('Hisobot yili'), _('Hisobot oyi'), _('Summa'), _('Valyuta'), _('Izoh'), _('Kiritilgan'),
     ]
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
@@ -2317,13 +2382,14 @@ def export_salary_payment_history_excel(request):
         ws.cell(row=row, column=2, value=payment.paid_at.strftime('%d.%m.%Y'))
         ws.cell(row=row, column=3, value=emp.last_name)
         ws.cell(row=row, column=4, value=emp.first_name)
-        ws.cell(row=row, column=5, value=emp.position or '')
-        ws.cell(row=row, column=6, value=payment.stat.year)
-        ws.cell(row=row, column=7, value=month_labels.get(payment.stat.month, payment.stat.month))
-        ws.cell(row=row, column=8, value=float(payment.amount))
-        ws.cell(row=row, column=9, value=payment.stat.currency)
-        ws.cell(row=row, column=10, value=payment.note)
-        ws.cell(row=row, column=11, value=payment.created_at.strftime('%d.%m.%Y %H:%M'))
+        ws.cell(row=row, column=5, value=emp.middle_name or '')
+        ws.cell(row=row, column=6, value=emp.position or '')
+        ws.cell(row=row, column=7, value=payment.stat.year)
+        ws.cell(row=row, column=8, value=_excel_value(month_labels.get(payment.stat.month, payment.stat.month)))
+        ws.cell(row=row, column=9, value=float(payment.amount))
+        ws.cell(row=row, column=10, value=payment.stat.currency)
+        ws.cell(row=row, column=11, value=payment.note)
+        ws.cell(row=row, column=12, value=payment.created_at.strftime('%d.%m.%Y %H:%M'))
 
     for col in range(1, len(headers) + 1):
         col_letter = get_column_letter(col)
@@ -2380,16 +2446,16 @@ def edit_salary_stat(request, stat_id):
 
         if amount_raw or date_raw:
             if not amount_raw or not date_raw:
-                payment_error = "Yangi to'lov uchun summa va sana birga kiritilishi kerak."
+                payment_error = _("Yangi to'lov uchun summa va sana birga kiritilishi kerak.")
             else:
                 try:
                     new_amount = Decimal(amount_raw)
                     if new_amount <= 0:
-                        payment_error = "To'lov summasi musbat bo'lishi kerak."
+                        payment_error = _("To'lov summasi musbat bo'lishi kerak.")
                     else:
                         new_date = date.fromisoformat(date_raw)
                 except (ValueError, ArithmeticError):
-                    payment_error = "To'lov summasi yoki sanasi noto'g'ri."
+                    payment_error = _("To'lov summasi yoki sanasi noto'g'ri.")
 
         if payment_error:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -2411,7 +2477,7 @@ def edit_salary_stat(request, stat_id):
                     'message': "Premiya bekor qilindi.",
                     'stat': stat_json_payload(stat),
                 })
-            messages.success(request, "Premiya bekor qilindi.")
+            messages.success(request, _("Premiya bekor qilindi."))
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
 
         form = SalaryStatEditForm(request.POST, instance=stat)
@@ -2629,7 +2695,7 @@ def edit_attendance_history(request):
             date_to_obj = date.fromisoformat(date_to)
             filters['date__range'] = (date_from_obj, date_to_obj)
         except ValueError:
-            messages.error(request, "Sana formati noto'g'ri!")
+            messages.error(request, _("Sana formati noto'g'ri!"))
             date_from = (date.today() - timedelta(days=30)).strftime('%Y-%m-%d')
             date_to = date.today().strftime('%Y-%m-%d')
             filters['date__range'] = (date.today() - timedelta(days=30), date.today())
@@ -2662,7 +2728,7 @@ def edit_attendance_history(request):
                 sync_monthly_stats_for_month(
                     sync_year, sync_month, employee=Employee.objects.filter(pk=emp_id).first()
                 )
-            messages.success(request, "Davomat ma'lumotlari yangilandi!")
+            messages.success(request, _("Davomat ma'lumotlari yangilandi!"))
             return redirect('edit_attendance_history')
     else:
         formset = AttendanceFormSet(queryset=attendances)
@@ -2878,7 +2944,7 @@ def get_attendance_data_ajax(request, employee_id):
     data = {
         'success': True,
         'employee_id': employee.id,
-        'employee_name': f"{employee.last_name} {employee.first_name}",
+        'employee_name': employee.get_full_name(),
         'date': date_str,
         'status': attendance.status if attendance else '',
         'comment': attendance.comment if attendance else '',
@@ -2892,15 +2958,16 @@ def get_attendance_data_ajax(request, employee_id):
 def get_status_text(status):
     """Status matnini olish"""
     status_map = {
-        'present': 'Keldi',
-        'absent': 'Kelmadi',
-        'late': 'Kechikdi',
-        'sick': 'Kasal',
-        'vacation': 'Ta\'til',
-        'business': 'Ish safari',
-        'sunday': 'Yakshanba',
-        'dayoff': 'Yopiq kun',
-        'unknown': 'Ma\'lumot yo\'q',
-        'empty': ''
+        'present': _('Keldi'),
+        'absent': _('Kelmadi'),
+        'late': _('Kechikdi'),
+        'sick': _('Kasal'),
+        'vacation': _("Ta'til"),
+        'business': _('Ish safari'),
+        'sunday': _('Yakshanba'),
+        'dayoff': _('Yopiq kun'),
+        'unknown': _("Ma'lumot yo'q"),
+        'empty': '',
     }
-    return status_map.get(status, 'Noma\'lum')
+    val = status_map.get(status, _('Noma\'lum'))
+    return str(val) if val else ''

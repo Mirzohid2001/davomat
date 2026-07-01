@@ -101,11 +101,49 @@
   font-weight: 800;
   font-size: 1.35rem;
   letter-spacing: -0.03em;
+  transition: opacity 0.3s var(--pm-ease);
+}
+
+.navbar-brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.navbar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
   background: linear-gradient(135deg, #fff 0%, #a5f3fc 50%, #c7d2fe 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  transition: opacity 0.3s var(--pm-ease);
+}
+
+.navbar-brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.72);
+  background: none;
+}
+
+.site-footer-logo {
+  object-fit: contain;
+  border-radius: 4px;
+  vertical-align: -3px;
+  margin-right: 0.15rem;
+}
+
+.login-brand-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 12px;
 }
 
 .navbar-premium .navbar-brand:hover {
@@ -516,8 +554,8 @@
 }
 
 .app-login-card .login-brand {
-  background: var(--pm-gradient);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+  background: transparent;
+  box-shadow: none;
 }
 
 /* ——— Footer (faqat sahifa pastida, oqimda) ——— */

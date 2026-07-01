@@ -1,8 +1,11 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Davomat import{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Davomat import" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Import" subtitle="Excel yoki CSV fayldan davomat yuklash" icon="bi-upload" %}
+{% trans "Import" as page_title %}
+{% trans "Excel yoki CSV fayldan davomat yuklash" as import_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=import_subtitle icon="bi-upload" %}
 
 <div class="app-form-panel">
   <div class="app-panel">
@@ -10,16 +13,16 @@
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
-          <label class="form-label">Fayl (Excel / CSV)</label>
+          <label class="form-label">{% trans "Fayl (Excel / CSV)" %}</label>
           {{ form.file }}
         </div>
         <div class="d-grid gap-2 d-md-flex">
-          <button class="btn btn-primary" type="submit"><i class="bi bi-upload me-1"></i>Import qilish</button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Ortga</a>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-upload me-1"></i>{% trans "Import qilish" %}</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">{% trans "Ortga" %}</a>
         </div>
       </form>
       <hr class="my-4">
-      <p class="small text-muted mb-1"><strong>Namuna (header):</strong></p>
+      <p class="small text-muted mb-1"><strong>{% trans "Namuna (header):" %}</strong></p>
       <code class="small">last_name,first_name,date,status,comment</code>
     </div>
   </div>

@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-{% load static %}
-<html lang="uz" data-bs-theme="light">
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}ISOMER OIL Davomat{% endblock %}</title>
+    <title>{% block title %}ISOMER OIL {% trans "Davomat" %}{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/isomer-oil-logo.png' %}" type="image/png">
+    <link rel="apple-touch-icon" href="{% static 'img/isomer-oil-logo.png' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,96 +17,121 @@
     <link href="{% static 'css/app-animations.css' %}" rel="stylesheet">
     <link href="{% static 'css/app-premium.css' %}" rel="stylesheet">
     <link href="{% static 'css/app-mobile.css' %}" rel="stylesheet">
+    <style>
+      .lang-switcher__btn {
+        min-width: 2.25rem;
+        padding: 0.15rem 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: rgba(255,255,255,0.75);
+        border: 1px solid rgba(255,255,255,0.25);
+        background: transparent;
+        border-radius: 6px;
+      }
+      .lang-switcher__btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+      .lang-switcher__btn--active {
+        color: #0f172a;
+        background: #fff;
+        border-color: #fff;
+      }
+    </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="premium-ui d-flex flex-column min-vh-100">
   <nav class="navbar navbar-expand-lg navbar-dark navbar-premium shadow flex-shrink-0">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'dashboard' %}">
-        <i class="bi bi-droplet-half me-2"></i>ISOMER OIL
-        <span class="opacity-75 fw-normal fs-6 ms-1">Davomat</span>
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
+        <img src="{% static 'img/isomer-oil-logo.png' %}" alt="ISOMER OIL" class="navbar-brand-logo" width="40" height="40">
+        <span class="navbar-brand-text">
+          ISOMER OIL
+          <span class="navbar-brand-sub">{% trans "Davomat" %}</span>
+        </span>
       </a>
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menyu">
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{% trans 'Menyu' %}">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-              <i class="bi bi-speedometer2"></i> Dashboard
+              <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'employee_list' %}">
-              <i class="bi bi-people-fill"></i> Xodimlar
+              <i class="bi bi-people-fill"></i> {% trans "Xodimlar" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'attendance_list' %}active{% endif %}" href="{% url 'attendance_list' %}">
-              <i class="bi bi-journal-check"></i> Davomat
+              <i class="bi bi-journal-check"></i> {% trans "Davomat" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'attendance_statistics' %}active{% endif %}" href="{% url 'attendance_statistics' %}">
-              <i class="bi bi-bar-chart-line-fill"></i> Statistika
+              <i class="bi bi-bar-chart-line-fill"></i> {% trans "Statistika" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'salary_statistics' or request.resolver_match.url_name == 'salary_payment_history' %}active{% endif %}" href="{% url 'salary_statistics' %}">
-              <i class="bi bi-cash-coin"></i> Oylik
+              <i class="bi bi-cash-coin"></i> {% trans "Oylik" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match.url_name == 'nalivshik_schedule' %}active{% endif %}" href="{% url 'nalivshik_schedule' %}">
-              <i class="bi bi-diagram-3-fill"></i> Nalivshik
+              <i class="bi bi-diagram-3-fill"></i> {% trans "Nalivshik" %}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if 'dayoff' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dayoff_list' %}">
-              <i class="bi bi-calendar-x-fill"></i> Yopiq kunlar
+              <i class="bi bi-calendar-x-fill"></i> {% trans "Yopiq kunlar" %}
             </a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="true"
                aria-expanded="false">
-              <i class="bi bi-grid-3x3-gap-fill"></i> Boshqaruv
+              <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Boshqaruv" %}
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="navbarDropdown">
               <li>
                 <a class="dropdown-item" href="{% url 'edit_attendance_history' %}">
-                  <i class="bi bi-pencil-square me-2"></i> Davomat tahrirlash
+                  <i class="bi bi-pencil-square me-2"></i> {% trans "Davomat tahrirlash" %}
                 </a>
               </li>
               <li>
                 <a class="dropdown-item" href="{% url 'salary_payment_history' %}">
-                  <i class="bi bi-receipt-cutoff me-2"></i> Oylik to'lovlar tarixi
+                  <i class="bi bi-receipt-cutoff me-2"></i> {% trans "Oylik to'lovlar tarixi" %}
                 </a>
               </li>
               <li>
                 <a class="dropdown-item" href="{% url 'absence_quota' %}">
-                  <i class="bi bi-calendar-minus me-2"></i> Kelmagan kun kvotasi
+                  <i class="bi bi-calendar-minus me-2"></i> {% trans "Kelmagan kun kvotasi" %}
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <a class="dropdown-item" href="{% url 'attendance_import' %}">
-                  <i class="bi bi-upload me-2"></i> Import
+                  <i class="bi bi-upload me-2"></i> {% trans "Import" %}
                 </a>
               </li>
               <li>
                 <a class="dropdown-item" href="{% url 'attendance_export' %}">
-                  <i class="bi bi-download me-2"></i> (Export)
+                  <i class="bi bi-download me-2"></i> {% trans "Eksport" %}
                 </a>
               </li>
             </ul>
           </li>
         </ul>
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto align-items-center gap-2">
+          <li class="nav-item">
+            {% include 'attendance/partials/language_switcher.html' %}
+          </li>
           {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">
-              <i class="bi bi-box-arrow-right"></i> Chiqish
+              <i class="bi bi-box-arrow-right"></i> {% trans "Chiqish" %}
             </a>
           </li>
           {% endif %}
@@ -117,7 +145,7 @@
           {% for message in messages %}
             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
               <div class="toast-header">
-                <strong class="me-auto">{% if message.tags == "error" %}Xato{% else %}Xabar{% endif %}</strong>
+                <strong class="me-auto">{% if message.tags == "error" %}{% trans "Xato" %}{% else %}{% trans "Xabar" %}{% endif %}</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
               </div>
               <div class="toast-body text-{{ message.tags }}">
@@ -135,10 +163,10 @@
       <div class="row">
         <div class="col-12 text-center">
           <p class="mb-0">
-            <i class="bi bi-droplet-half me-1 text-primary"></i>
-            <strong>ISOMER OIL</strong> — Davomat tizimi
+            <img src="{% static 'img/isomer-oil-logo.png' %}" alt="ISOMER OIL" class="site-footer-logo" width="20" height="20">
+            <strong>ISOMER OIL</strong> — {% trans "Davomat tizimi" %}
             <span class="mx-2 opacity-50">|</span>
-            <i class="bi bi-calendar-check me-1"></i> {{ now.year }}
+            <i class="bi bi-calendar-check me-1"></i> {% now "Y" %}
           </p>
         </div>
       </div>

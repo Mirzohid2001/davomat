@@ -1,4 +1,5 @@
 {% extends 'attendance/base.html' %}
+{% load i18n %}
 {% block content_wrapper_class %}flex-grow-1 salary-skip-app-shell container-fluid px-2 px-md-3 py-3 pb-4{% endblock %}
 
 {% block extra_head %}
@@ -16,19 +17,19 @@
     <div class="salary-hero__grain" aria-hidden="true"></div>
     <div class="salary-hero__inner">
       <div class="salary-hero__main">
-        <span class="salary-hero__badge"><i class="bi bi-wallet2"></i> Oylik hisobot</span>
-        <h1 class="salary-hero__title">Oylik xodim statistikasi</h1>
-        <p class="salary-hero__sub">Ish haqi, to‘lovlar va qarzdorlik — bitta joyda</p>
+        <span class="salary-hero__badge"><i class="bi bi-wallet2"></i> {% trans "Oylik hisobot" %}</span>
+        <h1 class="salary-hero__title">{% trans "Oylik xodim statistikasi" %}</h1>
+        <p class="salary-hero__sub">{% trans "Ish haqi, to'lovlar va qarzdorlik — bitta joyda" %}</p>
       </div>
       <div class="salary-hero__period">
         <div class="salary-hero__period-pill">
           <i class="bi bi-calendar3" aria-hidden="true"></i>
-          <span class="salary-hero__period-value">{% if month == 1 %}Yanvar{% elif month == 2 %}Fevral{% elif month == 3 %}Mart{% elif month == 4 %}Aprel{% elif month == 5 %}May{% elif month == 6 %}Iyun{% elif month == 7 %}Iyul{% elif month == 8 %}Avgust{% elif month == 9 %}Sentabr{% elif month == 10 %}Oktabr{% elif month == 11 %}Noyabr{% elif month == 12 %}Dekabr{% else %}{{ month }}{% endif %} {{ year }}</span>
+          <span class="salary-hero__period-value">{{ month_label }} {{ year }}</span>
         </div>
-        <span class="salary-hero__period-label">Hisobot davri</span>
+        <span class="salary-hero__period-label">{% trans "Hisobot davri" %}</span>
         {% if stats_calculated_at %}
         <span class="salary-hero__period-label d-block mt-1">
-          <i class="bi bi-clock-history me-1"></i>Oxirgi hisoblash: {{ stats_calculated_at|date:"d.m.Y H:i" }}
+          <i class="bi bi-clock-history me-1"></i>{% trans "Oxirgi hisoblash" %}: {{ stats_calculated_at|date:"d.m.Y H:i" }}
         </span>
         {% endif %}
       </div>
@@ -39,14 +40,14 @@
     <div class="salary-kpi salary-kpi--accent" style="--sal-kpi-delay: 0ms">
       <div class="salary-kpi__icon" aria-hidden="true"><i class="bi bi-people-fill"></i></div>
       <div class="salary-kpi__body">
-        <div class="salary-kpi__label">Xodimlar</div>
+        <div class="salary-kpi__label">{% trans "Xodimlar" %}</div>
         <div class="salary-kpi__value">{{ stats|length }}</div>
       </div>
     </div>
     <div class="salary-kpi" style="--sal-kpi-delay: 40ms">
       <div class="salary-kpi__icon salary-kpi__icon--amber" aria-hidden="true"><i class="bi bi-person-x-fill"></i></div>
       <div class="salary-kpi__body">
-        <div class="salary-kpi__label">Kelmagan (jami)</div>
+        <div class="salary-kpi__label">{% trans "Kelmagan (jami)" %}</div>
         <div class="salary-kpi__value">{{ total_absent }}</div>
       </div>
     </div>
@@ -54,7 +55,7 @@
     <div class="salary-kpi" style="--sal-kpi-delay: {{ forloop.counter0|add:2 }}0ms">
       <div class="salary-kpi__icon salary-kpi__icon--emerald" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
       <div class="salary-kpi__body">
-        <div class="salary-kpi__label">Hisoblangan · {{ cur }}</div>
+        <div class="salary-kpi__label">{% trans "Hisoblangan" %} · {{ cur }}</div>
         <div class="salary-kpi__value">{{ vals.accrued|floatformat:0|intcomma }}</div>
       </div>
     </div>
@@ -63,82 +64,90 @@
 
   <section class="salary-filters">
     <div class="salary-filters__head">
-      <h2 class="salary-filters__head-title"><i class="bi bi-funnel me-2"></i>Filtrlash</h2>
+      <h2 class="salary-filters__head-title"><i class="bi bi-funnel me-2"></i>{% trans "Filtrlash" %}</h2>
     </div>
     <div class="salary-filters__body">
-        <form method="get" class="row g-3 align-items-end" id="salaryFilterForm">
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="id_year" class="form-label fw-semibold">{{ form.year.label }}</label>
-                {{ form.year }}
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="id_month" class="form-label fw-semibold">{{ form.month.label }}</label>
-                {{ form.month }}
-            </div>
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <label for="filter_q" class="form-label fw-semibold">Qidiruv (F.I.O / lavozim / bo‘lim)</label>
-                <div class="salary-input-wrap">
-                  <i class="bi bi-search" aria-hidden="true"></i>
-                  <input type="text" id="filter_q" name="q" class="form-control" value="{{ q }}" placeholder="Masalan: Aliyev, nalivshik..." autocomplete="off">
+        <form method="get" id="salaryFilterForm">
+            <div class="salary-filters__period">
+                <div class="salary-filters__field">
+                    <label for="id_year" class="form-label">{{ form.year.label }}</label>
+                    {{ form.year }}
+                </div>
+                <div class="salary-filters__field">
+                    <label for="id_month" class="form-label">{{ form.month.label }}</label>
+                    {{ form.month }}
+                </div>
+                <div class="salary-filters__field salary-filters__field--search">
+                    <label for="filter_q" class="form-label">{% trans "Qidiruv (F.I.O / lavozim / bo'lim)" %}</label>
+                    <div class="salary-input-wrap">
+                      <i class="bi bi-search" aria-hidden="true"></i>
+                      <input type="text" id="filter_q" name="q" class="form-control" value="{{ q }}" placeholder="{% trans 'Masalan: Aliyev, nalivshik...' %}" autocomplete="off">
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_employee_type" class="form-label fw-semibold">Xodim turi</label>
-                <select id="filter_employee_type" name="employee_type" class="form-select">
-                    <option value="">Barchasi</option>
-                    {% for value, label in employee_type_choices %}
-                    <option value="{{ value }}" {% if selected_employee_type == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+
+            <div class="salary-filters__selects">
+                <div class="salary-filters__field">
+                    <label for="filter_employee_type" class="form-label">{% trans "Xodim turi" %}</label>
+                    <select id="filter_employee_type" name="employee_type" class="form-select">
+                        <option value="">{% trans "Barchasi" %}</option>
+                        {% for value, label in employee_type_choices %}
+                        <option value="{{ value }}" {% if selected_employee_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="salary-filters__field">
+                    <label for="filter_position" class="form-label">{% trans "Lavozim" %}</label>
+                    <select id="filter_position" name="position" class="form-select">
+                        <option value="">{% trans "Barchasi" %}</option>
+                        {% for pos in position_choices %}
+                        <option value="{{ pos }}" {% if selected_position == pos %}selected{% endif %}>{{ pos }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="salary-filters__field">
+                    <label for="filter_role" class="form-label">{% trans "Rol (tizim)" %}</label>
+                    <select id="filter_role" name="role" class="form-select">
+                        <option value="">{% trans "Barchasi" %}</option>
+                        {% for value, label in role_choices %}
+                        <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="salary-filters__field">
+                    <label for="filter_currency" class="form-label">{% trans "Valyuta" %}</label>
+                    <select id="filter_currency" name="currency" class="form-select">
+                        <option value="">{% trans "Barchasi" %}</option>
+                        {% for value, label in currency_choices %}
+                        <option value="{{ value }}" {% if selected_currency == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="salary-filters__field">
+                    <label for="filter_location" class="form-label">{% trans "Lokatsiya" %}</label>
+                    <select id="filter_location" name="location" class="form-select">
+                        <option value="">{% trans "Barchasi" %}</option>
+                        {% for value, label in location_choices %}
+                        <option value="{{ value }}" {% if selected_location == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_position" class="form-label fw-semibold">Lavozim</label>
-                <select id="filter_position" name="position" class="form-select">
-                    <option value="">Barchasi</option>
-                    {% for pos in position_choices %}
-                    <option value="{{ pos }}" {% if selected_position == pos %}selected{% endif %}>{{ pos }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_role" class="form-label fw-semibold">Rol (tizim)</label>
-                <select id="filter_role" name="role" class="form-select">
-                    <option value="">Barchasi</option>
-                    {% for value, label in role_choices %}
-                    <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_currency" class="form-label fw-semibold">Valyuta</label>
-                <select id="filter_currency" name="currency" class="form-select">
-                    <option value="">Barchasi</option>
-                    {% for value, label in currency_choices %}
-                    <option value="{{ value }}" {% if selected_currency == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label for="filter_location" class="form-label fw-semibold">Lokatsiya</label>
-                <select id="filter_location" name="location" class="form-select">
-                    <option value="">Barchasi</option>
-                    {% for value, label in location_choices %}
-                    <option value="{{ value }}" {% if selected_location == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-12">
-              <div class="salary-filters__actions">
-                <button type="submit" class="btn salary-btn-primary">Ko'rsatish</button>
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if selected_position %}&position={{ selected_position|urlencode }}{% endif %}" class="btn btn-outline-warning" title="Davomatdan barcha oylikni qayta hisoblash"><i class="bi bi-arrow-repeat me-1"></i>Qayta hisoblash</a>
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary">Tozalash</a>
-                <a href="{% url 'salary_payment_history' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-info"><i class="bi bi-receipt-cutoff me-1"></i>To'lovlar tarixi</a>
-                <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport</a>
+
+            <div class="salary-filters__actions">
+              <div class="salary-filters__actions-group salary-filters__actions-group--primary">
+                <button type="submit" class="btn salary-btn-primary"><i class="bi bi-search me-1"></i>{% trans "Ko'rsatish" %}</button>
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if selected_position %}&position={{ selected_position|urlencode }}{% endif %}" class="btn btn-outline-warning" title="{% trans 'Davomatdan barcha oylikni qayta hisoblash' %}"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Qayta hisoblash" %}</a>
+                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Tozalash" %}</a>
+              </div>
+              <div class="salary-filters__actions-group salary-filters__actions-group--secondary">
+                <a href="{% url 'salary_payment_history' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-info"><i class="bi bi-receipt-cutoff me-1"></i>{% trans "To'lovlar tarixi" %}</a>
+                <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}</a>
                 <button type="button" class="btn salary-btn-premium{% if production_bonus_active %} salary-btn-premium--active{% endif %}" data-bs-toggle="modal" data-bs-target="#productionBonusModal">
                   <i class="bi bi-fuel-pump" aria-hidden="true"></i>
-                  <span>Premiya</span>
+                  <span>{% trans "Premiya" %}</span>
                   {% if production_bonus_active %}
-                  <span class="salary-btn-premium__chip">{{ production_tons|floatformat:0 }} t · {{ eligible_employees_count }} kishi</span>
+                  <span class="salary-btn-premium__chip">{{ production_tons|floatformat:0 }} t · {{ eligible_employees_count }} {% trans "kishi" %}</span>
                   {% endif %}
                 </button>
               </div>
@@ -149,8 +158,8 @@
 
   <section class="salary-table-section">
     <div class="salary-table-toolbar">
-      <p class="salary-table-toolbar__hint"><i class="bi bi-table me-1"></i>Jadvalda tahrirlash uchun ✎ tugmasini bosing</p>
-      <span class="salary-count-pill"><i class="bi bi-person-check-fill"></i> {{ stats|length }} xodim</span>
+      <p class="salary-table-toolbar__hint"><i class="bi bi-table me-1"></i>{% trans "Jadvalda tahrirlash uchun ✎ tugmasini bosing" %}</p>
+      <span class="salary-count-pill"><i class="bi bi-person-check-fill"></i> {{ stats|length }} {% trans "xodim" %}</span>
     </div>
     <div class="salary-table-wrap">
     <div class="table-responsive salary-table-responsive">
@@ -158,20 +167,20 @@
     <thead>
         <tr class="text-center">
             <th>№</th>
-            <th>F I O xodim</th>
-            <th>Lavozim</th>
-            <th>Turi</th>
-            <th>Oylik</th>
-            <th>Mukofot</th>
-            <th>Jarima</th>
-            <th>Oy kunlari</th>
-            <th>Ишчи кунлар*</th>
-            <th>Ishlangan kunlar</th>
-            <th>Kelmagan kunlar</th>
-            <th>Hisoblangan</th>
-            <th>To'langan</th>
-            <th>Qarzdorlik (boshl.)</th>
-            <th>Qarzdorlik (oxiri)</th>
+            <th>{% trans "F.I.O" %}</th>
+            <th>{% trans "Lavozim" %}</th>
+            <th>{% trans "Turi" %}</th>
+            <th>{% trans "Oylik" %}</th>
+            <th>{% trans "Mukofot" %}</th>
+            <th>{% trans "Jarima" %}</th>
+            <th>{% trans "Oy kunlari" %}</th>
+            <th>{% trans "Ishchi kunlar" %}*</th>
+            <th>{% trans "Ishlangan kunlar" %}</th>
+            <th>{% trans "Kelmagan kunlar" %}</th>
+            <th>{% trans "Hisoblangan" %}</th>
+            <th>{% trans "To'langan" %}</th>
+            <th>{% trans "Qarzdorlik (boshl.)" %}</th>
+            <th>{% trans "Qarzdorlik (oxiri)" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -179,7 +188,7 @@
         <tr id="salary-row-{{ stat.id }}" class="{% if stat.employee.employee_type == 'office' %}office-row{% endif %}">
             <td class="salary-table__num">{{ forloop.counter }}</td>
             <td class="salary-table__name">
-                <span class="salary-table__person">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</span>
+                <span class="salary-table__person">{{ stat.employee.get_full_name }}</span>
             </td>
             <td class="salary-table__position">
                 <span class="salary-table__position-title" title="{{ stat.employee.position }}">{{ stat.employee.position|default:"—" }}</span>
@@ -196,7 +205,7 @@
                     {% elif stat.employee.employee_type == 'guard' %}salary-type-badge--rose
                     {% else %}salary-type-badge--emerald{% endif %}">
                     {% if stat.employee.role == 'nalivshik' %}
-                        Nalivshik
+                        {% trans "Nalivshik" %}
                     {% else %}
                         {{ stat.employee.get_employee_type_display }}
                     {% endif %}
@@ -205,11 +214,11 @@
             <td class="salary-money-cell"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell">
                 {% if stat.production_bonus_eligible_this_month and production_bonus_active and not stat.bonus_override and stat.currency == 'UZS' and stat.bonus > 0 %}
-                <span class="salary-bonus-pill" title="Ishlab chiqarish premiyasi"><i class="bi bi-fuel-pump"></i> avto</span>
+                <span class="salary-bonus-pill" title="{% trans 'Ishlab chiqarish premiyasi' %}"><i class="bi bi-fuel-pump"></i> {% trans "avto" %}</span>
                 {% endif %}
-                <span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button>
+                <span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil-square"></i></button>
             </td>
-            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button></td>
+            <td class="salary-money-cell"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span> <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil-square"></i></button></td>
             <td>{{ stat.days_in_month }}</td>
             <td>{{ stat.working_days_in_month }}</td>
             <td>{{ stat.worked_days }}</td>
@@ -222,9 +231,9 @@
             <td class="salary-money-cell {% if stat.paid >= stat.accrued %}table-success{% elif stat.paid == 0 %}table-warning{% endif %}">
                 <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
                 {% for p in stat.salary_payments.all %}
-                <br><small class="text-muted" title="To'lov"><i class="bi bi-calendar-check"></i> {{ p.paid_at|date:"d.m.Y" }} · {{ p.amount|floatformat:0|intcomma }}</small>
+                <br><small class="text-muted" title="{% trans "To'lov" %}"><i class="bi bi-calendar-check"></i> {{ p.paid_at|date:"d.m.Y" }} · {{ p.amount|floatformat:0|intcomma }}</small>
                 {% endfor %}
-                <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="Tahrirlash"><i class="bi bi-pencil-square"></i></button>
+                <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil-square"></i></button>
             </td>
             <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell {% if stat.debt_end < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
@@ -234,8 +243,8 @@
             <td colspan="15" class="salary-empty-cell">
                 <div class="salary-empty">
                   <div class="salary-empty__icon"><i class="bi bi-inbox"></i></div>
-                  <p class="salary-empty__title">Ma'lumot topilmadi</p>
-                  <p class="salary-empty__hint">Filtrlarni o‘zgartiring yoki boshqa oy tanlang</p>
+                  <p class="salary-empty__title">{% trans "Ma'lumot topilmadi" %}</p>
+                  <p class="salary-empty__hint">{% trans "Filtrlarni o'zgartiring yoki boshqa oy tanlang" %}</p>
                 </div>
             </td>
         </tr>
@@ -243,7 +252,7 @@
     </tbody>
     <tfoot>
         <tr class="text-center">
-            <td colspan="10">Jami</td>
+            <td colspan="10">{% trans "Jami" %}</td>
             <td>{{ total_absent }}</td>
             <td>
                 {% for cur, vals in currency_totals.items %}
@@ -277,7 +286,7 @@
         <div class="salary-mobile-card {% if stat.employee.employee_type == 'office' %}office-card{% endif %}">
             <div class="salary-mobile-card__head">
                 <div>
-                    <div class="salary-mobile-card__name">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</div>
+                    <div class="salary-mobile-card__name">{{ stat.employee.get_full_name }}</div>
                     {% if stat.employee.position %}
                     <div class="salary-mobile-card__position"><i class="bi bi-briefcase"></i> {{ stat.employee.position }}{% if stat.employee.department %} · {{ stat.employee.department }}{% endif %}</div>
                     {% endif %}
@@ -290,7 +299,7 @@
                     {% elif stat.employee.employee_type == 'guard' %}salary-type-badge--rose
                     {% else %}salary-type-badge--emerald{% endif %}">
                     {% if stat.employee.role == 'nalivshik' %}
-                        Nalivshik
+                        {% trans "Nalivshik" %}
                     {% else %}
                         {{ stat.employee.get_employee_type_display }}
                     {% endif %}
@@ -298,35 +307,35 @@
             </div>
             <div class="salary-mobile-card__body">
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Oylik:</span>
+                    <span class="salary-mobile-card__label">{% trans "Oylik" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Mukofot:</span>
+                    <span class="salary-mobile-card__label">{% trans "Mukofot" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.bonus|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Jarima:</span>
+                    <span class="salary-mobile-card__label">{% trans "Jarima" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.penalty|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Ишчи кунлар:</span>
+                    <span class="salary-mobile-card__label">{% trans "Ishchi kunlar" %}:</span>
                     <span class="salary-mobile-card__value">{{ stat.working_days_in_month }}</span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Ishlangan kunlar:</span>
+                    <span class="salary-mobile-card__label">{% trans "Ishlangan kunlar" %}:</span>
                     <span class="salary-mobile-card__value">{{ stat.worked_days }}</span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Kelmagan kunlar:</span>
+                    <span class="salary-mobile-card__label">{% trans "Kelmagan kunlar" %}:</span>
                     <span class="salary-mobile-card__value">{{ stat.absent_count }}</span>
                 </div>
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">Hisoblangan:</span>
+                    <span class="salary-mobile-card__label">{% trans "Hisoblangan" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.paid >= stat.accrued %}debt-success{% elif stat.paid == 0 %}debt-warning{% endif %}">
-                    <span class="salary-mobile-card__label">To'langan:</span>
+                    <span class="salary-mobile-card__label">{% trans "To'langan" %}:</span>
                     <span class="salary-mobile-card__value">
                         <span class="salary-money">{{ stat.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
                         {% for p in stat.salary_payments.all %}
@@ -335,35 +344,35 @@
                     </span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_start < 0 %}debt-warning{% endif %}">
-                    <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
+                    <span class="salary-mobile-card__label">{% trans "Qarzdorlik (boshl.)" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row {% if stat.debt_end < 0 %}debt-warning{% endif %}">
-                    <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
+                    <span class="salary-mobile-card__label">{% trans "Qarzdorlik (oxiri)" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
             </div>
             <div class="salary-mobile-card__actions">
                 <button type="button" class="btn salary-btn-primary w-100" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}">
-                    <i class="bi bi-pencil-square me-1"></i>Tahrirlash
+                    <i class="bi bi-pencil-square me-1"></i>{% trans "Tahrirlash" %}
                 </button>
             </div>
         </div>
     {% empty %}
         <div class="salary-mobile-card text-center text-muted py-4">
             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-            Ma'lumotlar topilmadi
+            {% trans "Ma'lumotlar topilmadi" %}
         </div>
     {% endfor %}
 
     {% if stats %}
     <div class="salary-mobile-card salary-mobile-card--total">
         <div class="salary-mobile-card__head">
-            <div class="salary-mobile-card__name">JAMI</div>
+            <div class="salary-mobile-card__name">{% trans "JAMI" %}</div>
         </div>
         <div class="salary-mobile-card__body">
             <div class="salary-mobile-card__row">
-                <span class="salary-mobile-card__label">Kelmagan kunlar:</span>
+                <span class="salary-mobile-card__label">{% trans "Kelmagan kunlar" %}:</span>
                 <span class="salary-mobile-card__value fw-bold">{{ total_absent }}</span>
             </div>
             {% for cur, vals in currency_totals.items %}
@@ -371,19 +380,19 @@
                 <span class="salary-mobile-card__label fw-bold">{{ cur }}</span>
             </div>
             <div class="salary-mobile-card__row">
-                <span class="salary-mobile-card__label">Hisoblangan:</span>
+                <span class="salary-mobile-card__label">{% trans "Hisoblangan" %}:</span>
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.accrued|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
-                <span class="salary-mobile-card__label">To'langan:</span>
+                <span class="salary-mobile-card__label">{% trans "To'langan" %}:</span>
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
-                <span class="salary-mobile-card__label">Qarzdorlik (boshl.):</span>
+                <span class="salary-mobile-card__label">{% trans "Qarzdorlik (boshl.)" %}:</span>
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
-                <span class="salary-mobile-card__label">Qarzdorlik (oxiri):</span>
+                <span class="salary-mobile-card__label">{% trans "Qarzdorlik (oxiri)" %}:</span>
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             {% endfor %}
@@ -393,9 +402,7 @@
   </div>
 
   <aside class="salary-footnote">
-    <strong>*Ишчи кунлар:</strong> Фақат тўлиқ ставка ходимлар учун ҳисобга олинади (якшанба ва байрам кунлари чиқарилган).
-    15 кунлик ишчилар ҳар куни ишлайди, ҳафтада 1 кун келадиган ходимлар учун ойда 4 кун оптимал, қоровуллар учун ойда 10 кун оптимал.
-    Офис ходимлари эса давоматсиз тўлиқ ойлик олади.
+    {% blocktrans %}<strong>*Ishchi kunlar:</strong> Faqat to'liq stavka xodimlar uchun hisobga olinadi (yakshanba va bayram kunlari chiqarilgan). 15 kunlik ishchilar har kuni ishlaydi, haftada 1 kun keladigan xodimlar uchun oyda 4 kun optimal, qorovullar uchun oyda 10 kun optimal. Ofis xodimlari esa davomatsiz to'liq oylik oladi.{% endblocktrans %}
   </aside>
 
 </div><!-- .salary-page -->
@@ -410,15 +417,15 @@
                 <div class="salary-modal__header-inner">
                     <div class="salary-modal__avatar" aria-hidden="true">{{ stat.employee.first_name|slice:":1" }}{{ stat.employee.last_name|slice:":1" }}</div>
                     <div class="salary-modal__titles">
-                        <span class="salary-modal__eyebrow">Ma'lumotlarni tahrirlash</span>
-                        <h2 class="salary-modal__name modal-title" id="editModalLabel{{ stat.id }}">{{ stat.employee.last_name }} {{ stat.employee.first_name }}</h2>
+                        <span class="salary-modal__eyebrow">{% trans "Ma'lumotlarni tahrirlash" %}</span>
+                        <h2 class="salary-modal__name modal-title" id="editModalLabel{{ stat.id }}">{{ stat.employee.get_full_name }}</h2>
                         {% if stat.employee.position %}
                         <span class="salary-modal__position-badge"><i class="bi bi-briefcase"></i> {{ stat.employee.position }}{% if stat.employee.department %} · {{ stat.employee.department }}{% endif %}</span>
                         {% endif %}
-                        <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ stat.year }} · {{ stat.month }}</span>
+                        <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ stat.year }} · {% for m, label in month_names %}{% if m == stat.month %}{{ label }}{% endif %}{% endfor %}</span>
                     </div>
                 </div>
-                <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="{% trans 'Yopish' %}"></button>
             </div>
             <form method="post" class="salary-modal__form" action="{% url 'edit_salary_stat' stat.id %}?next={{ request.get_full_path|urlencode }}">
                 {% csrf_token %}
@@ -426,19 +433,19 @@
                     <div class="salary-modal__section">
                         <div class="salary-modal__section-head">
                             <span class="salary-modal__section-icon"><i class="bi bi-wallet2"></i></span>
-                            <span class="salary-modal__section-title">Asosiy ma'lumotlar</span>
+                            <span class="salary-modal__section-title">{% trans "Asosiy ma'lumotlar" %}</span>
                         </div>
                         <div class="salary-modal__grid">
                         <div class="salary-modal__field">
-                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label">Oylik</label>
+                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label">{% trans "Oylik" %}</label>
                             <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
                         </div>
                         <div class="salary-modal__field">
-                            <label for="id_currency_{{ stat.id }}" class="salary-modal__label">Valyuta</label>
+                            <label for="id_currency_{{ stat.id }}" class="salary-modal__label">{% trans "Valyuta" %}</label>
                             <select name="currency" class="form-select salary-modal__input" id="id_currency_{{ stat.id }}">
-                                <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>So'm (UZS)</option>
-                                <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>Dollar (USD)</option>
-                                <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>Yevro (EUR)</option>
+                                <option value="UZS" {% if stat.currency == 'UZS' %}selected{% endif %}>{% trans "So'm (UZS)" %}</option>
+                                <option value="USD" {% if stat.currency == 'USD' %}selected{% endif %}>{% trans 'Dollar (USD)' %}</option>
+                                <option value="EUR" {% if stat.currency == 'EUR' %}selected{% endif %}>{% trans 'Yevro (EUR)' %}</option>
                             </select>
                         </div>
                         </div>
@@ -447,7 +454,7 @@
                     <div class="salary-modal__section">
                         <div class="salary-modal__section-head">
                             <span class="salary-modal__section-icon salary-modal__section-icon--emerald"><i class="bi bi-check2-circle"></i></span>
-                            <span class="salary-modal__section-title">To'lovlar</span>
+                            <span class="salary-modal__section-title">{% trans "To'lovlar" %}</span>
                         </div>
                         <div class="salary-modal__grid">
                         <div class="salary-modal__field salary-modal__field--wide">
@@ -462,28 +469,28 @@
                                     </div>
                                     <label class="salary-payment-item__delete">
                                         <input type="checkbox" class="form-check-input" name="delete_payments" value="{{ p.id }}">
-                                        <span>O'chirish</span>
+                                        <span>{% trans "O'chirish" %}</span>
                                     </label>
                                 </li>
                                 {% endfor %}
                             </ul>
-                            <div class="salary-payment-total">Jami to'langan: <strong>{{ stat.paid|floatformat:0|intcomma }} {{ stat.currency }}</strong></div>
+                            <div class="salary-payment-total">{% trans "Jami to'langan" %}: <strong>{{ stat.paid|floatformat:0|intcomma }} {{ stat.currency }}</strong></div>
                             {% else %}
-                            <div class="salary-payment-empty"><i class="bi bi-inbox"></i> Hali to'lov kiritilmagan</div>
+                            <div class="salary-payment-empty"><i class="bi bi-inbox"></i> {% trans "Hali to'lov kiritilmagan" %}</div>
                             {% endif %}
                         </div>
                         <div class="salary-modal__field">
-                            <label for="new_payment_amount_{{ stat.id }}" class="salary-modal__label">Yangi to'lov summasi</label>
-                            <input type="number" name="new_payment_amount" step="any" min="0" class="form-control salary-modal__input" id="new_payment_amount_{{ stat.id }}" placeholder="Masalan: 2 000 000">
+                            <label for="new_payment_amount_{{ stat.id }}" class="salary-modal__label">{% trans "Yangi to'lov summasi" %}</label>
+                            <input type="number" name="new_payment_amount" step="any" min="0" class="form-control salary-modal__input" id="new_payment_amount_{{ stat.id }}" placeholder="{% trans 'Masalan: 2 000 000' %}">
                         </div>
                         <div class="salary-modal__field">
-                            <label for="new_payment_date_{{ stat.id }}" class="salary-modal__label">To'lov sanasi</label>
+                            <label for="new_payment_date_{{ stat.id }}" class="salary-modal__label">{% trans "To'lov sanasi" %}</label>
                             <input type="date" name="new_payment_date" class="form-control salary-modal__input" id="new_payment_date_{{ stat.id }}">
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="new_payment_note_{{ stat.id }}" class="salary-modal__label">Izoh (ixtiyoriy)</label>
-                            <input type="text" name="new_payment_note" class="form-control salary-modal__input" id="new_payment_note_{{ stat.id }}" placeholder="Masalan: avans, qisman to'lov">
-                            <small class="salary-modal__field-hint">Har bir to'lov alohida saqlanadi — isbot uchun sana muhim.</small>
+                            <label for="new_payment_note_{{ stat.id }}" class="salary-modal__label">{% trans "Izoh (ixtiyoriy)" %}</label>
+                            <input type="text" name="new_payment_note" class="form-control salary-modal__input" id="new_payment_note_{{ stat.id }}" placeholder="{% trans "Masalan: avans, qisman to'lov" %}">
+                            <small class="salary-modal__field-hint">{% trans "Har bir to'lov alohida saqlanadi — isbot uchun sana muhim." %}</small>
                         </div>
                         </div>
                     </div>
@@ -491,47 +498,47 @@
                     <div class="salary-modal__section">
                         <div class="salary-modal__section-head">
                             <span class="salary-modal__section-icon salary-modal__section-icon--amber"><i class="bi bi-gift"></i></span>
-                            <span class="salary-modal__section-title">Mukofot va jarima</span>
+                            <span class="salary-modal__section-title">{% trans "Mukofot va jarima" %}</span>
                         </div>
                         <div class="salary-modal__grid">
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_bonus_{{ stat.id }}" class="salary-modal__label">Mukofot</label>
+                            <label for="id_bonus_{{ stat.id }}" class="salary-modal__label">{% trans "Mukofot" %}</label>
                             {% if stat.production_bonus_eligible_this_month and stat.currency == 'UZS' and not stat.bonus_override and production_bonus_active %}
                             <div class="salary-bonus-auto">
-                                <div class="salary-bonus-auto__value">{{ stat.bonus|floatformat:0|intcomma }} <span>so'm</span></div>
-                                <span class="salary-bonus-auto__badge"><i class="bi bi-fuel-pump"></i> Avtomatik premiya</span>
+                                <div class="salary-bonus-auto__value">{{ stat.bonus|floatformat:0|intcomma }} <span>{% trans "so'm" %}</span></div>
+                                <span class="salary-bonus-auto__badge"><i class="bi bi-fuel-pump"></i> {% trans "Avtomatik premiya" %}</span>
                             </div>
                             <input type="hidden" name="bonus" value="{{ stat.bonus|floatformat:2 }}">
                             <div class="salary-bonus-auto__actions">
                                 <button type="button" class="btn btn-sm btn-outline-primary js-open-prod-bonus">
-                                    <i class="bi bi-sliders"></i> Premiyani sozlash
+                                    <i class="bi bi-sliders"></i> {% trans "Premiyani sozlash" %}
                                 </button>
                                 <button type="submit" name="remove_production_bonus" value="1" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Shu xodimning premiyasi bekor qilinsinmi?');">
-                                    <i class="bi bi-x-circle"></i> Bekor qilish
+                                        onclick="return confirm('{% trans 'Shu xodimning premiyasi bekor qilinsinmi?' %}');">
+                                    <i class="bi bi-x-circle"></i> {% trans "Bekor qilish" %}
                                 </button>
                             </div>
                             {% else %}
                             <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
                             {% if stat.bonus > 0 or stat.production_bonus_eligible_this_month %}
                             <button type="submit" name="remove_production_bonus" value="1" class="btn btn-sm btn-outline-danger mt-2"
-                                    onclick="return confirm('Shu xodimning premiyasi bekor qilinsinmi?');">
-                                <i class="bi bi-x-circle"></i> Premiyani bekor qilish
+                                    onclick="return confirm('{% trans 'Shu xodimning premiyasi bekor qilinsinmi?' %}');">
+                                <i class="bi bi-x-circle"></i> {% trans "Premiyani bekor qilish" %}
                             </button>
                             {% endif %}
                             {% endif %}
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
-                            <label for="id_penalty_{{ stat.id }}" class="salary-modal__label">Jarima</label>
+                            <label for="id_penalty_{{ stat.id }}" class="salary-modal__label">{% trans "Jarima" %}</label>
                             <input type="number" name="penalty" value="{{ stat.penalty|floatformat:2 }}" step="any" min="0" class="form-control salary-modal__input" id="id_penalty_{{ stat.id }}">
                         </div>
                         </div>
                     </div>
-                    <p class="salary-modal__hint"><i class="bi bi-info-circle"></i> Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi.</p>
+                    <p class="salary-modal__hint"><i class="bi bi-info-circle"></i> {% trans "Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi." %}</p>
                 </div>
                 <div class="modal-footer salary-modal__footer">
-                    <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn salary-modal__btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                    <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">{% trans "Bekor qilish" %}</button>
+                    <button type="submit" class="btn salary-modal__btn-save"><i class="bi bi-check-lg"></i> {% trans "Saqlash" %}</button>
                 </div>
             </form>
         </div>
@@ -548,12 +555,12 @@
         <div class="salary-modal__header-inner">
           <div class="salary-modal__avatar salary-modal__avatar--amber" aria-hidden="true"><i class="bi bi-fuel-pump"></i></div>
           <div class="salary-modal__titles">
-            <span class="salary-modal__eyebrow">Ishlab chiqarish</span>
-            <h2 class="salary-modal__name modal-title" id="productionBonusModalLabel">Premiya</h2>
-            <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ year }} · {{ month }}</span>
+            <span class="salary-modal__eyebrow">{% trans "Ishlab chiqarish" %}</span>
+            <h2 class="salary-modal__name modal-title" id="productionBonusModalLabel">{% trans "Premiya" %}</h2>
+            <span class="salary-modal__period-badge"><i class="bi bi-calendar3"></i> {{ year }} · {{ month_label }}</span>
           </div>
         </div>
-        <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+        <button type="button" class="btn-close salary-modal__close" data-bs-dismiss="modal" aria-label="{% trans 'Yopish' %}"></button>
       </div>
       <form method="post" id="productionBonusForm" action="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}{% if q %}&q={{ q|urlencode }}{% endif %}">
         {% csrf_token %}
@@ -564,16 +571,16 @@
           <div class="prod-bonus-status" role="status">
             <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
             <div>
-              <strong>Faol premiya</strong>
-              <span>{{ production_tons|floatformat:0|intcomma }} t · {{ eligible_employees_count }} xodim · {{ current_production_bonus|floatformat:0|intcomma }} so'm</span>
+              <strong>{% trans "Faol premiya" %}</strong>
+              <span>{{ production_tons|floatformat:0|intcomma }} t · {{ eligible_employees_count }} {% trans "xodim" %} · {{ current_production_bonus|floatformat:0|intcomma }} so'm</span>
             </div>
           </div>
           {% endif %}
 
-          <div class="prod-bonus-tiers" aria-label="Premiya qoidalari">
+          <div class="prod-bonus-tiers" aria-label="{% trans 'Premiya qoidalari' %}">
             <div class="prod-bonus-tier">
               <span class="prod-bonus-tier__range">&lt; {{ production_bonus_low_min_tons|floatformat:0|intcomma }} t</span>
-              <span class="prod-bonus-tier__amount prod-bonus-tier__amount--muted">Premiya yo'q</span>
+              <span class="prod-bonus-tier__amount prod-bonus-tier__amount--muted">{% trans "Premiya yo'q" %}</span>
             </div>
             <div class="prod-bonus-tier prod-bonus-tier--active">
               <span class="prod-bonus-tier__range">{{ production_bonus_low_min_tons|floatformat:0|intcomma }}–{{ production_bonus_high_threshold_tons|floatformat:0|intcomma }} t</span>
@@ -585,40 +592,40 @@
             </div>
           </div>
 
-          <div class="prod-bonus-modes" role="tablist" aria-label="Amal turi">
+          <div class="prod-bonus-modes" role="tablist" aria-label="{% trans 'Amal turi' %}">
             <button type="button" class="prod-bonus-mode prod-bonus-mode--active" data-prod-mode="assign" role="tab" aria-selected="true">
-              <i class="bi bi-plus-circle"></i> Premiya berish
+              <i class="bi bi-plus-circle"></i> {% trans "Premiya berish" %}
             </button>
             <button type="button" class="prod-bonus-mode prod-bonus-mode--danger" data-prod-mode="remove" role="tab" aria-selected="false">
-              <i class="bi bi-x-circle"></i> Bekor qilish
+              <i class="bi bi-x-circle"></i> {% trans "Bekor qilish" %}
             </button>
           </div>
 
           <p class="prod-bonus-hint" data-hint-assign>
-            <i class="bi bi-lightbulb"></i> Tonna kiriting, keyin premiya oladigan xodimlarni belgilang va <strong>Saqlash</strong> ni bosing.
+            <i class="bi bi-lightbulb"></i> {% blocktrans %}Tonna kiriting, keyin premiya oladigan xodimlarni belgilang va <strong>Saqlash</strong> ni bosing.{% endblocktrans %}
           </p>
           <p class="prod-bonus-hint prod-bonus-hint--danger" data-hint-remove hidden>
-            <i class="bi bi-exclamation-triangle"></i> Faqat bekor qilmoqchi bo'lgan xodim(lar)ni belgilang — boshqalarga tegilmaydi.
+            {% trans "Faqat bekor qilmoqchi bo'lgan xodim(lar)ni belgilang — boshqalarga tegilmaydi." %}
           </p>
 
           <div class="prod-bonus-tons" data-prod-assign-only>
             <div class="row g-3">
               <div class="col-sm-6">
-                <label class="salary-modal__label" for="id_production_tons">Oylik ishlab chiqarish (tonna)</label>
+                <label class="salary-modal__label" for="id_production_tons">{% trans "Oylik ishlab chiqarish (tonna)" %}</label>
                 <div class="prod-bonus-input-wrap">
                   <i class="bi bi-box-seam" aria-hidden="true"></i>
                   <input type="number" name="production_tons" id="id_production_tons" class="form-control salary-modal__input"
                          value="{% if production_bonus_active %}{{ production_tons|floatformat:2 }}{% endif %}"
-                         step="0.01" min="0" placeholder="Masalan: 2500"
+                         step="0.01" min="0" placeholder="{% trans 'Masalan: 2500' %}"
                          data-min="{{ production_bonus_low_min_tons }}"
                          data-high-threshold="{{ production_bonus_high_threshold_tons }}"
                          data-low="{{ production_bonus_low }}" data-high="{{ production_bonus_high }}">
                 </div>
               </div>
               <div class="col-sm-6">
-                <label class="salary-modal__label">Hisoblangan premiya</label>
+                <label class="salary-modal__label">{% trans "Hisoblangan premiya" %}</label>
                 <div class="prod-bonus-preview" id="productionBonusPreview" aria-live="polite">
-                  <span class="prod-bonus-preview__label">Summa</span>
+                  <span class="prod-bonus-preview__label">{% trans "Summa" %}</span>
                   <span class="prod-bonus-preview__value">{% if current_production_bonus %}{{ current_production_bonus|floatformat:0|intcomma }} so'm{% else %}—{% endif %}</span>
                 </div>
               </div>
@@ -627,45 +634,45 @@
 
           <div class="prod-bonus-picker">
             <div class="prod-bonus-picker__head">
-              <label class="salary-modal__label mb-0">Xodimlar</label>
-              <span class="prod-bonus-picker__count" id="prodBonusSelectedCount">0 tanlandi</span>
+              <label class="salary-modal__label mb-0">{% trans "Xodimlar" %}</label>
+              <span class="prod-bonus-picker__count" id="prodBonusSelectedCount">0 {% trans "tanlandi" %}</span>
             </div>
             <div class="prod-bonus-picker__toolbar">
               <div class="prod-bonus-search">
                 <i class="bi bi-search" aria-hidden="true"></i>
-                <input type="search" id="prodBonusSearch" class="form-control" placeholder="Ism yoki lavozim bo'yicha qidirish..." autocomplete="off">
+                <input type="search" id="prodBonusSearch" class="form-control" placeholder="{% trans "Ism yoki lavozim bo'yicha qidirish..." %}" autocomplete="off">
               </div>
-              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusSelectAll">Hammasi</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusClearAll">Tozalash</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusSelectAll">{% trans "Hammasi" %}</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="prodBonusClearAll">{% trans "Tozalash" %}</button>
             </div>
             <div class="prod-bonus-picker__list" id="prodBonusEmployeeList">
               {% for emp in active_employees_for_bonus %}
               <label class="prod-bonus-emp{% if emp.id in production_bonus_eligible_ids %} prod-bonus-emp--has-bonus{% endif %}"
-                     data-name="{{ emp.last_name }} {{ emp.first_name }} {{ emp.position|default:'' }}"
+                     data-name="{{ emp.get_full_name }} {{ emp.position|default:'' }}"
                      for="prod_eligible_{{ emp.id }}">
                 <input class="prod-bonus-emp__check" type="checkbox" name="eligible_employees" value="{{ emp.id }}"
                        id="prod_eligible_{{ emp.id }}"
                        {% if emp.id in production_bonus_eligible_ids %}checked{% endif %}>
                 <span class="prod-bonus-emp__avatar">{{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}</span>
                 <span class="prod-bonus-emp__info">
-                  <span class="prod-bonus-emp__name">{{ emp.last_name }} {{ emp.first_name }}</span>
+                  <span class="prod-bonus-emp__name">{{ emp.get_full_name }}</span>
                   {% if emp.position %}<span class="prod-bonus-emp__role">{{ emp.position }}</span>{% endif %}
                 </span>
                 {% if emp.id in production_bonus_eligible_ids %}
-                <span class="prod-bonus-emp__badge"><i class="bi bi-check-lg"></i> Faol</span>
+                <span class="prod-bonus-emp__badge"><i class="bi bi-check-lg"></i> {% trans "Faol" %}</span>
                 {% endif %}
                 <span class="prod-bonus-emp__tick" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
               </label>
               {% empty %}
-              <p class="prod-bonus-picker__empty">Aktiv xodim yo'q</p>
+              <p class="prod-bonus-picker__empty">{% trans "Aktiv xodim yo'q" %}</p>
               {% endfor %}
             </div>
           </div>
         </div>
         <div class="modal-footer salary-modal__footer prod-bonus-footer">
-          <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">Yopish</button>
+          <button type="button" class="btn salary-modal__btn-cancel" data-bs-dismiss="modal">{% trans "Yopish" %}</button>
           <button type="submit" name="form_type" value="production_bonus_remove" class="btn salary-modal__btn-danger" data-prod-remove hidden>
-            <i class="bi bi-x-circle"></i> Tanlanganlardan olib tashlash
+            <i class="bi bi-x-circle"></i> {% trans "Tanlanganlardan olib tashlash" %}
           </button>
           <button type="submit" name="form_type" value="production_bonus" class="btn salary-modal__btn-save" data-prod-save>
             <i class="bi bi-check-lg"></i> Saqlash
@@ -702,7 +709,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const amount = tons <= highThreshold ? low : high;
-            prodPreviewValue.textContent = formatMoney(amount) + " so'm";
+            prodPreviewValue.textContent = formatMoney(amount) + " {% trans "so'm" %}";
             prodPreview.classList.add(tons <= highThreshold ? 'prod-bonus-preview--low' : 'prod-bonus-preview--high');
         };
         prodTonsInput.addEventListener('input', updateProdPreview);
@@ -741,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateSelectedCount() {
             const n = getCheckedCount();
             if (countEl) {
-                countEl.textContent = n + ' tanlandi';
+                countEl.textContent = n + ' {% trans "tanlandi" %}';
                 countEl.classList.toggle('prod-bonus-picker__count--active', n > 0);
             }
         }
@@ -810,21 +817,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const min = prodTonsInput ? Number(prodTonsInput.dataset.min) : 0;
                 if (!checked) {
                     e.preventDefault();
-                    alert('Kamida bitta xodim belgilang.');
+                    alert('{% trans 'Kamida bitta xodim belgilang.' %}');
                     return;
                 }
                 if (!prodTonsInput || !prodTonsInput.value.trim() || isNaN(tons) || tons < min) {
                     e.preventDefault();
-                    alert('Premiya uchun kamida ' + min.toLocaleString('uz-UZ') + ' tonna kiriting.');
+                    alert('{% trans 'Premiya uchun kamida' %} ' + min.toLocaleString('uz-UZ') + ' {% trans 'tonna kiriting.' %}');
                     return;
                 }
             } else {
                 if (!checked) {
                     e.preventDefault();
-                    alert('Bekor qilish uchun kamida bitta xodim belgilang.');
+                    alert('{% trans 'Bekor qilish uchun kamida bitta xodim belgilang.' %}');
                     return;
                 }
-                if (!confirm('Tanlangan ' + checked + ' ta xodimdan premiya olib tashlansinmi?')) {
+                if (!confirm('{% trans 'Tanlangan' %} ' + checked + ' {% trans 'ta xodimdan premiya olib tashlansinmi?' %}')) {
                     e.preventDefault();
                 }
             }
@@ -958,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalHtml = submitBtn.innerHTML;
             
             // Loading state
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saqlanmoqda...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {% trans "Saqlanmoqda..." %}';
             submitBtn.disabled = true;
             
             fetch(this.action, {
@@ -978,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     toast.style.zIndex = '9999';
                     toast.innerHTML = `
                         <div class="toast-header">
-                            <strong class="me-auto">Muvaffaqiyat</strong>
+                            <strong class="me-auto">{% trans "Muvaffaqiyat" %}</strong>
                             <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
                         </div>
                         <div class="toast-body text-success">
@@ -994,12 +1001,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }
                 } else {
-                    alert('Xatolik yuz berdi: ' + (data.message || 'Noma\'lum xatolik'));
+                    alert('{% trans "Xatolik yuz berdi:" %} ' + (data.message || '{% trans "Noma'lum xatolik" %}'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Xatolik yuz berdi: ' + error.message);
+                alert('{% trans "Xatolik yuz berdi:" %} ' + error.message);
             })
             .finally(() => {
                 // Reset button

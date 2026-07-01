@@ -1,13 +1,16 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Nalivshik jadvali{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Nalivshik jadvali" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Nalivshik komanda jadvali" subtitle="1-kom, 2-kom, 3-kom navbatchilik sikli" icon="bi-diagram-3-fill" %}
+{% trans "Nalivshik komanda jadvali" as page_title %}
+{% trans "1-kom, 2-kom, 3-kom navbatchilik sikli" as schedule_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=schedule_subtitle icon="bi-diagram-3-fill" %}
 
 <div class="app-toolbar mb-3">
   <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
     <input type="month" name="month" class="form-control" style="max-width:180px" value="{{ year }}-{{ month|stringformat:'02d' }}">
-    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Ko'rsat</button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>{% trans "Ko'rsat" %}</button>
   </form>
 </div>
 
@@ -16,11 +19,11 @@
     <table class="table app-table table-hover mb-0 text-center">
       <thead>
         <tr>
-          <th>Sana</th>
-          <th>Hafta kuni</th>
-          <th>Kunduzgi (09:00–21:00)</th>
-          <th>Tungi (21:00–09:00)</th>
-          <th>Tahrirlash</th>
+          <th>{% trans "Sana" %}</th>
+          <th>{% trans "Hafta kuni" %}</th>
+          <th>{% trans "Kunduzgi (09:00–21:00)" %}</th>
+          <th>{% trans "Tungi (21:00–09:00)" %}</th>
+          <th>{% trans "Tahrirlash" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -52,7 +55,7 @@
                 <option value="{{ team.id }}" {% if day.override and day.override.night_team and team.id == day.override.night_team.id %}selected{% elif not day.override and team.code == day.night_team %}selected{% endif %}>{{ team.name }}</option>
                 {% endfor %}
               </select>
-              <button type="submit" class="btn btn-outline-primary btn-sm">Saqlash</button>
+              <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Saqlash" %}</button>
             </form>
           </td>
         </tr>
@@ -61,7 +64,7 @@
     </table>
   </div>
   <div class="app-panel-body border-top small text-muted">
-    <strong>Eslatma:</strong> Jadval navbatchilik siklini ko'rsatadi. Davomat bulk saqlanganda yoziladi.
+    {% blocktrans %}<strong>Eslatma:</strong> Jadval navbatchilik siklini ko'rsatadi. Davomat bulk saqlanganda yoziladi.{% endblocktrans %}
   </div>
 </div>
 {% endblock %}

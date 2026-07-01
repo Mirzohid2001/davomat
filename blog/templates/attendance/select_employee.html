@@ -1,8 +1,11 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Xodim tanlash{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Xodim tanlash" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Individual davomat" subtitle="Davomat kiritish uchun xodimni tanlang" icon="bi-person-plus-fill" %}
+{% trans "Individual davomat" as page_title %}
+{% trans "Davomat kiritish uchun xodimni tanlang" as select_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=select_subtitle icon="bi-person-plus-fill" %}
 
 <div class="app-form-panel">
   <div class="app-panel">
@@ -10,24 +13,24 @@
       <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="location-filter" class="form-label">Joylashuv</label>
+          <label for="location-filter" class="form-label">{% trans "Joylashuv" %}</label>
           <select id="location-filter" class="form-select">
-            <option value="">Barchasi</option>
+            <option value="">{% trans "Barchasi" %}</option>
             {% for loc_code, loc_name in locations %}
             <option value="{{ loc_code }}">{{ loc_name }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="mb-3">
-          <label for="department-filter" class="form-label">Bo'lim</label>
+          <label for="department-filter" class="form-label">{% trans "Bo'lim" %}</label>
           <select id="department-filter" class="form-select">
-            <option value="">Barchasi</option>
+            <option value="">{% trans "Barchasi" %}</option>
           </select>
         </div>
         <div class="mb-4">
-          <label for="employee" class="form-label">Xodim</label>
+          <label for="employee" class="form-label">{% trans "Xodim" %}</label>
           <select name="employee" id="employee" class="form-select" required>
-            <option value="">— Xodimni tanlang —</option>
+            <option value="">{% trans "— Xodimni tanlang —" %}</option>
             {% for emp in employees %}
             <option value="{{ emp.id }}" data-location="{{ emp.location }}" data-department="{{ emp.department|default:'' }}">
               {{ emp.last_name }} {{ emp.first_name }} ({{ emp.position }})
@@ -36,8 +39,8 @@
           </select>
         </div>
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-primary">Davom etish</button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+          <button type="submit" class="btn btn-primary">{% trans "Davom etish" %}</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">{% trans "Bekor qilish" %}</a>
         </div>
       </form>
     </div>

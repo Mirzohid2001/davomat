@@ -26,6 +26,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
     list_display = (
         "last_name",
         "first_name",
+        "middle_name",
         "position",
         "department",
         "location",
@@ -36,7 +37,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
         "role",
         "team",
     )
-    search_fields = ("first_name", "last_name", "position", "department", "phone_number")
+    search_fields = ("first_name", "last_name", "middle_name", "position", "department", "phone_number")
     list_filter = ("is_active", "department", "position", "location", "role", "team")
 
 

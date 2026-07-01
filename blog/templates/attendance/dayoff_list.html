@@ -1,18 +1,23 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Yopiq kunlar{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Yopiq kunlar" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Yopiq kunlar" subtitle="Bayram va dam olish kunlari" icon="bi-calendar-x-fill" %}
+{% trans "Yopiq kunlar" as page_title %}
+{% trans "Qo'shish" as add_label %}
+{% trans "Yopiq kunlar yo'q" as empty_dayoff %}
+{% trans "Bayram va dam olish kunlari" as dayoff_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=dayoff_subtitle icon="bi-calendar-x-fill" %}
 
 <div class="app-toolbar mb-3">
-  <a href="{% url 'dayoff_create' %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Yangi yopiq kun</a>
+  <a href="{% url 'dayoff_create' %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>{% trans "Yangi yopiq kun" %}</a>
 </div>
 
 <div class="app-panel">
   <div class="table-responsive">
     <table class="table app-table table-hover mb-0">
       <thead>
-        <tr><th>#</th><th>Sana</th><th>Sabab</th><th>Amal</th></tr>
+        <tr><th>#</th><th>Sana</th><th>{% trans "Sabab" %}</th><th>{% trans "Amal" %}</th></tr>
       </thead>
       <tbody>
         {% for day in days %}
@@ -25,7 +30,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="border-0">{% url 'dayoff_create' as doc_url %}{% include 'attendance/partials/empty_state.html' with title="Yopiq kunlar yo'q" action_url=doc_url action_label="Qo'shish" %}</td></tr>
+        <tr><td colspan="4" class="border-0">{% url 'dayoff_create' as doc_url %}{% include 'attendance/partials/empty_state.html' with title=empty_dayoff action_url=doc_url action_label=add_label %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -1,22 +1,79 @@
 {% extends 'attendance/base.html' %}
-{% block title %}Xodimlar{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Xodimlar" %}{% endblock %}
 
 {% block content %}
-{% include 'attendance/partials/page_hero.html' with title="Xodimlar" subtitle="Barcha xodimlar ro'yxati va boshqaruv" icon="bi-people-fill" %}
+{% trans "Xodimlar" as page_title %}
+{% trans "Barcha xodimlar ro'yxati va boshqaruv" as employees_subtitle %}
+{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=employees_subtitle icon="bi-people-fill" %}
 
 <div class="app-toolbar mb-3">
-  <form class="app-search-form d-flex flex-wrap gap-2" method="get">
-    <input type="text" name="q" placeholder="Qidiruv (ism, lavozim...)" value="{{ search }}" class="form-control" autofocus>
-    <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search me-1"></i>Qidirish</button>
-  </form>
-  <div class="d-flex flex-wrap gap-2">
-    <a href="{% url 'employee_list_export' %}{% if search %}?q={{ search|urlencode }}{% endif %}" class="btn btn-outline-success">
-      <i class="bi bi-file-earmark-excel me-1"></i>Excelga eksport
+  <div class="d-flex flex-wrap gap-2 ms-md-auto">
+    <a href="{% url 'employee_list_export' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-outline-success">
+      <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}
     </a>
     <a href="{% url 'employee_create' %}" class="btn btn-success">
-      <i class="bi bi-person-plus-fill me-1"></i>Yangi xodim
+      <i class="bi bi-person-plus-fill me-1"></i>{% trans "Yangi xodim" %}
     </a>
   </div>
+</div>
+
+<div class="app-filter-card mb-4">
+  <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> {% trans "Filtrlash" %}</div>
+  <form class="row g-3 align-items-end" method="get">
+    <div class="col-md-4 col-lg-3">
+      <label for="employee-search" class="form-label">{% trans "Qidiruv" %}</label>
+      <input type="text" id="employee-search" name="q" placeholder="{% trans 'Ism, lavozim, telefon...' %}" value="{{ filters.q }}" class="form-control" autofocus>
+    </div>
+    <div class="col-md-4 col-lg-2">
+      <label for="employee-department" class="form-label">{% trans "Bo'lim" %}</label>
+      <select name="department" id="employee-department" class="form-select">
+        <option value="">{% trans "Barcha bo'limlar" %}</option>
+        {% for dept in departments %}
+        <option value="{{ dept }}" {% if filters.department == dept %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 col-lg-2">
+      <label for="employee-type" class="form-label">{% trans "Xodim turi" %}</label>
+      <select name="employee_type" id="employee-type" class="form-select">
+        <option value="">{% trans "Barcha turlar" %}</option>
+        {% for value, label in employee_type_choices %}
+        <option value="{{ value }}" {% if filters.employee_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 col-lg-2">
+      <label for="employee-location" class="form-label">{% trans "Joylashuv" %}</label>
+      <select name="location" id="employee-location" class="form-select">
+        <option value="">{% trans "Barcha joylashuvlar" %}</option>
+        {% for value, label in location_choices %}
+        <option value="{{ value }}" {% if filters.location == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 col-lg-2">
+      <label for="employee-role" class="form-label">{% trans "Lavozim turi" %}</label>
+      <select name="role" id="employee-role" class="form-select">
+        <option value="">{% trans "Barcha lavozimlar" %}</option>
+        {% for value, label in role_choices %}
+        <option value="{{ value }}" {% if filters.role == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 col-lg-1">
+      <label for="employee-status" class="form-label">{% trans "Holat" %}</label>
+      <select name="status" id="employee-status" class="form-select">
+        <option value="">{% trans "Barchasi" %}</option>
+        <option value="active" {% if filters.status == 'active' %}selected{% endif %}>{% trans "Aktiv" %}</option>
+        <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>{% trans "Noaktiv" %}</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex flex-wrap gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>{% trans "Ko'rsatish" %}</button>
+      <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Tozalash" %}</a>
+    </div>
+  </form>
 </div>
 
 <div class="app-panel app-table-responsive-hide-sm">
@@ -25,14 +82,15 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Ismi</th>
-          <th>Familiyasi</th>
-          <th>Lavozimi</th>
-          <th>Bo'limi</th>
-          <th>Telefon</th>
-          <th>Ishga kirgan</th>
-          <th>Holat</th>
-          <th>Amallar</th>
+          <th>{% trans "Ismi" %}</th>
+          <th>{% trans "Familiyasi" %}</th>
+          <th>{% trans "Otchestvasi" %}</th>
+          <th>{% trans "Lavozimi" %}</th>
+          <th>{% trans "Bo'limi" %}</th>
+          <th>{% trans "Telefon" %}</th>
+          <th>{% trans "Ishga kirgan" %}</th>
+          <th>{% trans "Holat" %}</th>
+          <th>{% trans "Amallar" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -41,33 +99,37 @@
           <td>{{ forloop.counter }}</td>
           <td>{{ e.first_name }}</td>
           <td class="fw-semibold">{{ e.last_name }}</td>
+          <td>{{ e.middle_name|default:"—" }}</td>
           <td>{{ e.position|default:"—" }}</td>
           <td>{{ e.department|default:"—" }}</td>
           <td>{{ e.phone_number|default:"—" }}</td>
           <td>{% if e.hire_date %}{{ e.hire_date|date:"d.m.Y" }}{% else %}—{% endif %}</td>
           <td>
             {% if e.is_active %}
-            <span class="badge bg-success">Aktiv</span>
+            <span class="badge bg-success">{% trans "Aktiv" %}</span>
             {% else %}
-            <span class="badge bg-secondary">Noaktiv</span>
+            <span class="badge bg-secondary">{% trans "Noaktiv" %}</span>
             {% endif %}
           </td>
           <td>
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success" title="Davomat"><i class="bi bi-calendar-plus"></i></a>
-              <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary" title="Davomat tarixi"><i class="bi bi-clock-history"></i></a>
-              <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary" title="Oylik to'lovlar"><i class="bi bi-cash-stack"></i></a>
-              <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-outline-info" title="Statistika"><i class="bi bi-graph-up"></i></a>
-              <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
-              <a href="{% url 'employee_delete' e.id %}" class="btn btn-outline-danger" title="O'chirish"><i class="bi bi-trash"></i></a>
+              <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success" title="{% trans 'Davomat' %}"><i class="bi bi-calendar-plus"></i></a>
+              <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary" title="{% trans 'Davomat tarixi' %}"><i class="bi bi-clock-history"></i></a>
+              <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary" title="{% trans 'Oylik tolovlar' %}"><i class="bi bi-cash-stack"></i></a>
+              <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-outline-info" title="{% trans 'Statistika' %}"><i class="bi bi-graph-up"></i></a>
+              <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning" title="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'employee_delete' e.id %}" class="btn btn-outline-danger" title="{% trans 'Ochirish' %}"><i class="bi bi-trash"></i></a>
             </div>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="9" class="border-0">
+          <td colspan="10" class="border-0">
             {% url 'employee_create' as emp_create_url %}
-            {% include 'attendance/partials/empty_state.html' with title="Xodimlar topilmadi" text="Qidiruv so'zini o'zgartiring yoki yangi xodim qo'shing." action_url=emp_create_url action_label="Yangi xodim" %}
+            {% trans "Xodimlar topilmadi" as empty_title %}
+            {% trans "Qidiruv yoki filtrlarni o'zgartiring yoki yangi xodim qo'shing." as empty_text %}
+            {% trans "Yangi xodim" as empty_action %}
+            {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text action_url=emp_create_url action_label=empty_action %}
           </td>
         </tr>
         {% endfor %}
@@ -80,25 +142,25 @@
   {% for e in employees %}
   <div class="app-mobile-card">
     <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-      <div class="app-mobile-card-title">{{ e.last_name }} {{ e.first_name }}</div>
-      {% if e.is_active %}<span class="badge bg-success flex-shrink-0">Aktiv</span>{% else %}<span class="badge bg-secondary flex-shrink-0">Noaktiv</span>{% endif %}
+      <div class="app-mobile-card-title">{{ e.get_full_name }}</div>
+      {% if e.is_active %}<span class="badge bg-success flex-shrink-0">{% trans "Aktiv" %}</span>{% else %}<span class="badge bg-secondary flex-shrink-0">{% trans "Noaktiv" %}</span>{% endif %}
     </div>
     <div class="app-mobile-card__meta">
       {% if e.position %}<span><i class="bi bi-briefcase me-1"></i>{{ e.position }}</span>{% endif %}
       {% if e.department %}<span><i class="bi bi-building me-1"></i>{{ e.department }}</span>{% endif %}
       {% if e.phone_number %}<span><i class="bi bi-telephone me-1"></i>{{ e.phone_number }}</span>{% endif %}
-      {% if e.hire_date %}<span><i class="bi bi-calendar-event me-1"></i>Ishga kirgan: {{ e.hire_date|date:"d.m.Y" }}</span>{% endif %}
+      {% if e.hire_date %}<span><i class="bi bi-calendar-event me-1"></i>{% trans "Ishga kirgan" %}: {{ e.hire_date|date:"d.m.Y" }}</span>{% endif %}
     </div>
     <div class="app-mobile-card__actions">
-      <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success"><i class="bi bi-calendar-plus"></i> Davomat</a>
-      <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary"><i class="bi bi-clock-history"></i> Davomat</a>
-      <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary"><i class="bi bi-cash-stack"></i> To'lovlar</a>
-      <a href="{% url 'individual_employee_statistics' e.id %}" class="btn btn-outline-info"><i class="bi bi-graph-up"></i> Stat</a>
-      <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i> Tahrir</a>
+      <a href="{% url 'individual_attendance_create' e.id %}" class="btn btn-outline-success"><i class="bi bi-calendar-plus"></i> {% trans "Davomat" %}</a>
+      <a href="{% url 'employee_attendance_history' e.id %}" class="btn btn-outline-primary"><i class="bi bi-clock-history"></i> {% trans "Tarix" %}</a>
+      <a href="{% url 'salary_payment_history' %}?employee={{ e.id }}" class="btn btn-outline-secondary"><i class="bi bi-cash-stack"></i> {% trans "To'lovlar" %}</a>
+      <a href="{% url 'employee_update' e.id %}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i> {% trans "Tahrir" %}</a>
     </div>
   </div>
   {% empty %}
-  {% include 'attendance/partials/empty_state.html' with title="Xodimlar topilmadi" %}
+  {% trans "Xodimlar topilmadi" as empty_title %}
+  {% include 'attendance/partials/empty_state.html' with title=empty_title %}
   {% endfor %}
 </div>
 {% endblock %}

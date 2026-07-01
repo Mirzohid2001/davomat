@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Attendance, Employee, DayOff, NalivshikShiftOverride, Team, MonthlyProduction
 import datetime
 import os
@@ -46,7 +47,7 @@ class AttendanceForm(forms.ModelForm):
         return cleaned_data
 
 class AttendanceImportForm(forms.Form):
-    file = forms.FileField(label="Excel yoki CSV fayl")
+    file = forms.FileField(label=_("Excel yoki CSV fayl"))
 
     def clean_file(self):
         file = self.cleaned_data['file']
@@ -70,6 +71,7 @@ class EmployeeForm(forms.ModelForm):
         fields = [
             'first_name',
             'last_name',
+            'middle_name',
             'position',
             'department',
             'location',
@@ -84,6 +86,7 @@ class EmployeeForm(forms.ModelForm):
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
             'position': forms.TextInput(attrs={'class': 'form-control'}),
             'department': forms.TextInput(attrs={'class': 'form-control'}),
             'location': forms.Select(attrs={'class': 'form-select'}),
@@ -97,15 +100,21 @@ class EmployeeForm(forms.ModelForm):
         }
 
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['middle_name'].required = True
+        self.fields['middle_name'].label = _("Otchestvasi")
+
+
 class EmployeeCreateForm(EmployeeForm):
     """Faqat yangi xodim qo'shishda: ishga kirish sanasi va kelgan kunlar."""
 
     worked_days_count = forms.IntegerField(
-        label="Kelgan kunlar soni (shu oydan)",
+        label=_("Kelgan kunlar soni (shu oydan)"),
         required=True,
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-        help_text="Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting.",
+        help_text=_("Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting."),
     )
 
     def __init__(self, *args, **kwargs):
@@ -158,7 +167,7 @@ class SalaryStatEditForm(forms.ModelForm):
 
 class ProductionBonusSettingsForm(forms.Form):
     production_tons = forms.DecimalField(
-        label="Oylik ishlab chiqarish (tonna)",
+        label=_("Oylik ishlab chiqarish (tonna)"),
         min_value=0,
         max_digits=10,
         decimal_places=2,
@@ -166,7 +175,7 @@ class ProductionBonusSettingsForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
     )
     eligible_employees = forms.ModelMultipleChoiceField(
-        label="Premiya oluvchi xodimlar",
+        label=_("Premiya oluvchi xodimlar"),
         queryset=Employee.objects.filter(is_active=True).order_by('last_name', 'first_name'),
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
