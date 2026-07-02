@@ -1345,7 +1345,9 @@ def attendance_statistics(request):
     if employee_id:
         attendances = attendances.filter(employee_id=employee_id)
 
-    status_labels_map = dict(Attendance.STATUS_CHOICES)
+    # Choice labels are lazy translation proxies; cast them to str before
+    # serializing chart data to JSON for the template.
+    status_labels_map = {key: str(label) for key, label in Attendance.STATUS_CHOICES}
     stats_by_status = list(
         attendances.values('status').annotate(count=Count('id')).order_by('status')
     )
@@ -1424,7 +1426,7 @@ def attendance_statistics(request):
     department_late = [item['late'] for item in stats_by_department_list if item['employee__department']]
     
     # Location data for bar chart
-    location_labels = [dict(Employee.LOCATION_CHOICES).get(item['employee__location'], item['employee__location']) 
+    location_labels = [str(dict(Employee.LOCATION_CHOICES).get(item['employee__location'], item['employee__location']))
                       for item in stats_by_location_list if item['employee__location']]
     location_present = [item['present'] for item in stats_by_location_list if item['employee__location']]
     location_absent = [item['absent'] for item in stats_by_location_list if item['employee__location']]
@@ -1458,7 +1460,7 @@ def attendance_statistics(request):
         'period': period,
         'employees': employees,
         'selected_employee': employee_id,
-        'location_choices': dict(Employee.LOCATION_CHOICES),
+        'location_choices': {key: str(label) for key, label in Employee.LOCATION_CHOICES},
         'has_data': total_attendance > 0,
         'total_attendance': total_attendance,
         'present_count': present_count,
