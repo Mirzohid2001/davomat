@@ -1,0 +1,776 @@
+/**
+ * ISOMER OIL Davomat — Premium Design System
+ */
+:root {
+  --pm-bg: #e9eef8;
+  --pm-bg-elevated: #ffffff;
+  --pm-surface: rgba(255, 255, 255, 0.72);
+  --pm-surface-solid: #ffffff;
+  --pm-border: rgba(15, 23, 42, 0.08);
+  --pm-border-strong: rgba(15, 23, 42, 0.12);
+
+  --pm-text: #0c1222;
+  --pm-text-secondary: #5c6b82;
+  --pm-text-muted: #94a3b8;
+
+  --pm-brand: #0ea5e9;
+  --pm-brand-2: #6366f1;
+  --pm-brand-3: #4f46e5;
+  --pm-accent: #22d3ee;
+  --pm-gold: #d4a853;
+
+  --pm-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 48%, #4f46e5 100%);
+  --pm-gradient-dark: linear-gradient(160deg, #0b1220 0%, #151d33 45%, #1a1040 100%);
+  --pm-gradient-hero: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #312e81 100%);
+  --pm-gradient-mesh:
+    radial-gradient(ellipse 90% 60% at 0% 0%, rgba(14, 165, 233, 0.35), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(99, 102, 241, 0.3), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(34, 211, 238, 0.15), transparent 55%);
+
+  --pm-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --pm-shadow-md: 0 4px 6px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+  --pm-shadow-lg: 0 8px 16px rgba(15, 23, 42, 0.06), 0 24px 48px rgba(67, 97, 238, 0.12);
+  --pm-shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 20px 50px rgba(14, 165, 233, 0.18);
+
+  --pm-radius-sm: 10px;
+  --pm-radius-md: 14px;
+  --pm-radius-lg: 20px;
+  --pm-radius-xl: 24px;
+
+  --pm-font: 'DM Sans', system-ui, sans-serif;
+  --pm-font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --pm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pm-blur: blur(20px) saturate(160%);
+
+  /* Legacy token bridge */
+  --primary-color: var(--pm-brand-2);
+  --gradient-primary: var(--pm-gradient);
+  --gradient-secondary: var(--pm-gradient-dark);
+  --gradient-body: var(--pm-bg);
+  --text-primary: var(--pm-text);
+  --text-secondary: var(--pm-text-secondary);
+  --light-gray: var(--pm-border);
+  --radius-lg: var(--pm-radius-lg);
+  --radius-xl: var(--pm-radius-xl);
+  --shadow-md: var(--pm-shadow-md);
+  --transition-base: 0.35s var(--pm-ease);
+}
+
+/* ——— Base ——— */
+.premium-ui {
+  font-family: var(--pm-font);
+  color: var(--pm-text);
+  background-color: var(--pm-bg);
+  background-image: var(--pm-gradient-mesh);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.premium-ui h1,
+.premium-ui h2,
+.premium-ui h3,
+.premium-ui h4,
+.premium-ui h5,
+.premium-ui h6,
+.premium-ui .navbar-brand,
+.premium-ui .page-hero-title {
+  font-family: var(--pm-font-display);
+  letter-spacing: -0.02em;
+}
+
+/* ——— Navbar (glass) ——— */
+.navbar-premium {
+  background: rgba(11, 18, 32, 0.94) !important;
+  /* backdrop-filter dropdown joylashuvini buzadi — olib tashlandi */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.65rem 0;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+  overflow: visible !important;
+  z-index: 1030;
+}
+
+.navbar-premium .container-fluid,
+.navbar-premium .navbar-collapse {
+  overflow: visible !important;
+}
+
+.navbar-premium .navbar-brand {
+  font-family: var(--pm-font-display);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  transition: opacity 0.3s var(--pm-ease);
+}
+
+.navbar-brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.navbar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #fff 0%, #a5f3fc 50%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar-brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.72);
+  background: none;
+}
+
+.site-footer-logo {
+  object-fit: contain;
+  border-radius: 4px;
+  vertical-align: -3px;
+  margin-right: 0.15rem;
+}
+
+.login-brand-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.navbar-premium .navbar-brand:hover {
+  opacity: 0.92;
+  transform: none;
+}
+
+.navbar-premium .nav-link {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.85rem !important;
+  border-radius: var(--pm-radius-sm);
+  margin: 0 2px;
+  transition: all 0.3s var(--pm-ease);
+}
+
+.navbar-premium .nav-link:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1);
+  transform: none;
+}
+
+.navbar-premium .nav-link.active {
+  color: #fff !important;
+  background: rgba(14, 165, 233, 0.25);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+}
+
+.navbar-premium .nav-link.active::after {
+  display: none;
+}
+
+.navbar-premium .nav-item.dropdown {
+  position: relative;
+}
+
+.navbar-premium .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+  margin-top: 0.35rem;
+  z-index: 1080;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-md);
+  box-shadow: var(--pm-shadow-lg);
+  padding: 0.5rem;
+}
+
+/* Popper inline transform olib tashlash — menyu nav ostida qolsin */
+.navbar-premium .dropdown-menu[data-bs-popper] {
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
+  transform: none !important;
+  margin-top: 0.35rem !important;
+}
+
+.navbar-premium .dropdown-item {
+  border-radius: var(--pm-radius-sm);
+  padding: 0.55rem 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s var(--pm-ease);
+}
+
+.navbar-premium .dropdown-item:hover {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--pm-brand-3);
+}
+
+@media (max-width: 991.98px) {
+  .navbar-premium .navbar-collapse {
+    background: rgba(11, 18, 32, 0.95);
+    border-radius: var(--pm-radius-md);
+    padding: 1rem;
+    margin-top: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .navbar-premium .dropdown-menu,
+  .navbar-premium .dropdown-menu[data-bs-popper] {
+    position: static !important;
+    transform: none !important;
+    width: 100%;
+    margin-top: 0.35rem;
+    right: auto !important;
+    left: auto !important;
+    inset: auto !important;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .navbar-premium .dropdown-item {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .navbar-premium .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+}
+
+/* ——— App layout ——— */
+.app-page {
+  --app-gradient: var(--pm-gradient-hero);
+  --app-primary: var(--pm-brand-2);
+  --app-accent: var(--pm-brand);
+  --app-surface: var(--pm-surface-solid);
+  --app-border: var(--pm-border);
+  --app-text: var(--pm-text);
+  --app-muted: var(--pm-text-secondary);
+  --app-radius: var(--pm-radius-lg);
+  --app-shadow: var(--pm-shadow-md);
+}
+
+/* ——— Hero ——— */
+.page-hero--premium,
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--pm-radius-xl);
+  padding: 1.75rem 2rem;
+  background: var(--pm-gradient-hero);
+  box-shadow: var(--pm-shadow-glow);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 1.5rem;
+}
+
+.page-hero__glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.45), transparent 70%);
+  top: -120px;
+  right: -80px;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.page-hero__glow--2 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(212, 168, 83, 0.35), transparent 70%);
+  top: auto;
+  bottom: -100px;
+  left: -60px;
+  right: auto;
+}
+
+.page-hero__content {
+  position: relative;
+  z-index: 1;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--pm-gold), transparent);
+  opacity: 0.7;
+}
+
+.page-hero-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+}
+
+.page-hero-sub {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.95rem;
+  margin: 0.35rem 0 0;
+  max-width: 520px;
+}
+
+.page-hero-meta {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.page-hero-meta-label {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ——— Glass panels ——— */
+.app-filter-card,
+.app-panel,
+.app-stat-card,
+.app-login-card {
+  background: var(--pm-surface);
+  backdrop-filter: var(--pm-blur);
+  -webkit-backdrop-filter: var(--pm-blur);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+  box-shadow: var(--pm-shadow-md);
+}
+
+.app-panel-header {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.6));
+  border-bottom: 1px solid var(--pm-border);
+  font-family: var(--pm-font-display);
+  font-weight: 600;
+}
+
+.app-filter-head {
+  font-family: var(--pm-font-display);
+  color: var(--pm-text);
+  font-size: 0.95rem;
+}
+
+.app-filter-card .form-label,
+.app-form-panel .form-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pm-text-secondary);
+}
+
+/* ——— Premium table ——— */
+.app-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.app-table thead th {
+  background: var(--pm-gradient);
+  color: #fff;
+  font-family: var(--pm-font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1rem 1rem;
+  border: none;
+}
+
+.app-table thead th:first-child {
+  border-radius: var(--pm-radius-sm) 0 0 0;
+}
+
+.app-table thead th:last-child {
+  border-radius: 0 var(--pm-radius-sm) 0 0;
+}
+
+.app-table tbody td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--pm-border);
+  font-size: 0.9rem;
+}
+
+.app-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.app-table tbody tr {
+  transition: background 0.25s var(--pm-ease), transform 0.25s var(--pm-ease);
+}
+
+.app-table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.06), rgba(99, 102, 241, 0.04));
+}
+
+/* ——— Stat cards ——— */
+.app-stat-card {
+  overflow: hidden;
+  border: 1px solid var(--pm-border);
+}
+
+.app-stat-card .app-stat-card-head {
+  background: var(--pm-gradient);
+  font-family: var(--pm-font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.app-stat-number {
+  font-family: var(--pm-font-display);
+  font-weight: 800;
+  font-size: 2.5rem;
+  background: var(--pm-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ——— Buttons ——— */
+.premium-ui .btn {
+  font-family: var(--pm-font-display);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--pm-radius-sm);
+  padding: 0.55rem 1.25rem;
+  transition: all 0.3s var(--pm-ease);
+  border: none;
+}
+
+.premium-ui .btn-primary,
+.app-page .btn-primary,
+.btn-premium {
+  background: var(--pm-gradient);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.premium-ui .btn-primary:hover,
+.app-page .btn-primary:hover {
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+  filter: brightness(1.05);
+}
+
+.premium-ui .btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.premium-ui .btn-outline-primary {
+  border: 2px solid transparent;
+  background: linear-gradient(#fff, #fff) padding-box,
+    var(--pm-gradient) border-box;
+  color: var(--pm-brand-3);
+  font-weight: 600;
+}
+
+.premium-ui .btn-outline-primary:hover {
+  background: var(--pm-gradient);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ——— Forms ——— */
+.premium-ui .form-control,
+.premium-ui .form-select,
+.app-form-panel .form-control,
+.app-form-panel .form-select,
+.app-filter-card .form-control,
+.app-filter-card .form-select {
+  border: 1.5px solid var(--pm-border-strong);
+  border-radius: var(--pm-radius-sm);
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.premium-ui .form-control:focus,
+.premium-ui .form-select:focus,
+.app-form-panel .form-control:focus,
+.app-filter-card .form-control:focus {
+  border-color: var(--pm-brand);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+  outline: none;
+  transform: none;
+}
+
+/* ——— Badges ——— */
+.premium-ui .badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  border-radius: 8px;
+}
+
+/* ——— Empty state ——— */
+.app-empty--premium,
+.app-empty {
+  padding: 3rem 1.5rem;
+}
+
+.app-empty-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.15));
+  color: var(--pm-brand-2);
+}
+
+.app-empty-title {
+  font-family: var(--pm-font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* ——— Login ——— */
+.app-login-card {
+  border-radius: var(--pm-radius-xl);
+  box-shadow: var(--pm-shadow-glow);
+  border: 1px solid var(--pm-border);
+}
+
+.app-login-card .login-brand {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ——— Footer (faqat sahifa pastida, oqimda) ——— */
+.site-footer.footer-premium,
+.footer-premium {
+  position: static !important;
+  margin-top: auto;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: var(--pm-blur);
+  border-top: 1px solid var(--pm-border);
+  padding: 1rem 0;
+  font-size: 0.85rem;
+  color: var(--pm-text-secondary);
+  z-index: auto;
+}
+
+/* Eski .footer absolute qoidalarini bekor qilish */
+.premium-ui .footer:not(.footer-premium),
+.premium-ui footer.footer {
+  position: static !important;
+}
+
+.site-footer.footer-premium strong,
+.footer-premium strong {
+  color: var(--pm-text);
+  font-family: var(--pm-font-display);
+}
+
+.premium-ui {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ——— Toast ——— */
+.premium-ui .toast {
+  border: none;
+  border-radius: var(--pm-radius-md);
+  box-shadow: var(--pm-shadow-lg);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: var(--pm-blur);
+  border-left: 4px solid var(--pm-brand);
+  overflow: hidden;
+}
+
+.premium-ui .toast-header {
+  font-family: var(--pm-font-display);
+  font-weight: 600;
+  background: transparent;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+/* ——— Cards (legacy bootstrap) ——— */
+.premium-ui .card {
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg) !important;
+  box-shadow: var(--pm-shadow-md);
+  background: var(--pm-surface-solid);
+  overflow: hidden;
+}
+
+.premium-ui .app-page .card:hover,
+.premium-ui .app-panel:hover {
+  transform: none;
+}
+
+.premium-ui .card-header {
+  background: var(--pm-gradient);
+  font-family: var(--pm-font-display);
+  border: none;
+}
+
+.premium-ui .card-header::before {
+  display: none;
+}
+
+/* ——— Quick links ——— */
+.app-quick-links .list-group-item {
+  border-radius: var(--pm-radius-sm);
+  border: 1px solid var(--pm-border);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+.app-quick-links .list-group-item:hover {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.08), transparent);
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+/* ——— Stats page ——— */
+.stats-page .page-hero,
+.stats-page .stats-hero {
+  background: var(--pm-gradient-hero);
+  box-shadow: var(--pm-shadow-glow);
+}
+
+.stats-page .stats-summary-card,
+.stats-page .kpi-card,
+.stats-page .stats-filter-card,
+.stats-page .stats-chart-card {
+  background: var(--pm-surface);
+  backdrop-filter: var(--pm-blur);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+  box-shadow: var(--pm-shadow-md);
+}
+
+.stats-page .kpi-count {
+  font-family: var(--pm-font-display);
+  font-weight: 800;
+}
+
+/* ——— Salary page shell ——— */
+.salary-skip-app-shell {
+  background: transparent;
+}
+
+/* ——— Toolbar ——— */
+.app-toolbar .btn-light {
+  background: var(--pm-surface-solid);
+  border: 1px solid var(--pm-border);
+  font-weight: 600;
+}
+
+/* ——— Scrollbar ——— */
+.premium-ui ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.premium-ui ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--pm-brand), var(--pm-brand-2));
+  border-radius: 99px;
+}
+
+.premium-ui ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+/* ——— Davomat tarixi modali (qora fon / input muammosi) ——— */
+.attendance-modal.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  color-scheme: light;
+}
+
+.attendance-modal .modal-dialog {
+  z-index: 1061;
+}
+
+.attendance-modal__panel {
+  background: #ffffff;
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+  color: var(--pm-text);
+}
+
+.attendance-modal__header {
+  background: var(--pm-gradient);
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+}
+
+.attendance-modal__body {
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 1.25rem 1.35rem;
+}
+
+.attendance-modal__footer {
+  background: #ffffff;
+  border-top: 1px solid var(--pm-border);
+  padding: 1rem 1.25rem;
+}
+
+.attendance-modal .form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.attendance-modal .form-control,
+.attendance-modal .form-select {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid var(--pm-border-strong);
+  border-radius: 11px;
+  min-height: 44px;
+}
+
+.attendance-modal .form-control::placeholder {
+  color: #94a3b8;
+}
+
+.attendance-modal .form-control:focus,
+.attendance-modal .form-select:focus {
+  border-color: var(--pm-brand);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+@media (max-width: 768px) {
+  .page-hero {
+    padding: 1.25rem 1.35rem;
+  }
+
+  .page-hero-title {
+    font-size: 1.4rem;
+  }
+}

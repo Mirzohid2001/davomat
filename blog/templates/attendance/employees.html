@@ -20,7 +20,7 @@
 
 <div class="app-filter-card mb-4">
   <div class="app-filter-head"><i class="bi bi-funnel-fill"></i> {% trans "Filtrlash" %}</div>
-  <form class="row g-3 align-items-end" method="get">
+  <form class="row g-3 align-items-end" method="get" id="employeeFilterForm">
     <div class="col-md-4 col-lg-3">
       <label for="employee-search" class="form-label">{% trans "Qidiruv" %}</label>
       <input type="text" id="employee-search" name="q" placeholder="{% trans 'Ism, lavozim, telefon...' %}" value="{{ filters.q }}" class="form-control" autofocus>
@@ -74,6 +74,34 @@
       <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Tozalash" %}</a>
     </div>
   </form>
+  <script>
+  (function () {
+    const form = document.getElementById('employeeFilterForm');
+    if (!form) return;
+
+    let timer = null;
+    const submitNow = function () { form.submit(); };
+    const submitDebounced = function (delay) {
+      clearTimeout(timer);
+      timer = setTimeout(submitNow, delay);
+    };
+
+    form.querySelectorAll('select').forEach(function (field) {
+      field.addEventListener('change', submitNow);
+    });
+
+    const searchInput = form.querySelector('input[name="q"]');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () { submitDebounced(450); });
+      searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          submitNow();
+        }
+      });
+    }
+  })();
+  </script>
 </div>
 
 <div class="app-panel app-table-responsive-hide-sm">

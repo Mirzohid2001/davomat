@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-02 01:36+0500\n"
+"POT-Creation-Date: 2026-07-02 11:43+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,14 +21,12 @@ msgstr ""
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #: blog/forms.py:50
-#, fuzzy
-#| msgid "Excel yoki CSV fayldan davomat yuklash"
 msgid "Excel yoki CSV fayl"
 msgstr "Загрузка посещаемости из Excel или CSV"
 
 #: blog/forms.py:106 blog/models.py:57
-#: blog/templates/attendance/employees.html:33 blog/views.py:543
-#: blog/views.py:2309
+#: blog/templates/attendance/employees.html:115 blog/views.py:661
+#: blog/views.py:2397
 msgid "Otchestvasi"
 msgstr "Отчество"
 
@@ -40,15 +38,11 @@ msgstr "Количество отработанных дней (с этого м
 msgid "Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting."
 msgstr "Укажите количество отработанных дней с даты приёма."
 
-#: blog/forms.py:170 blog/templates/attendance/salary_statistics.html:606
-#, fuzzy
-#| msgid "Ishlab chiqarish xodimlari"
+#: blog/forms.py:170 blog/templates/attendance/salary_statistics.html:653
 msgid "Oylik ishlab chiqarish (tonna)"
 msgstr "Производственные работники"
 
 #: blog/forms.py:178
-#, fuzzy
-#| msgid "Premiya qoidalari"
 msgid "Premiya oluvchi xodimlar"
 msgstr "Правила премии"
 
@@ -150,7 +144,7 @@ msgstr "Суббота"
 #: blog/templates/attendance/individual_employee_statistics.html:149
 #: blog/templates/attendance/individual_employee_statistics.html:246
 #: blog/templates/attendance/individual_employee_statistics.html:266
-#: blog/views.py:718 blog/views.py:2906
+#: blog/views.py:836 blog/views.py:2994
 msgid "Yakshanba"
 msgstr "Воскресенье"
 
@@ -202,37 +196,37 @@ msgstr "Производственные работники"
 msgid "Boshqarma xodimlari"
 msgstr "Аппарат сотрудников"
 
-#: blog/models.py:51 blog/templates/attendance/base.html:78
-#: blog/templates/attendance/salary_statistics.html:200
-#: blog/templates/attendance/salary_statistics.html:294
+#: blog/models.py:51 blog/templates/attendance/base.html:83
+#: blog/templates/attendance/salary_statistics.html:247
+#: blog/templates/attendance/salary_statistics.html:341
 msgid "Nalivshik"
 msgstr "Наливщик"
 
 #: blog/models.py:55 blog/templates/attendance/attendance_list.html:45
 #: blog/templates/attendance/bulk_attendance_form.html:23
-#: blog/templates/attendance/employees.html:31 blog/views.py:302
-#: blog/views.py:542 blog/views.py:951
+#: blog/templates/attendance/employees.html:113 blog/views.py:359
+#: blog/views.py:660 blog/views.py:1069
 msgid "Ismi"
 msgstr "Имя"
 
 #: blog/models.py:56 blog/templates/attendance/attendance_list.html:46
 #: blog/templates/attendance/bulk_attendance_form.html:24
-#: blog/templates/attendance/employees.html:32
+#: blog/templates/attendance/employees.html:114
 msgid "Familiyasi"
 msgstr "Фамилия"
 
 #: blog/models.py:58 blog/templates/attendance/attendance_list.html:48
-#: blog/templates/attendance/employees.html:34
+#: blog/templates/attendance/employees.html:116
 msgid "Lavozimi"
 msgstr "Должность"
 
 #: blog/models.py:59 blog/templates/attendance/attendance_list.html:47
-#: blog/templates/attendance/employees.html:35
+#: blog/templates/attendance/employees.html:117
 msgid "Bo'limi"
 msgstr "Отдел"
 
-#: blog/models.py:60 blog/templates/attendance/select_employee.html:16
-#: blog/views.py:548
+#: blog/models.py:60 blog/templates/attendance/employees.html:47
+#: blog/templates/attendance/select_employee.html:16 blog/views.py:666
 msgid "Joylashuv"
 msgstr "Местоположение"
 
@@ -240,25 +234,27 @@ msgstr "Местоположение"
 msgid "Telefon raqamini to'g'ri (+998xxxxxxxxx) formatda kiriting."
 msgstr "Введите телефон в формате (+998xxxxxxxxx)."
 
-#: blog/models.py:68 blog/templates/attendance/employees.html:55
-#: blog/templates/attendance/employees.html:92 blog/views.py:587
+#: blog/models.py:68 blog/templates/attendance/employees.html:68
+#: blog/templates/attendance/employees.html:137
+#: blog/templates/attendance/employees.html:174 blog/views.py:705
 msgid "Aktiv"
 msgstr "Активен"
 
-#: blog/models.py:69 blog/views.py:547
+#: blog/models.py:69 blog/views.py:665
 msgid "Ishga kirgan sana"
 msgstr "Дата приёма"
 
-#: blog/models.py:77 blog/templates/attendance/salary_statistics.html:87
-#: blog/views.py:549
+#: blog/models.py:77 blog/templates/attendance/employees.html:38
+#: blog/templates/attendance/salary_statistics.html:91 blog/views.py:667
 msgid "Xodim turi"
 msgstr "Тип сотрудника"
 
-#: blog/models.py:78 blog/views.py:550
+#: blog/models.py:78 blog/templates/attendance/employees.html:56
+#: blog/views.py:668
 msgid "Lavozim turi"
 msgstr "Тип должности"
 
-#: blog/models.py:85 blog/views.py:551
+#: blog/models.py:85 blog/views.py:669
 msgid "Komanda"
 msgstr "Команда"
 
@@ -270,7 +266,7 @@ msgstr "Команда"
 #: blog/templates/attendance/individual_attendance_form.html:167
 #: blog/templates/attendance/individual_employee_statistics.html:55
 #: blog/templates/attendance/individual_employee_statistics.html:260
-#: blog/views.py:2900
+#: blog/views.py:2988
 msgid "Keldi"
 msgstr "Пришёл"
 
@@ -289,7 +285,7 @@ msgstr "Не пришёл"
 #: blog/templates/attendance/individual_attendance_form.html:169
 #: blog/templates/attendance/individual_employee_statistics.html:85
 #: blog/templates/attendance/individual_employee_statistics.html:262
-#: blog/views.py:2902
+#: blog/views.py:2990
 msgid "Kechikdi"
 msgstr "Опоздал"
 
@@ -301,7 +297,7 @@ msgstr "Опоздал"
 #: blog/templates/attendance/individual_attendance_form.html:170
 #: blog/templates/attendance/individual_employee_statistics.html:119
 #: blog/templates/attendance/individual_employee_statistics.html:264
-#: blog/views.py:2904
+#: blog/views.py:2992
 msgid "Ta'til"
 msgstr "Отпуск"
 
@@ -313,7 +309,7 @@ msgstr "Отпуск"
 #: blog/templates/attendance/individual_attendance_form.html:171
 #: blog/templates/attendance/individual_employee_statistics.html:100
 #: blog/templates/attendance/individual_employee_statistics.html:263
-#: blog/views.py:2903
+#: blog/views.py:2991
 msgid "Kasal"
 msgstr "Больничный"
 
@@ -332,15 +328,13 @@ msgstr "Не рабочий день"
 #: blog/services.py:243 blog/templates/attendance/bulk_attendance_form.html:10
 #: blog/templates/attendance/dayoff_form.html:6
 #: blog/templates/attendance/individual_employee_statistics.html:267
-#: blog/views.py:722 blog/views.py:2907
-#, fuzzy
-#| msgid "Yopiq kunlar"
+#: blog/views.py:840 blog/views.py:2995
 msgid "Yopiq kun"
 msgstr "Выходные дни"
 
 #: blog/templates/attendance/absence_quota.html:3
 #: blog/templates/attendance/absence_quota.html:6
-#: blog/templates/attendance/base.html:105
+#: blog/templates/attendance/base.html:110
 msgid "Kelmagan kun kvotasi"
 msgstr "Квота пропущенных дней"
 
@@ -358,7 +352,7 @@ msgstr "Год"
 #: blog/templates/attendance/employee_attendance_history.html:385
 #: blog/templates/attendance/individual_employee_statistics.html:164
 #: blog/templates/attendance/individual_employee_statistics.html:268
-#: blog/views.py:2908
+#: blog/views.py:2996
 msgid "Ma'lumot yo'q"
 msgstr "Нет данных"
 
@@ -372,31 +366,27 @@ msgstr "До конца года"
 
 #: blog/templates/attendance/absence_quota.html:21
 #: blog/templates/attendance/nalivshik_schedule.html:13
-#, fuzzy
-#| msgid "Ko'rsatish"
 msgid "Ko'rsat"
 msgstr "Показать"
 
 #: blog/templates/attendance/absence_quota.html:24
-#: blog/templates/attendance/employees.html:17
+#: blog/templates/attendance/employees.html:13
 #: blog/templates/attendance/salary_payment_history.html:84
-#: blog/templates/attendance/salary_statistics.html:137
+#: blog/templates/attendance/salary_statistics.html:145
 msgid "Excelga eksport"
 msgstr "Экспорт в Excel"
 
 #: blog/templates/attendance/absence_quota.html:34
 #: blog/templates/attendance/employee_form.html:34
-#: blog/templates/attendance/salary_statistics.html:162
+#: blog/templates/attendance/salary_statistics.html:209
 msgid "F.I.O"
 msgstr "Ф.И.О."
 
 #: blog/templates/attendance/absence_quota.html:35
 #: blog/templates/attendance/salary_payment_history.html:97
-#: blog/templates/attendance/salary_statistics.html:96
-#: blog/templates/attendance/salary_statistics.html:163 blog/views.py:303
-#: blog/views.py:544 blog/views.py:951 blog/views.py:2309
-#, fuzzy
-#| msgid "Lavozimi"
+#: blog/templates/attendance/salary_statistics.html:100
+#: blog/templates/attendance/salary_statistics.html:210 blog/views.py:360
+#: blog/views.py:662 blog/views.py:1069 blog/views.py:2397
 msgid "Lavozim"
 msgstr "Должность"
 
@@ -410,7 +400,7 @@ msgstr "Предыдущие месяцы"
 msgid "Joriy oy"
 msgstr "Текущий месяц"
 
-#: blog/templates/attendance/absence_quota.html:38 blog/views.py:306
+#: blog/templates/attendance/absence_quota.html:38 blog/views.py:363
 msgid "Yil boshidan jami"
 msgstr "Итого с начала года"
 
@@ -419,21 +409,19 @@ msgid "Kvotadan kechirilgan"
 msgstr "Прощено по квоте"
 
 #: blog/templates/attendance/absence_quota.html:40
-#, fuzzy
-#| msgid "Oylik statistika"
 msgid "Oylikka ta'sir"
 msgstr "Статистика зарплаты"
 
 #: blog/templates/attendance/absence_quota.html:41
 msgid "Kvotadan foydalangan"
-msgstr "Использовано квоты"
+msgstr "Использовано из квоты"
 
 #: blog/templates/attendance/absence_quota.html:42
 #: blog/templates/attendance/dashboard.html:145
 msgid "Qolgan"
 msgstr "Осталось"
 
-#: blog/templates/attendance/absence_quota.html:43 blog/views.py:311
+#: blog/templates/attendance/absence_quota.html:43 blog/views.py:368
 msgid "Limitdan ortiq"
 msgstr "Сверх лимита"
 
@@ -449,10 +437,7 @@ msgstr "предоставляется квота."
 msgid ""
 "Oldingi oylardagi kelmaganlar kvotadan ayiriladi; joriy oyda qolgan kvota "
 "kechirilgan deb ko'rsatiladi."
-msgstr ""
-"Отсутствия предыдущих месяцев вычитаются из квоты; оставшаяся квота текущего "
-"месяца показывается как прощённая.Отсутствия предыдущих месяцев вычитаются "
-"из квоты; оставшаяся квота текущего месяца показывается как прощённая."
+msgstr "Отсутствия предыдущих месяцев вычитаются из квоты; оставшаяся квота текущего месяца показывается как прощённая."
 
 #: blog/templates/attendance/absence_quota.html:80
 msgid "Ortiqcha kunlar oylikka ta'sir qiladi."
@@ -460,8 +445,6 @@ msgstr "Лишние дни влияют на зарплату."
 
 #: blog/templates/attendance/attendance_confirm_delete.html:3
 #: blog/templates/attendance/attendance_confirm_delete.html:6
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davomatni o'chirish"
 msgstr "Редактирование посещаемости"
 
@@ -471,9 +454,7 @@ msgstr "Редактирование посещаемости"
 #: blog/templates/attendance/dayoff_confirm_delete.html:15
 #: blog/templates/attendance/edit_attendance_history.html:182
 #: blog/templates/attendance/employee_confirm_delete.html:20
-#: blog/templates/attendance/salary_statistics.html:464
-#, fuzzy
-#| msgid "Ochirish"
+#: blog/templates/attendance/salary_statistics.html:511
 msgid "O'chirish"
 msgstr "Удалить"
 
@@ -486,22 +467,18 @@ msgstr "Удалить"
 #: blog/templates/attendance/employee_attendance_history.html:442
 #: blog/templates/attendance/employee_confirm_delete.html:21
 #: blog/templates/attendance/employee_form.html:67
-#: blog/templates/attendance/salary_statistics.html:510
-#: blog/templates/attendance/salary_statistics.html:532
-#: blog/templates/attendance/salary_statistics.html:592
+#: blog/templates/attendance/salary_statistics.html:557
+#: blog/templates/attendance/salary_statistics.html:579
+#: blog/templates/attendance/salary_statistics.html:639
 #: blog/templates/attendance/select_employee.html:43
 msgid "Bekor qilish"
 msgstr "Отмена"
 
 #: blog/templates/attendance/attendance_export.html:3
-#, fuzzy
-#| msgid "Davomat ro'yxati"
 msgid "Davomat export"
 msgstr "Список посещаемости"
 
 #: blog/templates/attendance/attendance_export.html:6
-#, fuzzy
-#| msgid "Excelga eksport"
 msgid "Excel export"
 msgstr "Экспорт в Excel"
 
@@ -510,28 +487,23 @@ msgid "Davomatni filtrlab yuklab olish"
 msgstr "Скачать посещаемость с фильтрами"
 
 #: blog/templates/attendance/attendance_export.html:17
-#, fuzzy
-#| msgid "Sanadan"
 msgid "Sana (dan)"
 msgstr "С даты"
 
 #: blog/templates/attendance/attendance_export.html:21
-#, fuzzy
-#| msgid "Sanagacha"
 msgid "Sana (gacha)"
 msgstr "По дату"
 
 #: blog/templates/attendance/attendance_export.html:25
-#: blog/templates/attendance/select_employee.html:25 blog/views.py:545
-#: blog/views.py:951
-#, fuzzy
-#| msgid "Bo'limi"
+#: blog/templates/attendance/employees.html:29
+#: blog/templates/attendance/select_employee.html:25 blog/views.py:663
+#: blog/views.py:1069
 msgid "Bo'lim"
 msgstr "Отдел"
 
 #: blog/templates/attendance/attendance_export.html:27
 #: blog/templates/attendance/attendance_export.html:34
-#: blog/templates/attendance/salary_statistics.html:637
+#: blog/templates/attendance/salary_statistics.html:684
 msgid "Hammasi"
 msgstr "Все"
 
@@ -539,9 +511,10 @@ msgstr "Все"
 #: blog/templates/attendance/attendance_list.html:25
 #: blog/templates/attendance/attendance_list.html:49
 #: blog/templates/attendance/edit_attendance_history.html:180
-#: blog/templates/attendance/employees.html:38
+#: blog/templates/attendance/employees.html:65
+#: blog/templates/attendance/employees.html:120
 #: blog/templates/attendance/individual_employee_statistics.html:231
-#: blog/views.py:552
+#: blog/views.py:670
 msgid "Holat"
 msgstr "Статус"
 
@@ -559,20 +532,14 @@ msgid "Bo'sh filtrlar e'tiborsiz qolinadi."
 msgstr "Пустые фильтры игнорируются."
 
 #: blog/templates/attendance/attendance_form.html:3
-#, fuzzy
-#| msgid "Davomat tizimi"
 msgid "Davomat formasi"
 msgstr "Система посещаемости"
 
 #: blog/templates/attendance/attendance_form.html:6
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davomatni tahrirlash"
 msgstr "Редактирование посещаемости"
 
 #: blog/templates/attendance/attendance_form.html:7
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davomat qo'shish"
 msgstr "Редактирование посещаемости"
 
@@ -586,18 +553,16 @@ msgstr "Редактирование посещаемости"
 #: blog/templates/attendance/employee_form.html:66
 #: blog/templates/attendance/individual_attendance_form.html:190
 #: blog/templates/attendance/nalivshik_schedule.html:58
-#: blog/templates/attendance/salary_statistics.html:533
+#: blog/templates/attendance/salary_statistics.html:580
 msgid "Saqlash"
 msgstr "Сохранить"
 
 #: blog/templates/attendance/attendance_import.html:3
-#, fuzzy
-#| msgid "Davomat tizimi"
 msgid "Davomat import"
 msgstr "Система посещаемости"
 
 #: blog/templates/attendance/attendance_import.html:6
-#: blog/templates/attendance/base.html:111
+#: blog/templates/attendance/base.html:116
 msgid "Import"
 msgstr "Импорт"
 
@@ -610,8 +575,6 @@ msgid "Fayl (Excel / CSV)"
 msgstr "Файл (Excel / CSV)"
 
 #: blog/templates/attendance/attendance_import.html:20
-#, fuzzy
-#| msgid "Bekor qilish"
 msgid "Import qilish"
 msgstr "Отмена"
 
@@ -621,8 +584,6 @@ msgstr "Пример (заголовок):"
 
 #: blog/templates/attendance/attendance_list.html:3
 #: blog/templates/attendance/attendance_list.html:6
-#, fuzzy
-#| msgid "Davomat"
 msgid "Davomatlar"
 msgstr "Посещаемость"
 
@@ -638,25 +599,22 @@ msgstr "Выбранная дата"
 #: blog/templates/attendance/attendance_list.html:81
 #: blog/templates/attendance/attendance_list.html:114
 #: blog/templates/attendance/edit_attendance_history.html:248
-#, fuzzy
-#| msgid "Bugungi davomat"
 msgid "Yangi davomat"
-msgstr "Посещаемость сегодня"
+msgstr "Новая посещаемость"
 
 #: blog/templates/attendance/attendance_list.html:18
 #: blog/templates/attendance/attendance_statistics.html:25
 #: blog/templates/attendance/edit_attendance_history.html:119
+#: blog/templates/attendance/employees.html:22
 #: blog/templates/attendance/salary_statistics.html:67
-#, fuzzy
-#| msgid "Tahrirlash"
 msgid "Filtrlash"
-msgstr "Редактировать"
+msgstr "Фильтрация"
 
 #: blog/templates/attendance/attendance_list.html:21
 #: blog/templates/attendance/edit_attendance_history.html:178
 #: blog/templates/attendance/individual_attendance_form.html:117
 #: blog/templates/attendance/individual_employee_statistics.html:229
-#: blog/templates/attendance/nalivshik_schedule.html:22 blog/views.py:951
+#: blog/templates/attendance/nalivshik_schedule.html:22 blog/views.py:1069
 msgid "Sana"
 msgstr "Дата"
 
@@ -667,42 +625,37 @@ msgstr "Все статусы"
 
 #: blog/templates/attendance/attendance_list.html:34
 #: blog/templates/attendance/edit_attendance_history.html:153
-#: blog/templates/attendance/employees.html:13
 msgid "Qidirish"
 msgstr "Поиск"
 
 #: blog/templates/attendance/attendance_list.html:50
 #: blog/templates/attendance/edit_attendance_history.html:181
 #: blog/templates/attendance/individual_employee_statistics.html:232
-#: blog/templates/attendance/salary_payment_history.html:100 blog/views.py:951
-#: blog/views.py:2310
+#: blog/templates/attendance/salary_payment_history.html:100 blog/views.py:1069
+#: blog/views.py:2398
 msgid "Izoh"
 msgstr "Примечание"
 
 #: blog/templates/attendance/attendance_list.html:51
 #: blog/templates/attendance/dayoff_list.html:20
-#, fuzzy
-#| msgid "Amallar"
 msgid "Amal"
-msgstr "Действия"
+msgstr "Действие"
 
 #: blog/templates/attendance/attendance_list.html:70
 #: blog/templates/attendance/attendance_list.html:106
-#: blog/templates/attendance/employees.html:66
+#: blog/templates/attendance/employees.html:148
 #: blog/templates/attendance/nalivshik_schedule.html:26
-#: blog/templates/attendance/salary_statistics.html:211
-#: blog/templates/attendance/salary_statistics.html:213
-#: blog/templates/attendance/salary_statistics.html:228
-#: blog/templates/attendance/salary_statistics.html:349
+#: blog/templates/attendance/salary_statistics.html:258
+#: blog/templates/attendance/salary_statistics.html:260
+#: blog/templates/attendance/salary_statistics.html:275
+#: blog/templates/attendance/salary_statistics.html:396
 msgid "Tahrirlash"
 msgstr "Редактировать"
 
 #: blog/templates/attendance/attendance_list.html:79
 #: blog/templates/attendance/attendance_list.html:112
-#, fuzzy
-#| msgid "Davomat tizimi"
 msgid "Davomat topilmadi"
-msgstr "Система посещаемости"
+msgstr "Посещаемость не найдена"
 
 #: blog/templates/attendance/attendance_list.html:80
 #: blog/templates/attendance/attendance_list.html:113
@@ -711,20 +664,16 @@ msgstr "Выберите другую дату или фильтр."
 
 #: blog/templates/attendance/attendance_statistics.html:4
 #: blog/templates/attendance/attendance_statistics.html:11
-#, fuzzy
-#| msgid "Statistika"
 msgid "Statistika va tahlil"
-msgstr "Статистика"
+msgstr "Статистика и анализ"
 
 #: blog/templates/attendance/attendance_statistics.html:12
 msgid "Davomat ko'rsatkichlari, trend va xodimlar reytingi"
 msgstr "Показатели посещаемости, тренды и рейтинг сотрудников"
 
 #: blog/templates/attendance/attendance_statistics.html:18
-#, fuzzy
-#| msgid "Kun"
 msgid "kun"
-msgstr "День"
+msgstr "дн."
 
 #: blog/templates/attendance/attendance_statistics.html:29
 msgid "Davr"
@@ -735,22 +684,18 @@ msgid "Kunlik"
 msgstr "По дням"
 
 #: blog/templates/attendance/attendance_statistics.html:32
-#, fuzzy
-#| msgid "Haftalik davomat"
 msgid "Haftalik"
 msgstr "За неделю"
 
 #: blog/templates/attendance/attendance_statistics.html:33
-#: blog/templates/attendance/base.html:73
-#: blog/templates/attendance/salary_statistics.html:165
-#: blog/templates/attendance/salary_statistics.html:302
-#: blog/templates/attendance/salary_statistics.html:432 blog/views.py:1684
+#: blog/templates/attendance/base.html:78
+#: blog/templates/attendance/salary_statistics.html:212
+#: blog/templates/attendance/salary_statistics.html:349
+#: blog/templates/attendance/salary_statistics.html:479 blog/views.py:1772
 msgid "Oylik"
 msgstr "Зарплата"
 
 #: blog/templates/attendance/attendance_statistics.html:34
-#, fuzzy
-#| msgid "Oylik"
 msgid "3 oylik"
 msgstr "Зарплата"
 
@@ -759,14 +704,10 @@ msgid "Yillik"
 msgstr "По годам"
 
 #: blog/templates/attendance/attendance_statistics.html:36
-#, fuzzy
-#| msgid "Boshqaruv"
 msgid "Boshqa oralik"
 msgstr "Управление"
 
 #: blog/templates/attendance/attendance_statistics.html:40
-#, fuzzy
-#| msgid "Komanda"
 msgid "Dan"
 msgstr "Команда"
 
@@ -779,10 +720,8 @@ msgstr "По"
 #: blog/templates/attendance/edit_attendance_history.html:179
 #: blog/templates/attendance/salary_payment_history.html:54
 #: blog/templates/attendance/salary_payment_history.html:96
-#: blog/templates/attendance/select_employee.html:31 blog/views.py:1684
-#: blog/views.py:1919
-#, fuzzy
-#| msgid "Xodimlar"
+#: blog/templates/attendance/select_employee.html:31 blog/views.py:1772
+#: blog/views.py:2007
 msgid "Xodim"
 msgstr "Сотрудники"
 
@@ -790,26 +729,18 @@ msgstr "Сотрудники"
 #: blog/templates/attendance/edit_attendance_history.html:132
 #: blog/templates/attendance/salary_payment_history.html:17
 #: blog/templates/attendance/salary_payment_history.html:56
-#, fuzzy
-#| msgid "Boshqarma xodimlari"
 msgid "Barcha xodimlar"
-msgstr "Аппарат сотрудников"
+msgstr "Все сотрудники"
 
 #: blog/templates/attendance/attendance_statistics.html:63
-#, fuzzy
-#| msgid "Ko'rsatish"
 msgid "Ko'rish"
 msgstr "Показать"
 
 #: blog/templates/attendance/attendance_statistics.html:65
-#, fuzzy
-#| msgid "Davomat tarixi"
 msgid "Davomat jadvali"
 msgstr "История посещаемости"
 
 #: blog/templates/attendance/attendance_statistics.html:68
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davomat tarixini tahrirlash"
 msgstr "Редактирование посещаемости"
 
@@ -825,8 +756,6 @@ msgid "Jami yozuvlar"
 msgstr "Всего записей"
 
 #: blog/templates/attendance/attendance_statistics.html:97
-#, fuzzy
-#| msgid "Kelmagan kun kvotasi"
 msgid "Kelganlar"
 msgstr "Квота пропущенных дней"
 
@@ -835,8 +764,6 @@ msgid "Kelish foizi"
 msgstr "Процент посещаемости"
 
 #: blog/templates/attendance/attendance_statistics.html:115
-#, fuzzy
-#| msgid "Boshqarma xodimlari"
 msgid "Faol xodimlar"
 msgstr "Аппарат сотрудников"
 
@@ -845,27 +772,19 @@ msgid "Holatlar taqsimoti"
 msgstr "Распределение по статусам"
 
 #: blog/templates/attendance/attendance_statistics.html:160
-#, fuzzy
-#| msgid "To'lovlar"
 msgid "Holatlar soni"
 msgstr "Выплаты"
 
 #: blog/templates/attendance/attendance_statistics.html:171
-#, fuzzy
-#| msgid "Kunlik"
 msgid "Kunlik trend"
 msgstr "По дням"
 
 #: blog/templates/attendance/attendance_statistics.html:179
-#, fuzzy
-#| msgid "Top xodimlar (30 kun)"
 msgid "Top xodimlar"
 msgstr "Лучшие сотрудники (30 дней)"
 
 #: blog/templates/attendance/attendance_statistics.html:186
 #: blog/templates/attendance/attendance_statistics.html:431
-#, fuzzy
-#| msgid "Qolgan"
 msgid "Kelgan"
 msgstr "Осталось"
 
@@ -883,14 +802,10 @@ msgid "%(df)s — %(dt)s oralig'ida davomat yozuvlari topilmadi."
 msgstr "Записи посещаемости не найдены за период %(df)s — %(dt)s."
 
 #: blog/templates/attendance/attendance_statistics.html:233
-#, fuzzy
-#| msgid "Tonna yoki xodimlar ro'yxatini tekshiring."
 msgid "Tanlangan xodim uchun ham tekshiring."
 msgstr "Проверьте тонны или список сотрудников."
 
 #: blog/templates/attendance/attendance_statistics.html:236
-#, fuzzy
-#| msgid "Boshqa sana yoki filtrni tanlang."
 msgid "Boshqa oy yoki kengroq davr tanlang"
 msgstr "Выберите другую дату или фильтр."
 
@@ -899,10 +814,10 @@ msgid "«Barcha xodimlar» filtri bilan qayta ko'ring"
 msgstr "Повторите с фильтром «Все сотрудники»"
 
 #: blog/templates/attendance/attendance_statistics.html:238
-#: blog/templates/attendance/base.html:7 blog/templates/attendance/base.html:44
-#: blog/templates/attendance/base.html:63
-#: blog/templates/attendance/employees.html:62
-#: blog/templates/attendance/employees.html:101 blog/views.py:949
+#: blog/templates/attendance/base.html:7 blog/templates/attendance/base.html:48
+#: blog/templates/attendance/base.html:68
+#: blog/templates/attendance/employees.html:144
+#: blog/templates/attendance/employees.html:183 blog/views.py:1067
 msgid "Davomat"
 msgstr "Посещаемость"
 
@@ -911,76 +826,74 @@ msgid "bo'limida yozuvlar borligini tekshiring"
 msgstr "проверьте наличие записей в разделе"
 
 #: blog/templates/attendance/attendance_statistics.html:242
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davomatga o'tish"
 msgstr "Редактирование посещаемости"
 
-#: blog/templates/attendance/base.html:46
+#: blog/templates/attendance/base.html:51
 msgid "Menyu"
 msgstr "Меню"
 
-#: blog/templates/attendance/base.html:53
+#: blog/templates/attendance/base.html:58
 #: blog/templates/attendance/dashboard.html:3
 #: blog/templates/attendance/dashboard.html:6
 msgid "Dashboard"
 msgstr "Панель"
 
-#: blog/templates/attendance/base.html:58
+#: blog/templates/attendance/base.html:63
 #: blog/templates/attendance/dashboard.html:121
 #: blog/templates/attendance/employees.html:3
 #: blog/templates/attendance/employees.html:6
 #: blog/templates/attendance/salary_statistics.html:43
-#: blog/templates/attendance/salary_statistics.html:629
+#: blog/templates/attendance/salary_statistics.html:676
 msgid "Xodimlar"
 msgstr "Сотрудники"
 
-#: blog/templates/attendance/base.html:68
+#: blog/templates/attendance/base.html:73
 #: blog/templates/attendance/dashboard.html:118
-#: blog/templates/attendance/employees.html:65
+#: blog/templates/attendance/employees.html:147
 msgid "Statistika"
 msgstr "Статистика"
 
-#: blog/templates/attendance/base.html:83
+#: blog/templates/attendance/base.html:88
 #: blog/templates/attendance/dayoff_list.html:3
 #: blog/templates/attendance/dayoff_list.html:6
 #: blog/templates/attendance/individual_employee_statistics.html:206
 msgid "Yopiq kunlar"
 msgstr "Выходные дни"
 
-#: blog/templates/attendance/base.html:90
+#: blog/templates/attendance/base.html:95
 msgid "Boshqaruv"
 msgstr "Управление"
 
-#: blog/templates/attendance/base.html:95
+#: blog/templates/attendance/base.html:100
 #: blog/templates/attendance/edit_attendance_history.html:3
 #: blog/templates/attendance/edit_attendance_history.html:110
 msgid "Davomat tahrirlash"
 msgstr "Редактирование посещаемости"
 
-#: blog/templates/attendance/base.html:100
+#: blog/templates/attendance/base.html:105
 #: blog/templates/attendance/salary_payment_history.html:3
 #: blog/templates/attendance/salary_payment_history.html:6
 msgid "Oylik to'lovlar tarixi"
 msgstr "История выплат зарплаты"
 
-#: blog/templates/attendance/base.html:116
+#: blog/templates/attendance/base.html:121
 msgid "Eksport"
 msgstr "Экспорт"
 
-#: blog/templates/attendance/base.html:129
+#: blog/templates/attendance/base.html:134
 msgid "Chiqish"
 msgstr "Выход"
 
-#: blog/templates/attendance/base.html:143
+#: blog/templates/attendance/base.html:148
 msgid "Xato"
 msgstr "Ошибка"
 
-#: blog/templates/attendance/base.html:143
+#: blog/templates/attendance/base.html:148
 msgid "Xabar"
 msgstr "Сообщение"
 
-#: blog/templates/attendance/base.html:162
+#: blog/templates/attendance/base.html:167
 msgid "Davomat tizimi"
 msgstr "Система посещаемости"
 
@@ -989,8 +902,6 @@ msgid "Jadval orqali davomat kiritish"
 msgstr "Ввод посещаемости через таблицу"
 
 #: blog/templates/attendance/bulk_attendance_form.html:6
-#, fuzzy
-#| msgid "Bugungi davomat"
 msgid "Bulk davomat"
 msgstr "Посещаемость сегодня"
 
@@ -999,15 +910,8 @@ msgid "Jadval orqali tez kiritish"
 msgstr "Быстрый ввод через таблицу"
 
 #: blog/templates/attendance/bulk_attendance_form.html:12
-#, fuzzy
-#| msgid ""
-#| "Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> "
-#| "uchun davomat kuzatiladi."
 msgid "Yakshanba/yopiq kun — faqat nalivshiklar uchun davomat kiritiladi."
-msgstr "Воскресенье/выходной — посещаемость только для наливщиков."
-"Воскресенье/выходной — посещаемость только для наливщиков.Воскресенье/"
-"выходной — посещаемость только для наливщиков.Сегодня воскресенье или "
-"выходной — только для <strong>наливщиков</strong>."
+msgstr "Воскресенье/выходной — посещаемость вносится только для наливщиков."
 
 #: blog/templates/attendance/dashboard.html:7
 msgid "Davomat tizimi boshqaruv paneli"
@@ -1033,11 +937,7 @@ msgstr "Список посещаемости"
 msgid ""
 "Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun "
 "davomat kuzatiladi."
-msgstr ""
-"Сегодня воскресенье или выходной — посещаемость отслеживается только для "
-"<strong>наливщиков</strong>.Сегодня воскресенье или выходной — посещаемость "
-"отслеживается только для <strong>наливщиков</strong>.Сегодня воскресенье или "
-"выходной — только для <strong>наливщиков</strong>."
+msgstr "Сегодня воскресенье или выходной — посещаемость отслеживается только для <strong>наливщиков</strong>."
 
 #: blog/templates/attendance/dashboard.html:29
 msgid "Bugungi davomat"
@@ -1086,21 +986,15 @@ msgstr "День"
 
 #: blog/templates/attendance/dayoff_confirm_delete.html:3
 #: blog/templates/attendance/dayoff_confirm_delete.html:6
-#, fuzzy
-#| msgid "Yopiq kunlar"
 msgid "Yopiq kunni o'chirish"
 msgstr "Выходные дни"
 
 #: blog/templates/attendance/dayoff_form.html:3
-#, fuzzy
-#| msgid "Xodimni tahrirlash"
 msgid "Yopiq kunni tahrirlash"
 msgstr "Редактирование сотрудника"
 
 #: blog/templates/attendance/dayoff_form.html:3
 #: blog/templates/attendance/dayoff_list.html:13
-#, fuzzy
-#| msgid "Yopiq kunlar"
 msgid "Yangi yopiq kun"
 msgstr "Выходные дни"
 
@@ -1113,8 +1007,6 @@ msgid "Qo'shish"
 msgstr "Добавить"
 
 #: blog/templates/attendance/dayoff_list.html:8
-#, fuzzy
-#| msgid "Yopiq kunlar"
 msgid "Yopiq kunlar yo'q"
 msgstr "Выходные дни"
 
@@ -1136,48 +1028,36 @@ msgid "Orqaga"
 msgstr "Назад"
 
 #: blog/templates/attendance/edit_attendance_history.html:122
-#, fuzzy
-#| msgid "Sanadan"
 msgid "Sana dan:"
 msgstr "С даты"
 
 #: blog/templates/attendance/edit_attendance_history.html:126
-#, fuzzy
-#| msgid "Sanagacha"
 msgid "Sana gacha:"
 msgstr "По дату"
 
 #: blog/templates/attendance/edit_attendance_history.html:130
-#, fuzzy
-#| msgid "Xodimlar"
 msgid "Xodim:"
 msgstr "Сотрудники"
 
 #: blog/templates/attendance/edit_attendance_history.html:141
-#, fuzzy
-#| msgid "Bo'limi"
 msgid "Bo'lim:"
 msgstr "Отдел"
 
 #: blog/templates/attendance/edit_attendance_history.html:143
-#, fuzzy
-#| msgid "Boshqarma xodimlari"
+#: blog/templates/attendance/employees.html:31
 msgid "Barcha bo'limlar"
-msgstr "Аппарат сотрудников"
+msgstr "Все отделы"
 
 #: blog/templates/attendance/edit_attendance_history.html:156
 #: blog/templates/attendance/employee_attendance_history.html:144
+#: blog/templates/attendance/employees.html:74
 #: blog/templates/attendance/salary_payment_history.html:77
-#: blog/templates/attendance/salary_statistics.html:135
-#: blog/templates/attendance/salary_statistics.html:638
-#, fuzzy
-#| msgid "Saqlash"
+#: blog/templates/attendance/salary_statistics.html:141
+#: blog/templates/attendance/salary_statistics.html:685
 msgid "Tozalash"
-msgstr "Сохранить"
+msgstr "Очистить"
 
 #: blog/templates/attendance/edit_attendance_history.html:164
-#, fuzzy
-#| msgid "Davomat tarixi"
 msgid "Davomat ma'lumotlari"
 msgstr "История посещаемости"
 
@@ -1190,14 +1070,10 @@ msgid "O'chirish uchun checkbox'ni belgilang"
 msgstr "Отметьте checkbox для удаления"
 
 #: blog/templates/attendance/edit_attendance_history.html:245
-#, fuzzy
-#| msgid "Xodimlar topilmadi"
 msgid "Davomat ma'lumotlari topilmadi"
 msgstr "Не найдены"
 
 #: blog/templates/attendance/edit_attendance_history.html:246
-#, fuzzy
-#| msgid "Qidiruv so'zini o'zgartiring yoki yangi xodim qo'shing."
 msgid "Filtrlash parametrlarini o'zgartiring yoki yangi davomat qo'shing"
 msgstr "Измените поиск или добавьте сотрудника."
 
@@ -1207,13 +1083,11 @@ msgstr "записей посещаемости удалить?"
 
 #: blog/templates/attendance/employee_attendance_history.html:5
 #: blog/templates/attendance/employee_attendance_history.html:8
-#: blog/templates/attendance/employees.html:63
+#: blog/templates/attendance/employees.html:145
 msgid "Davomat tarixi"
 msgstr "История посещаемости"
 
 #: blog/templates/attendance/employee_attendance_history.html:9
-#, fuzzy
-#| msgid "Kunlik davomat ro'yxati va filtrlash"
 msgid "Kunlik kalendar va tahrirlash"
 msgstr "Ежедневный список посещаемости и фильтрация"
 
@@ -1233,14 +1107,10 @@ msgid "Keyingi oy"
 msgstr "Следующий месяц"
 
 #: blog/templates/attendance/employee_attendance_history.html:42
-#, fuzzy
-#| msgid "Tahrirlash"
 msgid "Filtrlash va Qidirish"
-msgstr "Редактировать"
+msgstr "Фильтрация и поиск"
 
 #: blog/templates/attendance/employee_attendance_history.html:58
-#, fuzzy
-#| msgid "Login kiriting."
 msgid "Yilni kiriting"
 msgstr "Введите логин."
 
@@ -1251,14 +1121,10 @@ msgid "Oy"
 msgstr "Месяц"
 
 #: blog/templates/attendance/employee_attendance_history.html:71
-#, fuzzy
-#| msgid "tanlandi"
 msgid "Oy tanlang"
 msgstr "выбрано"
 
 #: blog/templates/attendance/employee_attendance_history.html:83
-#, fuzzy
-#| msgid "Tezkor havolalar"
 msgid "Tezkor tanlov"
 msgstr "Быстрые ссылки"
 
@@ -1267,9 +1133,10 @@ msgid "O'tgan oy"
 msgstr "Прошлый месяц"
 
 #: blog/templates/attendance/employee_attendance_history.html:100
+#: blog/templates/attendance/employees.html:73
 #: blog/templates/attendance/individual_employee_statistics.html:40
 #: blog/templates/attendance/salary_payment_history.html:76
-#: blog/templates/attendance/salary_statistics.html:133
+#: blog/templates/attendance/salary_statistics.html:139
 msgid "Ko'rsatish"
 msgstr "Показать"
 
@@ -1279,8 +1146,6 @@ msgstr "Дополнительная фильтрация"
 
 #: blog/templates/attendance/employee_attendance_history.html:116
 #: blog/templates/attendance/employee_attendance_history.html:421
-#, fuzzy
-#| msgid "Davomat ro'yxati"
 msgid "Davomat holati"
 msgstr "Список посещаемости"
 
@@ -1289,28 +1154,22 @@ msgstr "Список посещаемости"
 #: blog/templates/attendance/employee_attendance_history.html:349
 #: blog/templates/attendance/individual_employee_statistics.html:70
 #: blog/templates/attendance/individual_employee_statistics.html:261
-#: blog/views.py:2901
-#, fuzzy
-#| msgid "Kelmagan"
+#: blog/views.py:2989
 msgid "Kelmadi"
 msgstr "Не пришёл"
 
 #: blog/templates/attendance/employee_attendance_history.html:128
 #: blog/templates/attendance/individual_employee_statistics.html:230
 #: blog/templates/attendance/nalivshik_schedule.html:23
-#, fuzzy
-#| msgid "Haftalik davomat"
 msgid "Hafta kuni"
 msgstr "За неделю"
 
 #: blog/templates/attendance/employee_attendance_history.html:130
-#, fuzzy
-#| msgid "Barcha oylar"
 msgid "Barcha kunlar"
-msgstr "Все месяцы"
+msgstr "Все дни"
 
 #: blog/templates/attendance/employee_attendance_history.html:141
-#: blog/templates/attendance/employees.html:39
+#: blog/templates/attendance/employees.html:121
 msgid "Amallar"
 msgstr "Действия"
 
@@ -1318,34 +1177,26 @@ msgstr "Действия"
 #: blog/templates/attendance/employee_attendance_history.html:373
 #: blog/templates/attendance/individual_employee_statistics.html:134
 #: blog/templates/attendance/individual_employee_statistics.html:265
-#: blog/views.py:2905
-#, fuzzy
-#| msgid "Ish safarida"
+#: blog/views.py:2993
 msgid "Ish safari"
 msgstr "В командировке"
 
 #: blog/templates/attendance/employee_attendance_history.html:259
-#, fuzzy
-#| msgid "Davomat tarixi"
 msgid "Kunlik Davomat Kalendari"
 msgstr "История посещаемости"
 
 #: blog/templates/attendance/employee_attendance_history.html:335
-#, fuzzy
-#| msgid "Davomat tarixi"
 msgid "Davomat Holatlari"
 msgstr "История посещаемости"
 
 #: blog/templates/attendance/employee_attendance_history.html:403
-#, fuzzy
-#| msgid "Davomat tizimiga kirish"
 msgid "Davomat o'zgartirish"
 msgstr "Вход в систему"
 
 #: blog/templates/attendance/employee_attendance_history.html:405
-#: blog/templates/attendance/salary_statistics.html:420
-#: blog/templates/attendance/salary_statistics.html:555
-#: blog/templates/attendance/salary_statistics.html:665
+#: blog/templates/attendance/salary_statistics.html:467
+#: blog/templates/attendance/salary_statistics.html:602
+#: blog/templates/attendance/salary_statistics.html:712
 msgid "Yopish"
 msgstr "Закрыть"
 
@@ -1366,15 +1217,12 @@ msgid "Kerak bo'lsa izoh yozing..."
 msgstr "При необходимости напишите примечание..."
 
 #: blog/templates/attendance/employee_attendance_history.html:478
-#, fuzzy
-#| msgid "Bu amalni qaytarib bo'lmaydi"
 msgid "bu kunda davomat o'zgartirib bo'lmaydi!"
 msgstr "Это действие нельзя отменить"
 
 #: blog/templates/attendance/employee_attendance_history.html:504
 #: blog/templates/attendance/employee_attendance_history.html:578
-#: blog/templates/attendance/salary_statistics.html:996
-#: blog/templates/attendance/salary_statistics.html:1001
+#: blog/templates/attendance/salary_statistics.html:734
 msgid "Xatolik yuz berdi:"
 msgstr "Произошла ошибка:"
 
@@ -1389,7 +1237,7 @@ msgid "Iltimos, izoh/sabab kiriting!"
 msgstr "Пожалуйста, введите примечание/причину!"
 
 #: blog/templates/attendance/employee_attendance_history.html:552
-#: blog/templates/attendance/salary_statistics.html:960
+#: blog/templates/attendance/salary_statistics.html:995
 msgid "Saqlanmoqda..."
 msgstr "Сохранение..."
 
@@ -1398,14 +1246,12 @@ msgid "Xatolik yuz berdi!"
 msgstr "Произошла ошибка!"
 
 #: blog/templates/attendance/employee_attendance_history.html:711
-#, fuzzy
-#| msgid "Tahrirlash"
 msgid "Filtrlash natijasi:"
-msgstr "Редактировать"
+msgstr "Результат фильтра:"
 
 #: blog/templates/attendance/employee_attendance_history.html:711
 msgid "ta kun ko'rsatilmoqda (jami"
-msgstr "дней показано (из"
+msgstr "дней показано (всего"
 
 #: blog/templates/attendance/employee_attendance_history.html:711
 msgid "ta kundan)"
@@ -1413,8 +1259,6 @@ msgstr "дней)"
 
 #: blog/templates/attendance/employee_confirm_delete.html:3
 #: blog/templates/attendance/employee_confirm_delete.html:6
-#, fuzzy
-#| msgid "Xodimni tahrirlash"
 msgid "Xodimni o'chirish"
 msgstr "Редактирование сотрудника"
 
@@ -1428,8 +1272,8 @@ msgstr "сотрудника?"
 
 #: blog/templates/attendance/employee_form.html:3
 #: blog/templates/attendance/employee_form.html:7
-#: blog/templates/attendance/employees.html:20
-#: blog/templates/attendance/employees.html:77
+#: blog/templates/attendance/employees.html:16
+#: blog/templates/attendance/employees.html:159
 msgid "Yangi xodim"
 msgstr "Новый сотрудник"
 
@@ -1453,66 +1297,92 @@ msgid ""
 "avtomatik <strong>0 so'm</strong> —\n"
 "        keyin <em>Oylik statistika</em>dan kiritasiz."
 msgstr ""
-"Для нового сотрудника <strong>имя, фамилия и отчество</strong> обязательны.\n"
-"        Также укажите <strong>отработанные дни</strong>. Зарплата "
-"автоматически <strong>0 сум</strong> —\n"
-"        затем введите в <em>статистике зарплаты</em>."
+"Для нового сотрудника <strong>имя, фамилия и отчество</strong> обязательны."
+"        Также укажите <strong>отработанные дни</strong>. Зарплата автоматически <strong>0 сум</strong> —"
+"        затем введите на странице <em>Статистика зарплаты</em>."
 
 #: blog/templates/attendance/employees.html:7
 msgid "Barcha xodimlar ro'yxati va boshqaruv"
-msgstr "Список всех сотрудников"
+msgstr "Список всех сотрудников и управление"
 
-#: blog/templates/attendance/employees.html:12
-msgid "Qidiruv (ism, lavozim...)"
-msgstr "Поиск (имя, должность...)"
+#: blog/templates/attendance/employees.html:25
+#: blog/templates/attendance/salary_payment_history.html:73
+msgid "Qidiruv"
+msgstr "Поиск"
 
-#: blog/templates/attendance/employees.html:36 blog/views.py:546
-msgid "Telefon"
-msgstr "Телефон"
+#: blog/templates/attendance/employees.html:26
+msgid "Ism, lavozim, telefon..."
+msgstr "Имя, должность, телефон..."
 
-#: blog/templates/attendance/employees.html:37
-#: blog/templates/attendance/employees.html:98
-msgid "Ishga kirgan"
-msgstr "Принят"
+#: blog/templates/attendance/employees.html:40
+msgid "Barcha turlar"
+msgstr "Все типы"
 
-#: blog/templates/attendance/employees.html:57
-#: blog/templates/attendance/employees.html:92 blog/views.py:587
+#: blog/templates/attendance/employees.html:49
+msgid "Barcha joylashuvlar"
+msgstr "Все локации"
+
+#: blog/templates/attendance/employees.html:58
+msgid "Barcha lavozimlar"
+msgstr "Все должности"
+
+#: blog/templates/attendance/employees.html:67
+#: blog/templates/attendance/salary_statistics.html:93
+#: blog/templates/attendance/salary_statistics.html:102
+#: blog/templates/attendance/salary_statistics.html:111
+#: blog/templates/attendance/salary_statistics.html:120
+#: blog/templates/attendance/salary_statistics.html:129
+#: blog/templates/attendance/select_employee.html:18
+#: blog/templates/attendance/select_employee.html:27
+msgid "Barchasi"
+msgstr "Все"
+
+#: blog/templates/attendance/employees.html:69
+#: blog/templates/attendance/employees.html:139
+#: blog/templates/attendance/employees.html:174 blog/views.py:705
 msgid "Noaktiv"
 msgstr "Неактивен"
 
-#: blog/templates/attendance/employees.html:64
+#: blog/templates/attendance/employees.html:118 blog/views.py:664
+msgid "Telefon"
+msgstr "Телефон"
+
+#: blog/templates/attendance/employees.html:119
+#: blog/templates/attendance/employees.html:180
+msgid "Ishga kirgan"
+msgstr "Принят"
+
+#: blog/templates/attendance/employees.html:146
 msgid "Oylik tolovlar"
 msgstr "Выплаты зарплаты"
 
-#: blog/templates/attendance/employees.html:67
+#: blog/templates/attendance/employees.html:149
 msgid "Ochirish"
 msgstr "Удалить"
 
-#: blog/templates/attendance/employees.html:75
-#: blog/templates/attendance/employees.html:108
+#: blog/templates/attendance/employees.html:157
+#: blog/templates/attendance/employees.html:190
 msgid "Xodimlar topilmadi"
-msgstr "Не найдены"
+msgstr "Сотрудники не найдены"
 
-#: blog/templates/attendance/employees.html:76
-msgid "Qidiruv so'zini o'zgartiring yoki yangi xodim qo'shing."
-msgstr "Измените поиск или добавьте сотрудника."
+#: blog/templates/attendance/employees.html:158
+msgid "Qidiruv yoki filtrlarni o'zgartiring yoki yangi xodim qo'shing."
+msgstr "Измените поиск или фильтры, либо добавьте нового сотрудника."
 
-#: blog/templates/attendance/employees.html:102
+#: blog/templates/attendance/employees.html:184
 msgid "Tarix"
 msgstr "История"
 
-#: blog/templates/attendance/employees.html:103
-#: blog/templates/attendance/salary_statistics.html:449 blog/views.py:2306
+#: blog/templates/attendance/employees.html:185
+#: blog/templates/attendance/salary_statistics.html:496 blog/views.py:2394
 msgid "To'lovlar"
 msgstr "Выплаты"
 
-#: blog/templates/attendance/employees.html:104
+#: blog/templates/attendance/employees.html:186
 msgid "Tahrir"
-msgstr "Правка"
+msgstr "Редакт."
 
 #: blog/templates/attendance/individual_attendance_form.html:5
-#, fuzzy
-#| msgid "Davomat kiritilmagan"
 msgid "Davomat kiritish"
 msgstr "Не внесена"
 
@@ -1521,23 +1391,14 @@ msgid "Kunlik holatni kiriting"
 msgstr "Введите ежедневный статус"
 
 #: blog/templates/attendance/individual_attendance_form.html:137
-#, fuzzy
-#| msgid ""
-#| "Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> "
-#| "uchun davomat kuzatiladi."
 msgid "Yakshanba/yopiq kun — nalivshik smenasi bo'yicha davomat kiritiladi."
-msgstr "Воскресенье/выходной — посещаемость по смене наливщиков."
-"Воскресенье/выходной — посещаемость по смене наливщика.Воскресенье/выходной "
-"— посещаемость по смене наливщика.Сегодня воскресенье или выходной — только "
-"для <strong>наливщиков</strong>."
+msgstr "Воскресенье/выходной — посещаемость вносится по смене наливщиков."
 
 #: blog/templates/attendance/individual_attendance_form.html:142
 msgid "Bu sana dam olish kuni:"
 msgstr "Этот день — выходной:"
 
 #: blog/templates/attendance/individual_attendance_form.html:150
-#, fuzzy
-#| msgid "Sanadan"
 msgid "Sana:"
 msgstr "С даты"
 
@@ -1546,14 +1407,10 @@ msgid "Sanani o'zgartirish"
 msgstr "Изменить дату"
 
 #: blog/templates/attendance/individual_attendance_form.html:164
-#, fuzzy
-#| msgid "Davomat ro'yxati"
 msgid "Davomat holati:"
 msgstr "Список посещаемости"
 
 #: blog/templates/attendance/individual_attendance_form.html:166
-#, fuzzy
-#| msgid "Tanlangan"
 msgid "-- Tanlang --"
 msgstr "Выбранным"
 
@@ -1562,8 +1419,6 @@ msgid "Izoh/sabab:"
 msgstr "Примечание/причина:"
 
 #: blog/templates/attendance/individual_attendance_form.html:191
-#, fuzzy
-#| msgid "Boshqarma xodimlari"
 msgid "Boshqa xodim"
 msgstr "Аппарат сотрудников"
 
@@ -1572,46 +1427,32 @@ msgid "Saqlash va keyingi xodimga o'tish"
 msgstr "Сохранить и перейти к следующему"
 
 #: blog/templates/attendance/individual_employee_statistics.html:5
-#, fuzzy
-#| msgid "Individual davomat"
 msgid "Individual Statistika"
 msgstr "Индивидуальная посещаемость"
 
 #: blog/templates/attendance/individual_employee_statistics.html:8
-#, fuzzy
-#| msgid "Oylik statistika"
 msgid "Xodim statistikasi"
-msgstr "Статистика зарплаты"
+msgstr "Статистика сотрудника"
 
 #: blog/templates/attendance/individual_employee_statistics.html:9
-#, fuzzy
-#| msgid "Individual davomat"
 msgid "Individual davomat tahlili"
 msgstr "Индивидуальная посещаемость"
 
 #: blog/templates/attendance/individual_employee_statistics.html:180
-#, fuzzy
-#| msgid "Asosiy ma'lumotlar"
 msgid "Umumiy Ma'lumotlar"
 msgstr "Основные данные"
 
 #: blog/templates/attendance/individual_employee_statistics.html:188
-#, fuzzy
-#| msgid "Jami yozuvlar"
 msgid "Jami kunlar"
 msgstr "Всего записей"
 
 #: blog/templates/attendance/individual_employee_statistics.html:194
-#: blog/templates/attendance/salary_statistics.html:169
-#: blog/templates/attendance/salary_statistics.html:314
-#, fuzzy
-#| msgid "Yopiq kunlar"
+#: blog/templates/attendance/salary_statistics.html:216
+#: blog/templates/attendance/salary_statistics.html:361
 msgid "Ishchi kunlar"
-msgstr "Выходные дни"
+msgstr "Рабочие дни"
 
 #: blog/templates/attendance/individual_employee_statistics.html:221
-#, fuzzy
-#| msgid "Davomat tarixi"
 msgid "Kunlik Davomat Jadvali"
 msgstr "История посещаемости"
 
@@ -1619,43 +1460,39 @@ msgstr "История посещаемости"
 msgid "Tizimga kirish"
 msgstr "Вход"
 
-#: blog/templates/attendance/login.html:11
+#: blog/templates/attendance/login.html:13
 msgid "Davomat tizimiga kirish"
 msgstr "Вход в систему"
 
-#: blog/templates/attendance/login.html:15
+#: blog/templates/attendance/login.html:17
 msgid "Login"
 msgstr "Логин"
 
-#: blog/templates/attendance/login.html:16
+#: blog/templates/attendance/login.html:18
 msgid "Foydalanuvchi nomi"
 msgstr "Имя пользователя"
 
-#: blog/templates/attendance/login.html:17
+#: blog/templates/attendance/login.html:19
 msgid "Login kiriting."
 msgstr "Введите логин."
 
-#: blog/templates/attendance/login.html:20
+#: blog/templates/attendance/login.html:22
 msgid "Parol"
 msgstr "Пароль"
 
-#: blog/templates/attendance/login.html:22
+#: blog/templates/attendance/login.html:24
 msgid "Parol kiriting."
 msgstr "Введите пароль."
 
-#: blog/templates/attendance/login.html:25
+#: blog/templates/attendance/login.html:27
 msgid "Kirish"
 msgstr "Войти"
 
 #: blog/templates/attendance/nalivshik_schedule.html:3
-#, fuzzy
-#| msgid "Nalivshik"
 msgid "Nalivshik jadvali"
 msgstr "Наливщик"
 
 #: blog/templates/attendance/nalivshik_schedule.html:6
-#, fuzzy
-#| msgid "Nalivshik"
 msgid "Nalivshik komanda jadvali"
 msgstr "Наливщик"
 
@@ -1675,32 +1512,23 @@ msgstr "Ночная (21:00–09:00)"
 msgid ""
 "<strong>Eslatma:</strong> Jadval navbatchilik siklini ko'rsatadi. Davomat "
 "bulk saqlanganda yoziladi."
-msgstr ""
-"<strong>Примечание:</strong> Таблица показывает цикл смен. Записывается при "
-"массовом сохранении посещаемости.<strong>Примечание:</strong> Таблица "
-"показывает цикл смен. Записывается при массовом сохранении посещаемости."
+msgstr "<strong>Примечание:</strong> Таблица показывает цикл смен. Записывается при массовом сохранении посещаемости."
 
 #: blog/templates/attendance/partials/empty_state.html:4
-#: blog/templates/attendance/salary_statistics.html:238
-#, fuzzy
-#| msgid "Ma'lumot yo'q"
+#: blog/templates/attendance/salary_statistics.html:285
 msgid "Ma'lumot topilmadi"
 msgstr "Нет данных"
 
 #: blog/templates/attendance/salary_payment_history.html:7
-#, fuzzy
-#| msgid "Barcha xodimlar ro'yxati va boshqaruv"
 msgid "Barcha xodimlar bo'yicha to'langan summalar va sanalar"
 msgstr "Список всех сотрудников"
 
 #: blog/templates/attendance/salary_payment_history.html:24
-#, fuzzy
-#| msgid "To'lovlar"
 msgid "To'lovlar soni"
 msgstr "Выплаты"
 
 #: blog/templates/attendance/salary_payment_history.html:31
-#: blog/templates/attendance/salary_statistics.html:247
+#: blog/templates/attendance/salary_statistics.html:294
 msgid "Jami"
 msgstr "Итого"
 
@@ -1716,43 +1544,29 @@ msgstr "С даты"
 msgid "Sanagacha"
 msgstr "По дату"
 
-#: blog/templates/attendance/salary_payment_history.html:73
-#, fuzzy
-#| msgid "Qidirish"
-msgid "Qidiruv"
-msgstr "Поиск"
-
 #: blog/templates/attendance/salary_payment_history.html:74
-#, fuzzy
-#| msgid "Qidiruv (ism, lavozim...)"
 msgid "Ism, lavozim, izoh..."
 msgstr "Поиск (имя, должность...)"
 
 #: blog/templates/attendance/salary_payment_history.html:95
-#: blog/templates/attendance/salary_statistics.html:479 blog/views.py:2309
-#, fuzzy
-#| msgid "To'lovlar"
+#: blog/templates/attendance/salary_statistics.html:526 blog/views.py:2397
 msgid "To'lov sanasi"
-msgstr "Выплаты"
+msgstr "Дата платежа"
 
-#: blog/templates/attendance/salary_payment_history.html:98 blog/views.py:2310
+#: blog/templates/attendance/salary_payment_history.html:98 blog/views.py:2398
 msgid "Hisobot oyi"
 msgstr "Отчётный месяц"
 
 #: blog/templates/attendance/salary_payment_history.html:99
-#: blog/templates/attendance/salary_statistics.html:620 blog/views.py:2310
+#: blog/templates/attendance/salary_statistics.html:667 blog/views.py:2398
 msgid "Summa"
 msgstr "Сумма"
 
 #: blog/templates/attendance/salary_payment_history.html:109
-#, fuzzy
-#| msgid "Kiritilmaganlar"
 msgid "kiritilgan"
 msgstr "Не внесённые"
 
 #: blog/templates/attendance/salary_payment_history.html:128
-#, fuzzy
-#| msgid "Xodimlar topilmadi"
 msgid "To'lovlar topilmadi"
 msgstr "Не найдены"
 
@@ -1761,16 +1575,12 @@ msgid "Filtrlarni o'zgartiring yoki boshqa davr tanlang."
 msgstr "Измените фильтры или выберите другой период."
 
 #: blog/templates/attendance/salary_statistics.html:20
-#, fuzzy
-#| msgid "Oylik statistika"
 msgid "Oylik hisobot"
-msgstr "Статистика зарплаты"
+msgstr "Отчёт по зарплате"
 
 #: blog/templates/attendance/salary_statistics.html:21
-#, fuzzy
-#| msgid "Oylik statistika"
 msgid "Oylik xodim statistikasi"
-msgstr "Статистика зарплаты"
+msgstr "Статистика зарплаты сотрудников"
 
 #: blog/templates/attendance/salary_statistics.html:22
 msgid "Ish haqi, to'lovlar va qarzdorlik — bitta joyda"
@@ -1785,174 +1595,144 @@ msgid "Oxirgi hisoblash"
 msgstr "Последний расчёт"
 
 #: blog/templates/attendance/salary_statistics.html:50
-#, fuzzy
-#| msgid "Kelmagan"
 msgid "Kelmagan (jami)"
-msgstr "Не пришёл"
+msgstr "Не пришли (всего)"
 
 #: blog/templates/attendance/salary_statistics.html:58
-#: blog/templates/attendance/salary_statistics.html:172
-#: blog/templates/attendance/salary_statistics.html:326
-#: blog/templates/attendance/salary_statistics.html:375 blog/views.py:1685
-#: blog/views.py:1812
+#: blog/templates/attendance/salary_statistics.html:219
+#: blog/templates/attendance/salary_statistics.html:373
+#: blog/templates/attendance/salary_statistics.html:422 blog/views.py:1773
+#: blog/views.py:1900
 msgid "Hisoblangan"
 msgstr "Начислено"
 
-#: blog/templates/attendance/salary_statistics.html:80
-#, fuzzy
-#| msgid "Qidiruv (ism, lavozim...)"
+#: blog/templates/attendance/salary_statistics.html:81
 msgid "Qidiruv (F.I.O / lavozim / bo'lim)"
-msgstr "Поиск (имя, должность...)"
+msgstr "Поиск (Ф.И.О / должность / отдел)"
 
-#: blog/templates/attendance/salary_statistics.html:83
+#: blog/templates/attendance/salary_statistics.html:84
 msgid "Masalan: Aliyev, nalivshik..."
 msgstr "Например: Алиев, наливщик..."
 
-#: blog/templates/attendance/salary_statistics.html:89
-#: blog/templates/attendance/salary_statistics.html:98
-#: blog/templates/attendance/salary_statistics.html:107
-#: blog/templates/attendance/salary_statistics.html:116
-#: blog/templates/attendance/salary_statistics.html:125
-#: blog/templates/attendance/select_employee.html:18
-#: blog/templates/attendance/select_employee.html:27
-msgid "Barchasi"
-msgstr "Все"
-
-#: blog/templates/attendance/salary_statistics.html:105
+#: blog/templates/attendance/salary_statistics.html:109
 msgid "Rol (tizim)"
 msgstr "Роль (система)"
 
-#: blog/templates/attendance/salary_statistics.html:114
-#: blog/templates/attendance/salary_statistics.html:436 blog/views.py:1684
-#: blog/views.py:1812 blog/views.py:2310
+#: blog/templates/attendance/salary_statistics.html:118
+#: blog/templates/attendance/salary_statistics.html:483 blog/views.py:1772
+#: blog/views.py:1900 blog/views.py:2398
 msgid "Valyuta"
 msgstr "Валюта"
 
-#: blog/templates/attendance/salary_statistics.html:123
+#: blog/templates/attendance/salary_statistics.html:127
 msgid "Lokatsiya"
 msgstr "Локация"
 
-#: blog/templates/attendance/salary_statistics.html:134
+#: blog/templates/attendance/salary_statistics.html:140
 msgid "Davomatdan barcha oylikni qayta hisoblash"
 msgstr "Пересчитать всю зарплату по посещаемости"
 
-#: blog/templates/attendance/salary_statistics.html:134
+#: blog/templates/attendance/salary_statistics.html:140
 msgid "Qayta hisoblash"
 msgstr "Пересчитать"
 
-#: blog/templates/attendance/salary_statistics.html:136
-#, fuzzy
-#| msgid "Oylik to'lovlar tarixi"
+#: blog/templates/attendance/salary_statistics.html:144
 msgid "To'lovlar tarixi"
 msgstr "История выплат зарплаты"
 
-#: blog/templates/attendance/salary_statistics.html:140
-#: blog/templates/attendance/salary_statistics.html:551
+#: blog/templates/attendance/salary_statistics.html:148
+#: blog/templates/attendance/salary_statistics.html:598
 msgid "Premiya"
 msgstr "Премия"
 
-#: blog/templates/attendance/salary_statistics.html:142
+#: blog/templates/attendance/salary_statistics.html:150
 msgid "kishi"
 msgstr "чел."
 
-#: blog/templates/attendance/salary_statistics.html:153
+#: blog/templates/attendance/salary_statistics.html:200
 msgid "Jadvalda tahrirlash uchun ✎ tugmasini bosing"
 msgstr "Нажмите ✎ в таблице для редактирования"
 
-#: blog/templates/attendance/salary_statistics.html:154
-#: blog/templates/attendance/salary_statistics.html:567
-#, fuzzy
-#| msgid "Yangi xodim"
+#: blog/templates/attendance/salary_statistics.html:201
+#: blog/templates/attendance/salary_statistics.html:614
 msgid "xodim"
-msgstr "Новый сотрудник"
+msgstr "сотрудник"
 
-#: blog/templates/attendance/salary_statistics.html:164
+#: blog/templates/attendance/salary_statistics.html:211
 msgid "Turi"
 msgstr "Тип"
 
-#: blog/templates/attendance/salary_statistics.html:166
-#: blog/templates/attendance/salary_statistics.html:306
-#: blog/templates/attendance/salary_statistics.html:497
+#: blog/templates/attendance/salary_statistics.html:213
+#: blog/templates/attendance/salary_statistics.html:353
+#: blog/templates/attendance/salary_statistics.html:544
 msgid "Mukofot"
 msgstr "Премия"
 
-#: blog/templates/attendance/salary_statistics.html:167
-#: blog/templates/attendance/salary_statistics.html:310
-#: blog/templates/attendance/salary_statistics.html:524
+#: blog/templates/attendance/salary_statistics.html:214
+#: blog/templates/attendance/salary_statistics.html:357
+#: blog/templates/attendance/salary_statistics.html:571
 msgid "Jarima"
 msgstr "Штраф"
 
-#: blog/templates/attendance/salary_statistics.html:168
-#, fuzzy
-#| msgid "Yopiq kunlar"
+#: blog/templates/attendance/salary_statistics.html:215
 msgid "Oy kunlari"
-msgstr "Выходные дни"
+msgstr "Дней в месяце"
 
-#: blog/templates/attendance/salary_statistics.html:170
-#: blog/templates/attendance/salary_statistics.html:318
-#, fuzzy
-#| msgid "Ishga kirgan sana"
+#: blog/templates/attendance/salary_statistics.html:217
+#: blog/templates/attendance/salary_statistics.html:365
 msgid "Ishlangan kunlar"
-msgstr "Дата приёма"
+msgstr "Отработано дней"
 
-#: blog/templates/attendance/salary_statistics.html:171
-#: blog/templates/attendance/salary_statistics.html:322
-#: blog/templates/attendance/salary_statistics.html:367
-#, fuzzy
-#| msgid "Kelmagan kun kvotasi"
+#: blog/templates/attendance/salary_statistics.html:218
+#: blog/templates/attendance/salary_statistics.html:369
+#: blog/templates/attendance/salary_statistics.html:414
 msgid "Kelmagan kunlar"
-msgstr "Квота пропущенных дней"
+msgstr "Пропущено дней"
 
-#: blog/templates/attendance/salary_statistics.html:173
-#: blog/templates/attendance/salary_statistics.html:330
-#: blog/templates/attendance/salary_statistics.html:379 blog/views.py:1685
-#: blog/views.py:1812
+#: blog/templates/attendance/salary_statistics.html:220
+#: blog/templates/attendance/salary_statistics.html:377
+#: blog/templates/attendance/salary_statistics.html:426 blog/views.py:1773
+#: blog/views.py:1900
 msgid "To'langan"
 msgstr "Выплачено"
 
-#: blog/templates/attendance/salary_statistics.html:174
-#: blog/templates/attendance/salary_statistics.html:339
-#: blog/templates/attendance/salary_statistics.html:383
+#: blog/templates/attendance/salary_statistics.html:221
+#: blog/templates/attendance/salary_statistics.html:386
+#: blog/templates/attendance/salary_statistics.html:430
 msgid "Qarzdorlik (boshl.)"
 msgstr "Задолженность (нач.)"
 
-#: blog/templates/attendance/salary_statistics.html:175
-#: blog/templates/attendance/salary_statistics.html:343
-#: blog/templates/attendance/salary_statistics.html:387
+#: blog/templates/attendance/salary_statistics.html:222
+#: blog/templates/attendance/salary_statistics.html:390
+#: blog/templates/attendance/salary_statistics.html:434
 msgid "Qarzdorlik (oxiri)"
 msgstr "Задолженность (кон.)"
 
-#: blog/templates/attendance/salary_statistics.html:209
-#, fuzzy
-#| msgid "Ishlab chiqarish xodimlari"
+#: blog/templates/attendance/salary_statistics.html:256
 msgid "Ishlab chiqarish premiyasi"
 msgstr "Производственные работники"
 
-#: blog/templates/attendance/salary_statistics.html:209
+#: blog/templates/attendance/salary_statistics.html:256
 msgid "avto"
 msgstr "авто"
 
-#: blog/templates/attendance/salary_statistics.html:226
-#, fuzzy
-#| msgid "To'lovlar"
+#: blog/templates/attendance/salary_statistics.html:273
 msgid "To'lov"
 msgstr "Выплаты"
 
-#: blog/templates/attendance/salary_statistics.html:239
+#: blog/templates/attendance/salary_statistics.html:286
 msgid "Filtrlarni o'zgartiring yoki boshqa oy tanlang"
 msgstr "Измените фильтры или выберите другой месяц"
 
-#: blog/templates/attendance/salary_statistics.html:356
-#, fuzzy
-#| msgid "Xodimlar topilmadi"
+#: blog/templates/attendance/salary_statistics.html:403
 msgid "Ma'lumotlar topilmadi"
 msgstr "Не найдены"
 
-#: blog/templates/attendance/salary_statistics.html:363
+#: blog/templates/attendance/salary_statistics.html:410
 msgid "JAMI"
 msgstr "ИТОГО"
 
-#: blog/templates/attendance/salary_statistics.html:397
+#: blog/templates/attendance/salary_statistics.html:444
 msgid ""
 "<strong>*Ishchi kunlar:</strong> Faqat to'liq stavka xodimlar uchun hisobga "
 "olinadi (yakshanba va bayram kunlari chiqarilgan). 15 kunlik ishchilar har "
@@ -1970,212 +1750,186 @@ msgstr ""
 "4 дня в месяц, для охранников — 10 дней. Офисные сотрудники получают полную "
 "зарплату без учёта посещаемости."
 
-#: blog/templates/attendance/salary_statistics.html:412
-#, fuzzy
-#| msgid "Ma'lumotlarni yangilang"
+#: blog/templates/attendance/salary_statistics.html:459
 msgid "Ma'lumotlarni tahrirlash"
-msgstr "Обновите данные"
+msgstr "Редактирование данных"
 
-#: blog/templates/attendance/salary_statistics.html:428
+#: blog/templates/attendance/salary_statistics.html:475
 msgid "Asosiy ma'lumotlar"
 msgstr "Основные данные"
 
-#: blog/templates/attendance/salary_statistics.html:438
+#: blog/templates/attendance/salary_statistics.html:485
 msgid "So'm (UZS)"
 msgstr "Сум (UZS)"
 
-#: blog/templates/attendance/salary_statistics.html:439
+#: blog/templates/attendance/salary_statistics.html:486
 msgid "Dollar (USD)"
 msgstr "Доллар (USD)"
 
-#: blog/templates/attendance/salary_statistics.html:440
+#: blog/templates/attendance/salary_statistics.html:487
 msgid "Yevro (EUR)"
 msgstr "Евро (EUR)"
 
-#: blog/templates/attendance/salary_statistics.html:469
+#: blog/templates/attendance/salary_statistics.html:516
 msgid "Jami to'langan"
 msgstr "Всего выплачено"
 
-#: blog/templates/attendance/salary_statistics.html:471
-#, fuzzy
-#| msgid "Davomat kiritilmagan"
+#: blog/templates/attendance/salary_statistics.html:518
 msgid "Hali to'lov kiritilmagan"
-msgstr "Не внесена"
+msgstr "Платежи ещё не внесены"
 
-#: blog/templates/attendance/salary_statistics.html:475
+#: blog/templates/attendance/salary_statistics.html:522
 msgid "Yangi to'lov summasi"
-msgstr "Сумма новой выплаты"
+msgstr "Сумма нового платежа"
 
-#: blog/templates/attendance/salary_statistics.html:476
+#: blog/templates/attendance/salary_statistics.html:523
 msgid "Masalan: 2 000 000"
 msgstr "Например: 2 000 000"
 
-#: blog/templates/attendance/salary_statistics.html:483
+#: blog/templates/attendance/salary_statistics.html:530
 msgid "Izoh (ixtiyoriy)"
-msgstr "Примечание (необязательно)"
+msgstr "Примечание (необяз.)"
 
-#: blog/templates/attendance/salary_statistics.html:484
+#: blog/templates/attendance/salary_statistics.html:531
 msgid "Masalan: avans, qisman to'lov"
 msgstr "Например: аванс, частичная выплата"
 
-#: blog/templates/attendance/salary_statistics.html:485
+#: blog/templates/attendance/salary_statistics.html:532
 msgid "Har bir to'lov alohida saqlanadi — isbot uchun sana muhim."
 msgstr "Каждая выплата сохраняется отдельно — дата важна для подтверждения."
 
-#: blog/templates/attendance/salary_statistics.html:493
+#: blog/templates/attendance/salary_statistics.html:540
 msgid "Mukofot va jarima"
 msgstr "Премия и штраф"
 
-#: blog/templates/attendance/salary_statistics.html:500
-#: blog/templates/attendance/salary_statistics.html:704
+#: blog/templates/attendance/salary_statistics.html:547
+#: blog/templates/attendance/salary_statistics.html:761
 msgid "so'm"
 msgstr "сум"
 
-#: blog/templates/attendance/salary_statistics.html:501
+#: blog/templates/attendance/salary_statistics.html:548
 msgid "Avtomatik premiya"
 msgstr "Автоматическая премия"
 
-#: blog/templates/attendance/salary_statistics.html:506
+#: blog/templates/attendance/salary_statistics.html:553
 msgid "Premiyani sozlash"
 msgstr "Настроить премию"
 
-#: blog/templates/attendance/salary_statistics.html:509
-#: blog/templates/attendance/salary_statistics.html:517
+#: blog/templates/attendance/salary_statistics.html:556
+#: blog/templates/attendance/salary_statistics.html:564
 msgid "Shu xodimning premiyasi bekor qilinsinmi?"
 msgstr "Отменить премию этого сотрудника?"
 
-#: blog/templates/attendance/salary_statistics.html:518
-#, fuzzy
-#| msgid "Bekor qilish"
+#: blog/templates/attendance/salary_statistics.html:565
 msgid "Premiyani bekor qilish"
 msgstr "Отмена"
 
-#: blog/templates/attendance/salary_statistics.html:529
+#: blog/templates/attendance/salary_statistics.html:576
 msgid "Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi."
 msgstr "После сохранения зарплата пересчитается только для этого сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:550
-#, fuzzy
-#| msgid "Ishlab chiqarish xodimlari"
+#: blog/templates/attendance/salary_statistics.html:597
 msgid "Ishlab chiqarish"
 msgstr "Производственные работники"
 
-#: blog/templates/attendance/salary_statistics.html:566
+#: blog/templates/attendance/salary_statistics.html:613
 msgid "Faol premiya"
 msgstr "Активная премия"
 
-#: blog/templates/attendance/salary_statistics.html:572
+#: blog/templates/attendance/salary_statistics.html:619
 msgid "Premiya qoidalari"
 msgstr "Правила премии"
 
-#: blog/templates/attendance/salary_statistics.html:575
+#: blog/templates/attendance/salary_statistics.html:622
 msgid "Premiya yo'q"
 msgstr "Премии нет"
 
-#: blog/templates/attendance/salary_statistics.html:587
-#, fuzzy
-#| msgid "Xodim turi"
+#: blog/templates/attendance/salary_statistics.html:634
 msgid "Amal turi"
 msgstr "Тип сотрудника"
 
-#: blog/templates/attendance/salary_statistics.html:589
+#: blog/templates/attendance/salary_statistics.html:636
 msgid "Premiya berish"
 msgstr "Назначить премию"
 
-#: blog/templates/attendance/salary_statistics.html:597
+#: blog/templates/attendance/salary_statistics.html:644
 msgid ""
 "Tonna kiriting, keyin premiya oladigan xodimlarni belgilang va "
 "<strong>Saqlash</strong> ni bosing."
-msgstr ""
-"Введите тонны, выберите сотрудников для премии и нажмите <strong>Сохранить</"
-"strong>.Введите тонны, выберите сотрудников для премии и нажмите "
-"<strong>Сохранить</strong>.Введите тонны, выберите сотрудников для премии и "
-"нажмите <strong>Сохранить</strong>."
+msgstr "Введите тонны, выберите сотрудников для премии и нажмите <strong>Сохранить</strong>."
 
-#: blog/templates/attendance/salary_statistics.html:600
+#: blog/templates/attendance/salary_statistics.html:647
 msgid ""
 "Faqat bekor qilmoqchi bo'lgan xodim(lar)ni belgilang — boshqalarga "
 "tegilmaydi."
-msgstr ""
-"Выберите только сотрудника(ов), у которых хотите отменить премию — остальные "
-"не затрагиваются.Выберите только сотрудника(ов), у которых хотите отменить "
-"премию — остальные не затрагиваются.Выберите только сотрудника(ов), у "
-"которых хотите отменить премию — остальные не затрагиваются."
+msgstr "Выберите только сотрудника(ов), у которых хотите отменить премию — остальные не затрагиваются."
 
-#: blog/templates/attendance/salary_statistics.html:611
+#: blog/templates/attendance/salary_statistics.html:658
 msgid "Masalan: 2500"
 msgstr "Например: 2500"
 
-#: blog/templates/attendance/salary_statistics.html:618
+#: blog/templates/attendance/salary_statistics.html:665
 msgid "Hisoblangan premiya"
 msgstr "Рассчитанная премия"
 
-#: blog/templates/attendance/salary_statistics.html:630
-#: blog/templates/attendance/salary_statistics.html:743
+#: blog/templates/attendance/salary_statistics.html:677
+#: blog/templates/attendance/salary_statistics.html:800
 msgid "tanlandi"
 msgstr "выбрано"
 
-#: blog/templates/attendance/salary_statistics.html:635
+#: blog/templates/attendance/salary_statistics.html:682
 msgid "Ism yoki lavozim bo'yicha qidirish..."
 msgstr "Поиск по имени или должности..."
 
-#: blog/templates/attendance/salary_statistics.html:654
+#: blog/templates/attendance/salary_statistics.html:701
 msgid "Faol"
 msgstr "Активна"
 
-#: blog/templates/attendance/salary_statistics.html:659
+#: blog/templates/attendance/salary_statistics.html:706
 msgid "Aktiv xodim yo'q"
 msgstr "Нет активных сотрудников"
 
-#: blog/templates/attendance/salary_statistics.html:667
+#: blog/templates/attendance/salary_statistics.html:714
 msgid "Tanlanganlardan olib tashlash"
 msgstr "Убрать у выбранных"
 
-#: blog/templates/attendance/salary_statistics.html:812
+#: blog/templates/attendance/salary_statistics.html:728
 msgid "Kamida bitta xodim belgilang."
 msgstr "Выберите хотя бы одного сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:817
+#: blog/templates/attendance/salary_statistics.html:729
 msgid "Premiya uchun kamida"
-msgstr "Для премии введите минимум"
+msgstr "Для премии минимум"
 
-#: blog/templates/attendance/salary_statistics.html:817
-#, fuzzy
-#| msgid "Login kiriting."
+#: blog/templates/attendance/salary_statistics.html:730
 msgid "tonna kiriting."
-msgstr "Введите логин."
+msgstr "тонн."
 
-#: blog/templates/attendance/salary_statistics.html:823
+#: blog/templates/attendance/salary_statistics.html:731
 msgid "Bekor qilish uchun kamida bitta xodim belgilang."
-msgstr "Выберите хотя бы одного сотрудника для отмены."
+msgstr "Для отмены выберите хотя бы одного сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:826
+#: blog/templates/attendance/salary_statistics.html:732
 msgid "Tanlangan"
-msgstr "Выбранным"
+msgstr "Выбрано"
 
-#: blog/templates/attendance/salary_statistics.html:826
+#: blog/templates/attendance/salary_statistics.html:733
 msgid "ta xodimdan premiya olib tashlansinmi?"
-msgstr "сотрудникам убрать премию?"
+msgstr "сотрудников — снять премию?"
 
-#: blog/templates/attendance/salary_statistics.html:980
+#: blog/templates/attendance/salary_statistics.html:735
+msgid "Noma'lum xatolik"
+msgstr "Неизвестная ошибка"
+
+#: blog/templates/attendance/salary_statistics.html:1015
 msgid "Muvaffaqiyat"
 msgstr "Успех"
 
-#: blog/templates/attendance/salary_statistics.html:996
-#, fuzzy
-#| msgid "Noma'lum"
-msgid "Noma'lum xatolik"
-msgstr "Неизвестно"
-
 #: blog/templates/attendance/select_employee.html:3
-#, fuzzy
-#| msgid "Xodimni tahrirlash"
 msgid "Xodim tanlash"
 msgstr "Редактирование сотрудника"
 
 #: blog/templates/attendance/select_employee.html:7
-#, fuzzy
-#| msgid "Davomat kiritilmagan"
 msgid "Davomat kiritish uchun xodimni tanlang"
 msgstr "Не внесена"
 
@@ -2184,407 +1938,336 @@ msgid "— Xodimni tanlang —"
 msgstr "— Выберите сотрудника —"
 
 #: blog/templates/attendance/select_employee.html:42
-#, fuzzy
-#| msgid "Davomat tahrirlash"
 msgid "Davom etish"
 msgstr "Редактирование посещаемости"
 
-#: blog/views.py:163
+#: blog/views.py:220
 msgid "Muvaffaqiyatli tizimga kirdingiz!"
 msgstr "Успешный вход!"
 
-#: blog/views.py:166
+#: blog/views.py:223
 msgid "Login yoki parol noto'g'ri!"
 msgstr "Неверный логин или пароль!"
 
-#: blog/views.py:173
+#: blog/views.py:230
 msgid "Tizimdan chiqdingiz."
 msgstr "Вы вышли из системы."
 
-#: blog/views.py:301 blog/views.py:541 blog/views.py:951 blog/views.py:2309
-#, fuzzy
-#| msgid "Familiyasi"
+#: blog/views.py:358 blog/views.py:659 blog/views.py:1069 blog/views.py:2397
 msgid "Familiya"
 msgstr "Фамилия"
 
-#: blog/views.py:304
-#, fuzzy
-#| msgid "Oldingi oylar"
+#: blog/views.py:361
 msgid "Oldingi oylar kelmagan"
 msgstr "Предыдущие месяцы"
 
-#: blog/views.py:305
-#, fuzzy
-#| msgid "Joriy oy"
+#: blog/views.py:362
 msgid "Joriy oy kelmagan"
 msgstr "Текущий месяц"
 
-#: blog/views.py:307
-#, fuzzy
-#| msgid "Kvotadan kechirilgan"
+#: blog/views.py:364
 msgid "Kvotadan kechirilgan (oy)"
 msgstr "Прощено по квоте"
 
-#: blog/views.py:308
-#, fuzzy
-#| msgid "Oylik statistika"
+#: blog/views.py:365
 msgid "Oylikka ta'sir qiladi (oy)"
 msgstr "Статистика зарплаты"
 
-#: blog/views.py:309
-#, fuzzy, python-format
-#| msgid "Kvotadan foydalangan"
+#: blog/views.py:366
+#, python-format
 msgid "Kvotadan foydalangan (0-%(limit)s)"
-msgstr "Использовано квоты"
+msgstr "Использовано из квоты (0-%(limit)s)"
 
-#: blog/views.py:310
-#, fuzzy
-#| msgid "Qolgan"
+#: blog/views.py:367
 msgid "Qolgan kvota"
-msgstr "Осталось"
+msgstr "Оставшаяся квота"
 
-#: blog/views.py:382
+#: blog/views.py:439
 msgid "Sana formati noto'g'ri."
 msgstr "Неверный формат даты."
 
-#: blog/views.py:388
+#: blog/views.py:445
 msgid "Hech bo'lmaganda bitta komanda tanlang."
 msgstr "Выберите хотя бы одну команду."
 
-#: blog/views.py:448
+#: blog/views.py:505
 #, python-format
 msgid "%(date)s sanadan boshlab keyingi kunlar jadvali yangilandi!"
 msgstr "График обновлён с %(date)s на следующие дни!"
 
-#: blog/views.py:557
+#: blog/views.py:675
 msgid "ISOMER OIL — Xodimlar ro'yxati"
 msgstr "ISOMER OIL — Список сотрудников"
 
-#: blog/views.py:564
-#, fuzzy, python-format
-#| msgid "Sanadan"
+#: blog/views.py:682
+#, python-format
 msgid "Sana: %(date)s"
-msgstr "С даты"
+msgstr "Дата: %(date)s"
 
-#: blog/views.py:565
+#: blog/views.py:683
 #, python-format
 msgid "Jami: %(count)s ta xodim"
 msgstr "Всего: %(count)s сотрудников"
 
-#: blog/views.py:568
+#: blog/views.py:686
 #, python-format
 msgid "Qidiruv: «%(query)s»"
 msgstr "Поиск: «%(query)s»"
 
-#: blog/views.py:666
+#: blog/views.py:784
 #, python-format
 msgid ""
 "Xodim qo'shildi. Kelgan kunlar: %(days)s ta. Oylik 0 so'm — Oylik statistika "
 "sahifasidan kiritasiz."
 msgstr ""
 "Сотрудник добавлен. Отработано дней: %(days)s. Зарплата 0 сум — введите на "
-"странице статистики зарплаты.Сотрудник добавлен. Отработано дней: %(days)s. "
-"Зарплата 0 сум — введите на странице статистики зарплаты."
+"странице статистики зарплаты."
 
-#: blog/views.py:680
-#, fuzzy
-#| msgid "Ma'lumotlarni yangilang"
+#: blog/views.py:798
 msgid "Xodim ma'lumoti yangilandi!"
-msgstr "Обновите данные"
+msgstr "Данные сотрудника обновлены!"
 
-#: blog/views.py:691
-#, fuzzy
-#| msgid "Xodimlar topilmadi"
+#: blog/views.py:809
 msgid "Xodim o'chirildi!"
-msgstr "Не найдены"
+msgstr "Сотрудник удалён!"
 
-#: blog/views.py:725
+#: blog/views.py:843
 #, python-format
 msgid "%(date)s — %(reason)s. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi."
-msgstr "%(date)s — %(reason)s. Нет активного наливщика, нельзя ввести посещаемость."
+msgstr ""
+"%(date)s — %(reason)s. Нет активного наливщика, нельзя ввести посещаемость."
 "%(date)s — %(reason)s. Нет активных наливщиков, посещаемость ввести нельзя."
 "%(date)s — %(reason)s. Нет активных наливщиков, посещаемость ввести нельзя."
 
-#: blog/views.py:769
+#: blog/views.py:887
 msgid "Davomat muvaffaqiyatli saqlandi!"
 msgstr "Посещаемость успешно сохранена!"
 
-#: blog/views.py:823
-#, fuzzy
-#| msgid "Davomat tizimi"
+#: blog/views.py:941
 msgid "Davomat yangilandi!"
 msgstr "Система посещаемости"
 
-#: blog/views.py:836
-#, fuzzy
-#| msgid "Davomat tizimi"
+#: blog/views.py:954
 msgid "Davomat o'chirildi!"
-msgstr "Система посещаемости"
+msgstr "Посещаемость удалена!"
 
-#: blog/views.py:902
-#, fuzzy, python-format
-#| msgid "%(count)s ta xodimning premiyasi bekor qilindi."
+#: blog/views.py:1020
+#, python-format
 msgid "%(count)s ta davomat import qilindi!"
-msgstr "Премия отменена у %(count)s сотрудников."
+msgstr "Импортировано %(count)s записей посещаемости!"
 
-#: blog/views.py:904
+#: blog/views.py:1022
 #, python-format
 msgid "Quyidagi satrlarda xatoliklar: %(errors)s"
 msgstr "Ошибки в следующих строках: %(errors)s"
 
-#: blog/views.py:913
+#: blog/views.py:1031
 #, python-format
 msgid "Importda xatolik: %(error)s"
 msgstr "Ошибка импорта: %(error)s"
 
-#: blog/views.py:936
+#: blog/views.py:1054
 #, python-format
 msgid "Sana formatida xatolik: %(error)s"
 msgstr "Ошибка формата даты: %(error)s"
 
-#: blog/views.py:951
-#, fuzzy
-#| msgid "Statistika"
+#: blog/views.py:1069
 msgid "Status"
 msgstr "Статистика"
 
-#: blog/views.py:998
+#: blog/views.py:1116
 msgid "Yopiq sana qo'shildi!"
 msgstr "Выходной день добавлен!"
 
-#: blog/views.py:1009
+#: blog/views.py:1127
 msgid "Yopiq sana o'chirildi!"
 msgstr "Выходной день удалён!"
 
-#: blog/views.py:1025
-#, fuzzy
-#| msgid "Xodimni tahrirlash"
+#: blog/views.py:1143
 msgid "Xodimni tanlang!"
 msgstr "Редактирование сотрудника"
 
-#: blog/views.py:1046
+#: blog/views.py:1164
 msgid "Noto'g'ri sana formati. Bugungi sana ishlatilmoqda."
 msgstr "Неверный формат даты. Используется сегодняшняя дата."
 
-#: blog/views.py:1052 blog/views.py:1075
+#: blog/views.py:1170 blog/views.py:1193
 #, python-format
 msgid ""
 "%(date)s — %(reason)s. Bu kunda faqat nalivshiklar davomat kiritishi mumkin."
-msgstr ""
-"%(date)s — %(reason)s. В этот день только наливщики могут вводить "
-"посещаемость.%(date)s — %(reason)s. В этот день только наливщики могут "
-"вводить посещаемость."
+msgstr "%(date)s — %(reason)s. В этот день только наливщики могут вводить посещаемость."
 
-#: blog/views.py:1088
-#, fuzzy
-#| msgid "Davomat tahrirlash"
+#: blog/views.py:1206
 msgid "Davomat holatini tanlang!"
 msgstr "Редактирование посещаемости"
 
-#: blog/views.py:1102
+#: blog/views.py:1220
 msgid "Izoh/sabab kiritish majburiy!"
 msgstr "Примечание/причина обязательны!"
 
-#: blog/views.py:1132
+#: blog/views.py:1250
 #, python-format
 msgid "%(employee)s uchun davomat saqlandi!"
 msgstr "Посещаемость для %(employee)s сохранена!"
 
-#: blog/views.py:1151
+#: blog/views.py:1269
 msgid "Siz ushbu joylashuvdagi oxirgi xodimga davomat kiritdingiz."
 msgstr "Вы ввели посещаемость последнему сотруднику в этом месте."
 
-#: blog/views.py:1160
+#: blog/views.py:1278
 #, python-format
 msgid "Xatolik yuz berdi: %(error)s"
 msgstr "Произошла ошибка: %(error)s"
 
-#: blog/views.py:1220
+#: blog/views.py:1338
 msgid "Sana formatida xatolik!"
 msgstr "Ошибка формата даты!"
 
-#: blog/views.py:1385
+#: blog/views.py:1504
 msgid "Premiyani bekor qilish uchun kamida bitta xodim belgilang."
 msgstr "Выберите хотя бы одного сотрудника для отмены премии."
 
-#: blog/views.py:1388
+#: blog/views.py:1507
 #, python-format
 msgid "%(count)s ta xodimning premiyasi bekor qilindi."
 msgstr "Премия отменена у %(count)s сотрудников."
 
-#: blog/views.py:1409
+#: blog/views.py:1520
 msgid ""
 "Kamida bitta xodim belgilang. Premiyani olib tashlash uchun xodimni belgilab "
 "«Premiyani bekor qilish» ni bosing."
-msgstr ""
-"Выберите хотя бы одного сотрудника. Для отмены премии выберите сотрудника и "
-"нажмите «Отменить премию».Выберите хотя бы одного сотрудника. Для отмены "
-"премии выберите сотрудника и нажмите «Отменить премию».Выберите хотя бы "
-"одного сотрудника. Для отмены премии выберите сотрудника и нажмите «Отменить "
-"премию»."
+msgstr "Выберите хотя бы одного сотрудника. Для отмены премии выберите сотрудника и нажмите «Отменить премию»."
 
-#: blog/views.py:1415
+#: blog/views.py:1526
 #, python-format
 msgid "Premiya uchun kamida %(min_tons)s tonna kiriting."
 msgstr "Для премии введите минимум %(min_tons)s тонн."
 
-#: blog/views.py:1421
+#: blog/views.py:1532
 msgid "Premiya saqlandi — mukofotlar yangilandi."
 msgstr "Премия сохранена — вознаграждения обновлены."
 
-#: blog/views.py:1423
+#: blog/views.py:1534
 msgid "Tonna yoki xodimlar ro'yxatini tekshiring."
 msgstr "Проверьте тонны или список сотрудников."
 
-#: blog/views.py:1437
-#, fuzzy
-#| msgid "Oylik statistika"
+#: blog/views.py:1540
 msgid "Oylik statistika qayta hisoblandi."
 msgstr "Статистика зарплаты"
 
-#: blog/views.py:1684
-#, fuzzy
-#| msgid "Qolgan"
+#: blog/views.py:1772
 msgid "Kelgan/Jami"
 msgstr "Осталось"
 
-#: blog/views.py:1685
+#: blog/views.py:1773
 msgid "Foiz"
 msgstr "Процент"
 
-#: blog/views.py:1685 blog/views.py:1812
+#: blog/views.py:1773 blog/views.py:1900
 msgid "Bonus"
 msgstr "Бонус"
 
-#: blog/views.py:1800
+#: blog/views.py:1888
 msgid "VALYUTA BO'YICHA JAMI"
 msgstr "ИТОГО ПО ВАЛЮТАМ"
 
-#: blog/views.py:1812
+#: blog/views.py:1900
 msgid "Soni"
 msgstr "Кол-во"
 
-#: blog/views.py:1812
-#, fuzzy
-#| msgid "Oylik"
+#: blog/views.py:1900
 msgid "Jami oylik"
 msgstr "Зарплата"
 
-#: blog/views.py:1812
-#, fuzzy
-#| msgid "Qarzdorlik (oxiri)"
+#: blog/views.py:1900
 msgid "Qarzdorlik"
 msgstr "Задолженность (кон.)"
 
-#: blog/views.py:1919
-#, fuzzy
-#| msgid "Oylik"
+#: blog/views.py:2007
 msgid "oylik"
 msgstr "Зарплата"
 
-#: blog/views.py:1919
-#, fuzzy
-#| msgid "Hisoblangan"
+#: blog/views.py:2007
 msgid "hisoblandi"
 msgstr "Начислено"
 
-#: blog/views.py:1919
-#, fuzzy
-#| msgid "tanlandi"
+#: blog/views.py:2007
 msgid "tulandi"
 msgstr "выбрано"
 
-#: blog/views.py:1920
-#, fuzzy
-#| msgid "Qarzdorlik (boshl.)"
+#: blog/views.py:2008
 msgid "qarzdorlik (bosh)"
 msgstr "Задолженность (нач.)"
 
-#: blog/views.py:1920
-#, fuzzy
-#| msgid "Qarzdorlik (oxiri)"
+#: blog/views.py:2008
 msgid "qarzdorlik (oxiri)"
 msgstr "Задолженность (кон.)"
 
-#: blog/views.py:1957
+#: blog/views.py:2045
 msgid "⭐ To'liq stavka xodimlar"
 msgstr "⭐ Сотрудники на полную ставку"
 
-#: blog/views.py:1958
+#: blog/views.py:2046
 msgid "📋 15 kunlik xodimlar"
 msgstr "📋 Сотрудники на 15 дней"
 
-#: blog/views.py:1959
+#: blog/views.py:2047
 msgid "📆 Haftada 1 kun xodimlar"
 msgstr "📆 Сотрудники 1 день в неделю"
 
-#: blog/views.py:1960
+#: blog/views.py:2048
 msgid "🛡️ Qorovul xodimlar"
 msgstr "🛡️ Охранники"
 
-#: blog/views.py:1961
+#: blog/views.py:2049
 msgid "💼 Ofis xodimlari"
 msgstr "💼 Офисные сотрудники"
 
-#: blog/views.py:2252
+#: blog/views.py:2340
 msgid "BARCHA XODIMLAR"
 msgstr "ВСЕ СОТРУДНИКИ"
 
-#: blog/views.py:2253
-#, fuzzy
-#| msgid "Boshqarma xodimlari"
+#: blog/views.py:2341
 msgid "Barcha xodimlar (umumiy)"
 msgstr "Аппарат сотрудников"
 
-#: blog/views.py:2309
-#, fuzzy
-#| msgid "Ismi"
+#: blog/views.py:2397
 msgid "Ism"
 msgstr "Имя"
 
-#: blog/views.py:2310
-#, fuzzy
-#| msgid "Hisobot oyi"
+#: blog/views.py:2398
 msgid "Hisobot yili"
 msgstr "Отчётный месяц"
 
-#: blog/views.py:2310
-#, fuzzy
-#| msgid "Kiritilmaganlar"
+#: blog/views.py:2398
 msgid "Kiritilgan"
 msgstr "Не внесённые"
 
-#: blog/views.py:2388
+#: blog/views.py:2476
 msgid "Yangi to'lov uchun summa va sana birga kiritilishi kerak."
 msgstr "Для новой выплаты сумма и дата должны быть введены вместе."
 
-#: blog/views.py:2393
+#: blog/views.py:2481
 msgid "To'lov summasi musbat bo'lishi kerak."
 msgstr "Сумма выплаты должна быть положительной."
 
-#: blog/views.py:2397
+#: blog/views.py:2485
 msgid "To'lov summasi yoki sanasi noto'g'ri."
 msgstr "Неверная сумма или дата выплаты."
 
-#: blog/views.py:2419
-#, fuzzy
-#| msgid "Bekor qilish"
+#: blog/views.py:2507
 msgid "Premiya bekor qilindi."
 msgstr "Отмена"
 
-#: blog/views.py:2637
-#, fuzzy
-#| msgid "Login yoki parol noto'g'ri!"
+#: blog/views.py:2725
 msgid "Sana formati noto'g'ri!"
 msgstr "Неверный логин или пароль!"
 
-#: blog/views.py:2670
-#, fuzzy
-#| msgid "Ma'lumotlarni yangilang"
+#: blog/views.py:2758
 msgid "Davomat ma'lumotlari yangilandi!"
 msgstr "Обновите данные"
 
-#: blog/views.py:2911
+#: blog/views.py:2999
 msgid "Noma'lum"
 msgstr "Неизвестно"
 
@@ -2782,7 +2465,6 @@ msgstr ""
 #: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
 #: venv/lib/python3.11/site-packages/django/forms/models.py:908
 #, fuzzy
-#| msgid "Komanda"
 msgid "and"
 msgstr "Команда"
 
@@ -3383,7 +3065,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:22
 #, fuzzy
-#| msgid "Kun"
 msgid "Sun"
 msgstr "День"
 
@@ -3413,7 +3094,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:32
 #, fuzzy
-#| msgid "Avgust"
 msgid "August"
 msgstr "Август"
 
@@ -3443,7 +3123,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:41
 #, fuzzy
-#| msgid "Amallar"
 msgid "mar"
 msgstr "Действия"
 
@@ -3453,13 +3132,11 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:43
 #, fuzzy
-#| msgid "May"
 msgid "may"
 msgstr "Май"
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:44
 #, fuzzy
-#| msgid "Kun"
 msgid "jun"
 msgstr "День"
 
@@ -3509,7 +3186,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:57
 #, fuzzy
-#| msgid "May"
 msgctxt "abbrev. month"
 msgid "May"
 msgstr "Май"
@@ -3571,7 +3247,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:71
 #, fuzzy
-#| msgid "May"
 msgctxt "alt. month"
 msgid "May"
 msgstr "Май"
@@ -3588,7 +3263,6 @@ msgstr ""
 
 #: venv/lib/python3.11/site-packages/django/utils/dates.py:74
 #, fuzzy
-#| msgid "Avgust"
 msgctxt "alt. month"
 msgid "August"
 msgstr "Август"
@@ -3855,3 +3529,4 @@ msgstr ""
 #: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:236
 msgid "Connect, get help, or contribute"
 msgstr ""
+

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -8,7 +9,7 @@ from collections import defaultdict
 from django.db.models import Q, Count, F, Max
 from django.utils import timezone
 from datetime import timedelta, date
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
 from .forms import (
     EmployeeForm,
@@ -74,6 +75,62 @@ def _excel_value(value):
 class SalaryStatFilterForm(forms.Form):
     year = forms.IntegerField(label=_lazy("Yil"), min_value=2000, max_value=2100)
     month = forms.IntegerField(label=_lazy("Oy"), min_value=1, max_value=12)
+
+
+def _parse_salary_statistics_filters(request):
+    """Oylik statistika sahifasi filtrlari."""
+    today = date.today()
+    year_param = request.GET.get('year', '').strip()
+    month_param = request.GET.get('month', '').strip()
+    year = int(year_param) if year_param.isdigit() else today.year
+    month = int(month_param) if month_param.isdigit() else today.month
+    return {
+        'year': year,
+        'month': month,
+        'q': request.GET.get('q', '').strip(),
+        'employee_type': request.GET.get('employee_type', '').strip(),
+        'role': request.GET.get('role', '').strip(),
+        'currency': request.GET.get('currency', '').strip(),
+        'location': request.GET.get('location', '').strip(),
+        'position': request.GET.get('position', '').strip(),
+    }
+
+
+def _salary_statistics_query_string(filters, include_recalc=False):
+    """Filtrlangan GET parametrlarini URL query stringga aylantirish."""
+    params = {
+        'year': filters['year'],
+        'month': filters['month'],
+    }
+    for key in ('q', 'employee_type', 'role', 'currency', 'location', 'position'):
+        if filters.get(key):
+            params[key] = filters[key]
+    if include_recalc:
+        params['recalc'] = '1'
+    return urlencode(params)
+
+
+def _filter_salary_statistics(stats, filters):
+    """Oylik statistika queryset/list filtrlari."""
+    if filters['q']:
+        stats = stats.filter(
+            Q(employee__first_name__icontains=filters['q'])
+            | Q(employee__last_name__icontains=filters['q'])
+            | Q(employee__middle_name__icontains=filters['q'])
+            | Q(employee__position__icontains=filters['q'])
+            | Q(employee__department__icontains=filters['q'])
+        )
+    if filters['employee_type']:
+        stats = stats.filter(employee__employee_type=filters['employee_type'])
+    if filters['role']:
+        stats = stats.filter(employee__role=filters['role'])
+    if filters['currency']:
+        stats = stats.filter(currency=filters['currency'])
+    if filters['location']:
+        stats = stats.filter(employee__location=filters['location'])
+    if filters['position']:
+        stats = stats.filter(employee__position=filters['position'])
+    return stats
 
 
 def _parse_salary_payment_filters(request):
@@ -1427,16 +1484,17 @@ def attendance_statistics(request):
 @login_required
 def salary_statistics_view(request):
     import datetime
-    today = datetime.date.today()
-    year = int(request.GET.get('year', today.year))
-    month = int(request.GET.get('month', today.month))
-    q = request.GET.get('q', '').strip()
-    employee_type = request.GET.get('employee_type', '').strip()
-    role = request.GET.get('role', '').strip()
-    currency = request.GET.get('currency', '').strip()
-    location = request.GET.get('location', '').strip()
-    position = request.GET.get('position', '').strip()
-    position = request.GET.get('position', '').strip()
+    filters = _parse_salary_statistics_filters(request)
+    year = filters['year']
+    month = filters['month']
+    q = filters['q']
+    employee_type = filters['employee_type']
+    role = filters['role']
+    currency = filters['currency']
+    location = filters['location']
+    position = filters['position']
+    filter_query = _salary_statistics_query_string(filters)
+    recalc_query = _salary_statistics_query_string(filters, include_recalc=True)
 
     if request.method == 'POST' and request.POST.get('form_type') == 'production_bonus_remove':
         year = int(request.POST.get('year', year))
@@ -1447,15 +1505,7 @@ def salary_statistics_view(request):
         else:
             count = remove_production_bonus_for_employees(year, month, remove_ids)
             messages.success(request, _("%(count)s ta xodimning premiyasi bekor qilindi.") % {'count': count})
-        return redirect(
-            f"{request.path}?year={year}&month={month}"
-            f"{f'&q={q}' if q else ''}"
-            f"{f'&employee_type={employee_type}' if employee_type else ''}"
-            f"{f'&role={role}' if role else ''}"
-            f"{f'&currency={currency}' if currency else ''}"
-            f"{f'&location={location}' if location else ''}"
-            f"{f'&position={quote(position)}' if position else ''}"
-        )
+        return redirect(f"{request.path}?{filter_query}")
 
     if request.method == 'POST' and request.POST.get('form_type') == 'production_bonus':
         year = int(request.POST.get('year', year))
@@ -1482,15 +1532,7 @@ def salary_statistics_view(request):
                 messages.success(request, _("Premiya saqlandi — mukofotlar yangilandi."))
         else:
             messages.error(request, _("Tonna yoki xodimlar ro'yxatini tekshiring."))
-        return redirect(
-            f"{request.path}?year={year}&month={month}"
-            f"{f'&q={q}' if q else ''}"
-            f"{f'&employee_type={employee_type}' if employee_type else ''}"
-            f"{f'&role={role}' if role else ''}"
-            f"{f'&currency={currency}' if currency else ''}"
-            f"{f'&location={location}' if location else ''}"
-            f"{f'&position={quote(position)}' if position else ''}"
-        )
+        return redirect(f"{request.path}?{filter_query}")
 
     # Qayta hisoblash faqat «Qayta hisoblash» tugmasi orqali
     if request.GET.get('recalc') == '1':
@@ -1500,26 +1542,7 @@ def salary_statistics_view(request):
         ensure_monthly_stats_for_month(year, month)
 
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related('salary_payments')
-
-    # Kengaytirilgan filterlar
-    if q:
-        stats = stats.filter(
-            Q(employee__first_name__icontains=q)
-            | Q(employee__last_name__icontains=q)
-            | Q(employee__middle_name__icontains=q)
-            | Q(employee__position__icontains=q)
-            | Q(employee__department__icontains=q)
-        )
-    if employee_type:
-        stats = stats.filter(employee__employee_type=employee_type)
-    if role:
-        stats = stats.filter(employee__role=role)
-    if currency:
-        stats = stats.filter(currency=currency)
-    if location:
-        stats = stats.filter(employee__location=location)
-    if position:
-        stats = stats.filter(employee__position=position)
+    stats = _filter_salary_statistics(stats, filters)
 
     form = SalaryStatFilterForm(initial={'year': year, 'month': month})
     position_choices = (
@@ -1669,6 +1692,8 @@ def salary_statistics_view(request):
         'production_bonus_high_threshold_tons': PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
         'production_bonus_low': PRODUCTION_BONUS_UP_TO_THRESHOLD,
         'production_bonus_high': PRODUCTION_BONUS_ABOVE_THRESHOLD,
+        'filter_query': filter_query,
+        'recalc_query': recalc_query,
     })
 
 @login_required
@@ -1681,10 +1706,12 @@ def export_salary_statistics_excel(request):
     from openpyxl.utils import get_column_letter
     
     today = datetime.date.today()
-    year = int(request.GET.get('year', today.year))
-    month = int(request.GET.get('month', today.month))
+    filters = _parse_salary_statistics_filters(request)
+    year = filters['year']
+    month = filters['month']
     calculate_monthly_stats(year, month)
     stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related('salary_payments')
+    stats = _filter_salary_statistics(stats, filters)
     
     # Excel faylini yaratish
     wb = Workbook()
@@ -2530,9 +2557,9 @@ def edit_salary_stat(request, stat_id):
                 for field, errs in form.errors.items()
             ) or "Ma'lumotlar noto'g'ri."
             return JsonResponse({'success': False, 'message': errors}, status=400)
-    else:
-        form = SalaryStatEditForm(instance=stat)
-    return render(request, 'attendance/edit_salary_stat.html', {'form': form, 'stat': stat})
+
+    next_url = request.GET.get('next') or reverse('salary_statistics')
+    return redirect(next_url)
 
 @login_required
 def individual_employee_statistics(request, employee_id):

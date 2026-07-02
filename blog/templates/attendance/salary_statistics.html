@@ -137,12 +137,12 @@
             <div class="salary-filters__actions">
               <div class="salary-filters__actions-group salary-filters__actions-group--primary">
                 <button type="submit" class="btn salary-btn-primary"><i class="bi bi-search me-1"></i>{% trans "Ko'rsatish" %}</button>
-                <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}&recalc=1{% if q %}&q={{ q|urlencode }}{% endif %}{% if selected_employee_type %}&employee_type={{ selected_employee_type }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}{% if selected_currency %}&currency={{ selected_currency }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if selected_position %}&position={{ selected_position|urlencode }}{% endif %}" class="btn btn-outline-warning" title="{% trans 'Davomatdan barcha oylikni qayta hisoblash' %}"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Qayta hisoblash" %}</a>
+                <a href="{% url 'salary_statistics' %}?{{ recalc_query }}" class="btn btn-outline-warning" title="{% trans 'Davomatdan barcha oylikni qayta hisoblash' %}"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Qayta hisoblash" %}</a>
                 <a href="{% url 'salary_statistics' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Tozalash" %}</a>
               </div>
               <div class="salary-filters__actions-group salary-filters__actions-group--secondary">
                 <a href="{% url 'salary_payment_history' %}?year={{ year }}&month={{ month }}" class="btn btn-outline-info"><i class="bi bi-receipt-cutoff me-1"></i>{% trans "To'lovlar tarixi" %}</a>
-                <a href="{% url 'salary_statistics_export' %}?year={{ year }}&month={{ month }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}</a>
+                <a href="{% url 'salary_statistics_export' %}?{{ filter_query }}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excelga eksport" %}</a>
                 <button type="button" class="btn salary-btn-premium{% if production_bonus_active %} salary-btn-premium--active{% endif %}" data-bs-toggle="modal" data-bs-target="#productionBonusModal">
                   <i class="bi bi-fuel-pump" aria-hidden="true"></i>
                   <span>{% trans "Premiya" %}</span>
@@ -153,6 +153,45 @@
               </div>
             </div>
         </form>
+        <script>
+        (function () {
+            const form = document.getElementById('salaryFilterForm');
+            if (!form) return;
+
+            let timer = null;
+            const submitNow = function () {
+                form.submit();
+            };
+            const submitDebounced = function (delay) {
+                clearTimeout(timer);
+                timer = setTimeout(submitNow, delay);
+            };
+
+            form.querySelectorAll('select').forEach(function (field) {
+                field.addEventListener('change', submitNow);
+            });
+
+            form.querySelectorAll('input[name="year"], input[name="month"]').forEach(function (field) {
+                field.addEventListener('change', submitNow);
+                field.addEventListener('input', function () {
+                    submitDebounced(350);
+                });
+            });
+
+            const searchInput = form.querySelector('input[name="q"]');
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    submitDebounced(450);
+                });
+                searchInput.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        submitNow();
+                    }
+                });
+            }
+        })();
+        </script>
     </div>
   </section>
 
@@ -438,7 +477,7 @@
                         <div class="salary-modal__grid">
                         <div class="salary-modal__field">
                             <label for="id_salary_{{ stat.id }}" class="salary-modal__label">{% trans "Oylik" %}</label>
-                            <input type="number" name="salary" value="{{ stat.salary|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
+                            <input type="number" name="salary" value="{{ stat.salary|stringformat:".2f" }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
                         </div>
                         <div class="salary-modal__field">
                             <label for="id_currency_{{ stat.id }}" class="salary-modal__label">{% trans "Valyuta" %}</label>
@@ -508,7 +547,7 @@
                                 <div class="salary-bonus-auto__value">{{ stat.bonus|floatformat:0|intcomma }} <span>{% trans "so'm" %}</span></div>
                                 <span class="salary-bonus-auto__badge"><i class="bi bi-fuel-pump"></i> {% trans "Avtomatik premiya" %}</span>
                             </div>
-                            <input type="hidden" name="bonus" value="{{ stat.bonus|floatformat:2 }}">
+                            <input type="hidden" name="bonus" value="{{ stat.bonus|stringformat:".2f" }}">
                             <div class="salary-bonus-auto__actions">
                                 <button type="button" class="btn btn-sm btn-outline-primary js-open-prod-bonus">
                                     <i class="bi bi-sliders"></i> {% trans "Premiyani sozlash" %}
@@ -519,7 +558,7 @@
                                 </button>
                             </div>
                             {% else %}
-                            <input type="number" name="bonus" value="{{ stat.bonus|floatformat:2 }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
+                            <input type="number" name="bonus" value="{{ stat.bonus|stringformat:".2f" }}" step="any" class="form-control salary-modal__input" id="id_bonus_{{ stat.id }}">
                             {% if stat.bonus > 0 or stat.production_bonus_eligible_this_month %}
                             <button type="submit" name="remove_production_bonus" value="1" class="btn btn-sm btn-outline-danger mt-2"
                                     onclick="return confirm('{% trans 'Shu xodimning premiyasi bekor qilinsinmi?' %}');">
@@ -530,7 +569,7 @@
                         </div>
                         <div class="salary-modal__field salary-modal__field--wide">
                             <label for="id_penalty_{{ stat.id }}" class="salary-modal__label">{% trans "Jarima" %}</label>
-                            <input type="number" name="penalty" value="{{ stat.penalty|floatformat:2 }}" step="any" min="0" class="form-control salary-modal__input" id="id_penalty_{{ stat.id }}">
+                            <input type="number" name="penalty" value="{{ stat.penalty|stringformat:".2f" }}" step="any" min="0" class="form-control salary-modal__input" id="id_penalty_{{ stat.id }}">
                         </div>
                         </div>
                     </div>
@@ -686,11 +725,21 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% trans "Kamida bitta xodim belgilang." as msg_pick_employee %}
+{% trans "Premiya uchun kamida" as msg_bonus_min_prefix %}
+{% trans "tonna kiriting." as msg_bonus_min_suffix %}
+{% trans "Bekor qilish uchun kamida bitta xodim belgilang." as msg_pick_employee_remove %}
+{% trans "Tanlangan" as msg_selected %}
+{% trans "ta xodimdan premiya olib tashlansinmi?" as msg_confirm_remove_bonus %}
+{% trans "Xatolik yuz berdi:" as msg_error_prefix %}
+{% trans "Noma'lum xatolik" as msg_unknown_error %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function formatMoney(n) {
         return Math.round(Number(n)).toLocaleString('uz-UZ');
     }
+
+    // Filtrlarni avtomatik qo'llash (asosiy logika filter form tagidan keyingi inline scriptda)
 
     const prodTonsInput = document.getElementById('id_production_tons');
     const prodPreview = document.getElementById('productionBonusPreview');
@@ -817,21 +866,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const min = prodTonsInput ? Number(prodTonsInput.dataset.min) : 0;
                 if (!checked) {
                     e.preventDefault();
-                    alert('{% trans 'Kamida bitta xodim belgilang.' %}');
+                    alert("{{ msg_pick_employee|escapejs }}");
                     return;
                 }
                 if (!prodTonsInput || !prodTonsInput.value.trim() || isNaN(tons) || tons < min) {
                     e.preventDefault();
-                    alert('{% trans 'Premiya uchun kamida' %} ' + min.toLocaleString('uz-UZ') + ' {% trans 'tonna kiriting.' %}');
+                    alert("{{ msg_bonus_min_prefix|escapejs }} " + min.toLocaleString('uz-UZ') + " {{ msg_bonus_min_suffix|escapejs }}");
                     return;
                 }
             } else {
                 if (!checked) {
                     e.preventDefault();
-                    alert('{% trans 'Bekor qilish uchun kamida bitta xodim belgilang.' %}');
+                    alert("{{ msg_pick_employee_remove|escapejs }}");
                     return;
                 }
-                if (!confirm('{% trans 'Tanlangan' %} ' + checked + ' {% trans 'ta xodimdan premiya olib tashlansinmi?' %}')) {
+                if (!confirm("{{ msg_selected|escapejs }} " + checked + " {{ msg_confirm_remove_bonus|escapejs }}")) {
                     e.preventDefault();
                 }
             }
@@ -877,28 +926,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Filterlar avtomatik ishlashi: select o'zgarsa darhol, qidiruv yozilganda debounce bilan
-    const filterForm = document.getElementById('salaryFilterForm');
-    if (filterForm) {
-        const autoSubmitFields = filterForm.querySelectorAll('select, input[name="year"], input[name="month"]');
-        autoSubmitFields.forEach((field) => {
-            field.addEventListener('change', function () {
-                filterForm.submit();
-            });
-        });
-
-        const searchInput = filterForm.querySelector('input[name="q"]');
-        if (searchInput) {
-            let searchDebounceTimer = null;
-            searchInput.addEventListener('input', function () {
-                clearTimeout(searchDebounceTimer);
-                searchDebounceTimer = setTimeout(() => {
-                    filterForm.submit();
-                }, 450);
-            });
-        }
-    }
 
     function setMoneyCell(td, amount, currency, keepEditButton) {
         const text = formatMoney(amount) + ' ' + currency;
@@ -1001,12 +1028,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }
                 } else {
-                    alert('{% trans "Xatolik yuz berdi:" %} ' + (data.message || '{% trans "Noma'lum xatolik" %}'));
+                    alert("{{ msg_error_prefix|escapejs }} " + (data.message || "{{ msg_unknown_error|escapejs }}"));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('{% trans "Xatolik yuz berdi:" %} ' + error.message);
+                alert("{{ msg_error_prefix|escapejs }} " + error.message);
             })
             .finally(() => {
                 // Reset button

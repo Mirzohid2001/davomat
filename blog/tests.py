@@ -497,6 +497,18 @@ class PaidAtTests(TestCase):
             manual_salary=True,
         )
 
+    def test_get_redirects_to_salary_statistics(self):
+        url = reverse("edit_salary_stat", args=[self.stat.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("salary_statistics"))
+
+    def test_get_redirects_to_next_when_provided(self):
+        url = reverse("edit_salary_stat", args=[self.stat.id])
+        response = self.client.get(url, {"next": "/statistics/salary/?year=2026&month=6"})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/statistics/salary/?year=2026&month=6")
+
     def test_payment_without_date_rejected(self):
         url = reverse("edit_salary_stat", args=[self.stat.id])
         response = self.client.post(

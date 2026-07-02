@@ -1,0 +1,335 @@
+/* Statistika sahifasi — ISOMER OIL davomat */
+.stats-page {
+  --stats-primary: #4361ee;
+  --stats-accent: #4cc9f0;
+  --stats-gradient: linear-gradient(135deg, #4cc9f0 0%, #4361ee 55%, #3a0ca3 100%);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sarlavha */
+.stats-hero {
+  background: var(--stats-gradient);
+  color: #fff;
+  border-radius: 18px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 12px 32px rgba(67, 97, 238, 0.25);
+}
+
+.stats-hero-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stats-hero-sub {
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.stats-hero-dates {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.stats-hero-period-label {
+  opacity: 0.85;
+}
+
+/* Filter */
+.stats-filter-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(67, 97, 238, 0.08);
+}
+
+.stats-filter-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.stats-filter-card .form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.stats-filter-card .form-control,
+.stats-filter-card .form-select {
+  border-radius: 10px;
+  border-color: #e2e8f0;
+}
+
+.stats-filter-card .form-control:focus,
+.stats-filter-card .form-select:focus {
+  border-color: var(--stats-accent);
+  box-shadow: 0 0 0 0.2rem rgba(76, 201, 240, 0.25);
+}
+
+.btn-stats-primary {
+  background: var(--stats-gradient);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+}
+
+.btn-stats-primary:hover {
+  color: #fff;
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(67, 97, 238, 0.35);
+}
+
+/* Umumiy KPI strip */
+.stats-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  height: 100%;
+}
+
+.stats-summary-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.stats-summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.stats-summary-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Holat kartalari */
+.kpi-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  height: 100%;
+  border-left: 4px solid #cbd5e1;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-present { border-left-color: #22c55e; }
+.kpi-absent { border-left-color: #ef4444; }
+.kpi-late { border-left-color: #f59e0b; }
+.kpi-vacation { border-left-color: #06b6d4; }
+.kpi-sick { border-left-color: #f97316; }
+.kpi-business { border-left-color: #8b5cf6; }
+.kpi-offday { border-left-color: #94a3b8; }
+
+.kpi-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.kpi-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.kpi-icon {
+  font-size: 1.25rem;
+  opacity: 0.65;
+}
+
+.kpi-present .kpi-icon { color: #22c55e; }
+.kpi-absent .kpi-icon { color: #ef4444; }
+.kpi-late .kpi-icon { color: #f59e0b; }
+.kpi-vacation .kpi-icon { color: #06b6d4; }
+.kpi-sick .kpi-icon { color: #f97316; }
+.kpi-business .kpi-icon { color: #8b5cf6; }
+
+.kpi-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.kpi-progress-wrap {
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.kpi-progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--stats-accent), var(--stats-primary));
+}
+
+.kpi-present .kpi-progress-bar { background: #22c55e; }
+.kpi-absent .kpi-progress-bar { background: #ef4444; }
+.kpi-late .kpi-progress-bar { background: #f59e0b; }
+
+.kpi-pct {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Grafikalar */
+.stats-chart-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  height: 100%;
+}
+
+.stats-chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 1rem;
+}
+
+.stats-chart-canvas-wrap {
+  position: relative;
+  height: 280px;
+}
+
+.stats-chart-canvas-wrap--tall {
+  height: 320px;
+}
+
+.stats-top-table thead th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  border-bottom-width: 1px;
+}
+
+.stats-top-table tbody tr:hover {
+  background: rgba(76, 201, 240, 0.08);
+}
+
+/* Bo‘sh holat */
+.stats-empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem 4rem;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px dashed #cbd5e1;
+  max-width: 560px;
+  margin: 2rem auto;
+}
+
+.stats-empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  color: var(--stats-primary);
+}
+
+.stats-empty-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+}
+
+.stats-empty-text {
+  color: #64748b;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.stats-empty-hints {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  display: inline-block;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.stats-empty-hints li {
+  padding: 0.35rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-empty-hints .bi-check2 {
+  color: #22c55e;
+}
+
+@media (max-width: 768px) {
+  .stats-hero {
+    padding: 1.15rem;
+  }
+
+  .stats-hero-title {
+    font-size: 1.35rem;
+  }
+
+  .stats-hero-dates {
+    font-size: 1.05rem;
+  }
+
+  .stats-chart-canvas-wrap {
+    height: 240px;
+  }
+
+  .stats-chart-canvas-wrap--tall {
+    height: 260px;
+  }
+
+  .kpi-count {
+    font-size: 1.45rem;
+  }
+}
