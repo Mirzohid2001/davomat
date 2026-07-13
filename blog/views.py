@@ -10,7 +10,7 @@ from django.db.models import Q, Count, F, Max
 from django.utils import timezone
 from datetime import timedelta, date
 from urllib.parse import quote, urlencode
-from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment, EmployeeAdvanceLoan
 from .forms import (
     EmployeeForm,
     EmployeeCreateForm,
@@ -20,6 +20,7 @@ from .forms import (
     DayOffForm,
     SalaryStatEditForm,
     ProductionBonusSettingsForm,
+    AdvanceLoanForm,
 )
 from django.forms import modelformset_factory
 from django.db import transaction
@@ -48,6 +49,10 @@ from .services import (
     get_production_bonus_eligible_ids,
     ensure_monthly_stats_for_month,
     apply_salary_payment_changes,
+    create_advance_loan,
+    close_advance_loan,
+    get_active_loan_remaining_total,
+    aggregate_salary_currency_totals,
     PRODUCTION_BONUS_LOW_MIN_TONS,
     PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
     PRODUCTION_BONUS_UP_TO_THRESHOLD,
@@ -1543,7 +1548,10 @@ def salary_statistics_view(request):
     else:
         ensure_monthly_stats_for_month(year, month)
 
-    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related('salary_payments')
+    stats = MonthlyEmployeeStat.objects.filter(year=year, month=month).select_related('employee').prefetch_related(
+        'salary_payments',
+        'employee__advance_loans',
+    )
     stats = _filter_salary_statistics(stats, filters)
 
     form = SalaryStatFilterForm(initial={'year': year, 'month': month})
@@ -1601,6 +1609,12 @@ def salary_statistics_view(request):
         stat.absent_count = absent_count_map.get(stat.employee_id, 0)
         stat.absent_dates = absent_dates_map.get(stat.employee_id, [])
         stat.production_bonus_eligible_this_month = stat.employee_id in production_bonus_eligible_ids
+        stat.active_loan_remaining = get_active_loan_remaining_total(stat.employee, stat.currency)
+        stat.active_loans = [
+            loan for loan in stat.employee.advance_loans.all()
+            if loan.is_active and loan.currency == stat.currency
+        ]
+        stat.net_received = max(stat.paid - stat.loan_deduction, Decimal('0'))
     # Umumiy summalar
     total_salary = sum([s.salary for s in stats])
     total_bonus = sum([s.bonus for s in stats])
@@ -1612,21 +1626,13 @@ def salary_statistics_view(request):
     total_absent = sum([s.absent_count for s in stats])
     currency_set = set([s.currency for s in stats])
     total_currency = currency_set.pop() if len(currency_set) == 1 else '...'
-    # Valyuta bo'yicha jami qiymatlar
-    currency_totals = {}
-    for stat in stats:
-        cur = stat.currency
-        if cur not in currency_totals:
-            currency_totals[cur] = {
-                'salary': 0, 'bonus': 0, 'penalty': 0, 'accrued': 0, 'paid': 0, 'debt_start': 0, 'debt_end': 0
-            }
-        currency_totals[cur]['salary'] += float(stat.salary)
-        currency_totals[cur]['bonus'] += float(stat.bonus)
-        currency_totals[cur]['penalty'] += float(stat.penalty)
-        currency_totals[cur]['accrued'] += float(stat.accrued)
-        currency_totals[cur]['paid'] += float(stat.paid)
-        currency_totals[cur]['debt_start'] += float(stat.debt_start)
-        currency_totals[cur]['debt_end'] += float(stat.debt_end)
+    currency_totals = aggregate_salary_currency_totals(stats)
+    if currency_totals:
+        primary_cur = next(iter(currency_totals))
+        if len(currency_totals) == 1:
+            totals_row = currency_totals[primary_cur]
+            total_debt_start = totals_row['debt_start']
+            total_debt_end = totals_row['debt_end']
     stats_calculated_at = MonthlyEmployeeStat.objects.filter(
         year=year, month=month
     ).aggregate(latest=Max('calculated_at'))['latest']
@@ -1771,7 +1777,7 @@ def export_salary_statistics_excel(request):
         
         # Sodda sarlavhalar
         headers = [
-            _("Xodim"), _("Oylik"), _("Valyuta"), _("Kelgan/Jami"),
+            _("Xodim"), _("Oklad"), _("Valyuta"), _("Kelgan/Jami"),
             _("Foiz"), _("Hisoblangan"), _("To'langan"), _("Bonus")
         ]
         
@@ -1899,7 +1905,7 @@ def export_salary_statistics_excel(request):
             )
             
             # Valyuta sarlavhalari
-            headers = [_("Valyuta"), _("Soni"), _("Jami oylik"), _("Hisoblangan"), _("To'langan"), _("Bonus"), _("Qarzdorlik"), ""]
+            headers = [_("Valyuta"), _("Soni"), _("Jami oklad"), _("Hisoblangan"), _("To'langan"), _("Bonus"), _("Qarzdorlik"), ""]
             
             header_row = summary_start_row + 1
             for col, header in enumerate(headers, 1):
@@ -2006,7 +2012,7 @@ def export_salary_statistics_excel(request):
         worksheet.merge_cells('K3:L3')  # qarzdorlik (oxiri)
         
         main_headers = [
-            "№", _("Xodim"), _("oylik"), _("hisoblandi"), _("tulandi"),
+            "№", _("Xodim"), _("oklad"), _("hisoblandi"), _("tulandi"),
             _("qarzdorlik (bosh)"), _("qarzdorlik (oxiri)"),
         ]
         main_header_cols = [1, 2, 3, 5, 7, 9, 11]
@@ -2459,6 +2465,11 @@ def edit_salary_stat(request, stat_id):
             'paid_at': target_stat.paid_at.isoformat() if target_stat.paid_at else None,
             'payments': payments_payload(target_stat),
             'accrued': float(target_stat.accrued),
+            'loan_deduction': float(target_stat.loan_deduction),
+            'net_received': float(max(target_stat.paid - target_stat.loan_deduction, Decimal('0'))),
+            'active_loan_remaining': float(
+                get_active_loan_remaining_total(target_stat.employee, target_stat.currency)
+            ),
             'debt_start': float(target_stat.debt_start),
             'debt_end': float(target_stat.debt_end),
             'currency': target_stat.currency,
@@ -2562,6 +2573,75 @@ def edit_salary_stat(request, stat_id):
 
     next_url = request.GET.get('next') or reverse('salary_statistics')
     return redirect(next_url)
+
+
+@login_required
+def advance_loan_create(request, employee_id):
+    """Xodim uchun yangi oldindan qarz yaratish."""
+    from django.http import JsonResponse
+
+    employee = get_object_or_404(Employee, pk=employee_id)
+    next_url = request.POST.get('next') or request.GET.get('next') or reverse('salary_statistics')
+
+    if request.method != 'POST':
+        return redirect(next_url)
+
+    form = AdvanceLoanForm(request.POST)
+    if not form.is_valid():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = '; '.join(
+                f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()
+            ) or _("Ma'lumotlar noto'g'ri.")
+            return JsonResponse({'success': False, 'message': errors}, status=400)
+        messages.error(request, _("Qarz ma'lumotlarini tekshiring."))
+        return redirect(next_url)
+
+    currency = request.POST.get('currency', 'UZS')
+    try:
+        loan = create_advance_loan(
+            employee=employee,
+            total_amount=form.cleaned_data['total_amount'],
+            monthly_deduction=form.cleaned_data['monthly_deduction'],
+            issued_at=form.cleaned_data['issued_at'],
+            note=form.cleaned_data.get('note', ''),
+            currency=currency,
+        )
+    except ValueError as exc:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': str(exc)}, status=400)
+        messages.error(request, str(exc))
+        return redirect(next_url)
+
+    messages.success(request, _("Oldindan qarz qo'shildi."))
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': str(_("Oldindan qarz qo'shildi.")),
+            'loan_id': loan.id,
+        })
+    return redirect(next_url)
+
+
+@login_required
+def advance_loan_close(request, loan_id):
+    """Faol qarzni yopish."""
+    from django.http import JsonResponse
+
+    loan = get_object_or_404(EmployeeAdvanceLoan, pk=loan_id)
+    next_url = request.POST.get('next') or request.GET.get('next') or reverse('salary_statistics')
+
+    if request.method != 'POST':
+        return redirect(next_url)
+
+    close_advance_loan(loan)
+    messages.success(request, _("Qarz yopildi."))
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': str(_("Qarz yopildi.")),
+        })
+    return redirect(next_url)
+
 
 @login_required
 def individual_employee_statistics(request, employee_id):

@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-02 11:43+0500\n"
+"POT-Creation-Date: 2026-07-13 10:42+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,29 +19,54 @@ msgstr ""
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: blog/forms.py:50
+#: blog/forms.py:51
 msgid "Excel yoki CSV fayl"
 msgstr "Загрузка посещаемости из Excel или CSV"
 
-#: blog/forms.py:106 blog/models.py:57
-#: blog/templates/attendance/employees.html:115 blog/views.py:661
-#: blog/views.py:2397
+#: blog/forms.py:107 blog/models.py:57
+#: blog/templates/attendance/employees.html:115 blog/views.py:665
+#: blog/views.py:2413
 msgid "Otchestvasi"
 msgstr "Отчество"
 
-#: blog/forms.py:113
+#: blog/forms.py:114
 msgid "Kelgan kunlar soni (shu oydan)"
 msgstr "Количество отработанных дней (с этого месяца)"
 
-#: blog/forms.py:117
+#: blog/forms.py:118
 msgid "Ishga kirgan sanadan boshlab shu oyda necha kun kelganini kiriting."
 msgstr "Укажите количество отработанных дней с даты приёма."
 
-#: blog/forms.py:170 blog/templates/attendance/salary_statistics.html:653
+#: blog/forms.py:171 blog/models.py:240
+#: blog/templates/attendance/salary_statistics.html:578
+msgid "Jami qarz"
+msgstr "Общий долг"
+
+#: blog/forms.py:178 blog/models.py:242
+#: blog/templates/attendance/salary_statistics.html:582
+msgid "Oylik ushlab qolish"
+msgstr "Ежемесячное удержание"
+
+#: blog/forms.py:185 blog/models.py:243
+#: blog/templates/attendance/salary_statistics.html:586
+msgid "Qarz berilgan sana"
+msgstr "Дата выдачи долга"
+
+#: blog/forms.py:189 blog/models.py:244
+#: blog/templates/attendance/attendance_list.html:50
+#: blog/templates/attendance/edit_attendance_history.html:181
+#: blog/templates/attendance/individual_employee_statistics.html:232
+#: blog/templates/attendance/salary_payment_history.html:100
+#: blog/templates/attendance/salary_statistics.html:590 blog/views.py:1073
+#: blog/views.py:2414
+msgid "Izoh"
+msgstr "Примечание"
+
+#: blog/forms.py:198 blog/templates/attendance/salary_statistics.html:717
 msgid "Oylik ishlab chiqarish (tonna)"
 msgstr "Производственные работники"
 
-#: blog/forms.py:178
+#: blog/forms.py:206
 msgid "Premiya oluvchi xodimlar"
 msgstr "Правила премии"
 
@@ -62,7 +86,7 @@ msgstr "Март"
 msgid "Aprel"
 msgstr "Апрель"
 
-#: blog/i18n.py:9 venv/lib/python3.11/site-packages/django/utils/dates.py:29
+#: blog/i18n.py:9
 msgid "May"
 msgstr "Май"
 
@@ -135,7 +159,7 @@ msgstr "Пятница"
 msgid "Shanba"
 msgstr "Суббота"
 
-#: blog/i18n.py:26 blog/services.py:241
+#: blog/i18n.py:26 blog/services.py:244
 #: blog/templates/attendance/employee_attendance_history.html:137
 #: blog/templates/attendance/employee_attendance_history.html:236
 #: blog/templates/attendance/employee_attendance_history.html:273
@@ -144,7 +168,7 @@ msgstr "Суббота"
 #: blog/templates/attendance/individual_employee_statistics.html:149
 #: blog/templates/attendance/individual_employee_statistics.html:246
 #: blog/templates/attendance/individual_employee_statistics.html:266
-#: blog/views.py:836 blog/views.py:2994
+#: blog/views.py:840 blog/views.py:3083
 msgid "Yakshanba"
 msgstr "Воскресенье"
 
@@ -197,15 +221,15 @@ msgid "Boshqarma xodimlari"
 msgstr "Аппарат сотрудников"
 
 #: blog/models.py:51 blog/templates/attendance/base.html:83
-#: blog/templates/attendance/salary_statistics.html:247
-#: blog/templates/attendance/salary_statistics.html:341
+#: blog/templates/attendance/salary_statistics.html:249
+#: blog/templates/attendance/salary_statistics.html:355
 msgid "Nalivshik"
 msgstr "Наливщик"
 
 #: blog/models.py:55 blog/templates/attendance/attendance_list.html:45
 #: blog/templates/attendance/bulk_attendance_form.html:23
-#: blog/templates/attendance/employees.html:113 blog/views.py:359
-#: blog/views.py:660 blog/views.py:1069
+#: blog/templates/attendance/employees.html:113 blog/views.py:363
+#: blog/views.py:664 blog/views.py:1073
 msgid "Ismi"
 msgstr "Имя"
 
@@ -226,7 +250,7 @@ msgid "Bo'limi"
 msgstr "Отдел"
 
 #: blog/models.py:60 blog/templates/attendance/employees.html:47
-#: blog/templates/attendance/select_employee.html:16 blog/views.py:666
+#: blog/templates/attendance/select_employee.html:16 blog/views.py:670
 msgid "Joylashuv"
 msgstr "Местоположение"
 
@@ -236,25 +260,25 @@ msgstr "Введите телефон в формате (+998xxxxxxxxx)."
 
 #: blog/models.py:68 blog/templates/attendance/employees.html:68
 #: blog/templates/attendance/employees.html:137
-#: blog/templates/attendance/employees.html:174 blog/views.py:705
+#: blog/templates/attendance/employees.html:174 blog/views.py:709
 msgid "Aktiv"
 msgstr "Активен"
 
-#: blog/models.py:69 blog/views.py:665
+#: blog/models.py:69 blog/views.py:669
 msgid "Ishga kirgan sana"
 msgstr "Дата приёма"
 
 #: blog/models.py:77 blog/templates/attendance/employees.html:38
-#: blog/templates/attendance/salary_statistics.html:91 blog/views.py:667
+#: blog/templates/attendance/salary_statistics.html:91 blog/views.py:671
 msgid "Xodim turi"
 msgstr "Тип сотрудника"
 
 #: blog/models.py:78 blog/templates/attendance/employees.html:56
-#: blog/views.py:668
+#: blog/views.py:672
 msgid "Lavozim turi"
 msgstr "Тип должности"
 
-#: blog/models.py:85 blog/views.py:669
+#: blog/models.py:85 blog/views.py:673
 msgid "Komanda"
 msgstr "Команда"
 
@@ -266,7 +290,7 @@ msgstr "Команда"
 #: blog/templates/attendance/individual_attendance_form.html:167
 #: blog/templates/attendance/individual_employee_statistics.html:55
 #: blog/templates/attendance/individual_employee_statistics.html:260
-#: blog/views.py:2988
+#: blog/views.py:3077
 msgid "Keldi"
 msgstr "Пришёл"
 
@@ -285,7 +309,7 @@ msgstr "Не пришёл"
 #: blog/templates/attendance/individual_attendance_form.html:169
 #: blog/templates/attendance/individual_employee_statistics.html:85
 #: blog/templates/attendance/individual_employee_statistics.html:262
-#: blog/views.py:2990
+#: blog/views.py:3079
 msgid "Kechikdi"
 msgstr "Опоздал"
 
@@ -297,7 +321,7 @@ msgstr "Опоздал"
 #: blog/templates/attendance/individual_attendance_form.html:170
 #: blog/templates/attendance/individual_employee_statistics.html:119
 #: blog/templates/attendance/individual_employee_statistics.html:264
-#: blog/views.py:2992
+#: blog/views.py:3081
 msgid "Ta'til"
 msgstr "Отпуск"
 
@@ -309,7 +333,7 @@ msgstr "Отпуск"
 #: blog/templates/attendance/individual_attendance_form.html:171
 #: blog/templates/attendance/individual_employee_statistics.html:100
 #: blog/templates/attendance/individual_employee_statistics.html:263
-#: blog/views.py:2991
+#: blog/views.py:3080
 msgid "Kasal"
 msgstr "Больничный"
 
@@ -325,10 +349,72 @@ msgstr "В командировке"
 msgid "Ish kuni emas"
 msgstr "Не рабочий день"
 
-#: blog/services.py:243 blog/templates/attendance/bulk_attendance_form.html:10
+#: blog/models.py:238 blog/templates/attendance/attendance_statistics.html:50
+#: blog/templates/attendance/attendance_statistics.html:185
+#: blog/templates/attendance/edit_attendance_history.html:179
+#: blog/templates/attendance/salary_payment_history.html:54
+#: blog/templates/attendance/salary_payment_history.html:96
+#: blog/templates/attendance/select_employee.html:31 blog/views.py:1788
+#: blog/views.py:2023
+msgid "Xodim"
+msgstr "Сотрудники"
+
+#: blog/models.py:241 blog/templates/attendance/salary_statistics.html:222
+msgid "Qolgan qarz"
+msgstr "Остаток долга"
+
+#: blog/models.py:245 blog/templates/attendance/salary_statistics.html:118
+#: blog/templates/attendance/salary_statistics.html:497 blog/views.py:1788
+#: blog/views.py:1916 blog/views.py:2414
+msgid "Valyuta"
+msgstr "Валюта"
+
+#: blog/models.py:246 blog/templates/attendance/salary_statistics.html:765
+msgid "Faol"
+msgstr "Активна"
+
+#: blog/models.py:251 blog/templates/attendance/salary_statistics.html:554
+msgid "Oldindan qarz"
+msgstr "Авансовый долг"
+
+#: blog/models.py:252
+msgid "Oldindan qarzlar"
+msgstr "Авансовые долги"
+
+#: blog/models.py:266
+msgid "Qarz"
+msgstr "Долг"
+
+#: blog/models.py:272 blog/templates/attendance/attendance_statistics.html:71
+#: blog/templates/attendance/dashboard.html:124
+#: blog/templates/attendance/salary_payment_history.html:81
+msgid "Oylik statistika"
+msgstr "Статистика зарплаты"
+
+#: blog/models.py:274 blog/templates/attendance/salary_statistics.html:221
+msgid "Ushlab qolish"
+msgstr "Удержание"
+
+#: blog/models.py:275 blog/templates/attendance/attendance_list.html:21
+#: blog/templates/attendance/edit_attendance_history.html:178
+#: blog/templates/attendance/individual_attendance_form.html:117
+#: blog/templates/attendance/individual_employee_statistics.html:229
+#: blog/templates/attendance/nalivshik_schedule.html:22 blog/views.py:1073
+msgid "Sana"
+msgstr "Дата"
+
+#: blog/models.py:278
+msgid "Qarz ushlab qolish"
+msgstr "Удержание по долгу"
+
+#: blog/models.py:279
+msgid "Qarz ushlab qolishlar"
+msgstr "Удержания по долгу"
+
+#: blog/services.py:246 blog/templates/attendance/bulk_attendance_form.html:10
 #: blog/templates/attendance/dayoff_form.html:6
 #: blog/templates/attendance/individual_employee_statistics.html:267
-#: blog/views.py:840 blog/views.py:2995
+#: blog/views.py:844 blog/views.py:3084
 msgid "Yopiq kun"
 msgstr "Выходные дни"
 
@@ -352,7 +438,7 @@ msgstr "Год"
 #: blog/templates/attendance/employee_attendance_history.html:385
 #: blog/templates/attendance/individual_employee_statistics.html:164
 #: blog/templates/attendance/individual_employee_statistics.html:268
-#: blog/views.py:2996
+#: blog/views.py:3085
 msgid "Ma'lumot yo'q"
 msgstr "Нет данных"
 
@@ -385,8 +471,8 @@ msgstr "Ф.И.О."
 #: blog/templates/attendance/absence_quota.html:35
 #: blog/templates/attendance/salary_payment_history.html:97
 #: blog/templates/attendance/salary_statistics.html:100
-#: blog/templates/attendance/salary_statistics.html:210 blog/views.py:360
-#: blog/views.py:662 blog/views.py:1069 blog/views.py:2397
+#: blog/templates/attendance/salary_statistics.html:210 blog/views.py:364
+#: blog/views.py:666 blog/views.py:1073 blog/views.py:2413
 msgid "Lavozim"
 msgstr "Должность"
 
@@ -400,7 +486,7 @@ msgstr "Предыдущие месяцы"
 msgid "Joriy oy"
 msgstr "Текущий месяц"
 
-#: blog/templates/attendance/absence_quota.html:38 blog/views.py:363
+#: blog/templates/attendance/absence_quota.html:38 blog/views.py:367
 msgid "Yil boshidan jami"
 msgstr "Итого с начала года"
 
@@ -421,7 +507,7 @@ msgstr "Использовано из квоты"
 msgid "Qolgan"
 msgstr "Осталось"
 
-#: blog/templates/attendance/absence_quota.html:43 blog/views.py:368
+#: blog/templates/attendance/absence_quota.html:43 blog/views.py:372
 msgid "Limitdan ortiq"
 msgstr "Сверх лимита"
 
@@ -437,7 +523,9 @@ msgstr "предоставляется квота."
 msgid ""
 "Oldingi oylardagi kelmaganlar kvotadan ayiriladi; joriy oyda qolgan kvota "
 "kechirilgan deb ko'rsatiladi."
-msgstr "Отсутствия предыдущих месяцев вычитаются из квоты; оставшаяся квота текущего месяца показывается как прощённая."
+msgstr ""
+"Отсутствия предыдущих месяцев вычитаются из квоты; оставшаяся квота текущего "
+"месяца показывается как прощённая."
 
 #: blog/templates/attendance/absence_quota.html:80
 msgid "Ortiqcha kunlar oylikka ta'sir qiladi."
@@ -454,7 +542,7 @@ msgstr "Редактирование посещаемости"
 #: blog/templates/attendance/dayoff_confirm_delete.html:15
 #: blog/templates/attendance/edit_attendance_history.html:182
 #: blog/templates/attendance/employee_confirm_delete.html:20
-#: blog/templates/attendance/salary_statistics.html:511
+#: blog/templates/attendance/salary_statistics.html:525
 msgid "O'chirish"
 msgstr "Удалить"
 
@@ -467,9 +555,9 @@ msgstr "Удалить"
 #: blog/templates/attendance/employee_attendance_history.html:442
 #: blog/templates/attendance/employee_confirm_delete.html:21
 #: blog/templates/attendance/employee_form.html:67
-#: blog/templates/attendance/salary_statistics.html:557
-#: blog/templates/attendance/salary_statistics.html:579
-#: blog/templates/attendance/salary_statistics.html:639
+#: blog/templates/attendance/salary_statistics.html:621
+#: blog/templates/attendance/salary_statistics.html:643
+#: blog/templates/attendance/salary_statistics.html:703
 #: blog/templates/attendance/select_employee.html:43
 msgid "Bekor qilish"
 msgstr "Отмена"
@@ -496,14 +584,14 @@ msgstr "По дату"
 
 #: blog/templates/attendance/attendance_export.html:25
 #: blog/templates/attendance/employees.html:29
-#: blog/templates/attendance/select_employee.html:25 blog/views.py:663
-#: blog/views.py:1069
+#: blog/templates/attendance/select_employee.html:25 blog/views.py:667
+#: blog/views.py:1073
 msgid "Bo'lim"
 msgstr "Отдел"
 
 #: blog/templates/attendance/attendance_export.html:27
 #: blog/templates/attendance/attendance_export.html:34
-#: blog/templates/attendance/salary_statistics.html:684
+#: blog/templates/attendance/salary_statistics.html:748
 msgid "Hammasi"
 msgstr "Все"
 
@@ -514,7 +602,7 @@ msgstr "Все"
 #: blog/templates/attendance/employees.html:65
 #: blog/templates/attendance/employees.html:120
 #: blog/templates/attendance/individual_employee_statistics.html:231
-#: blog/views.py:670
+#: blog/views.py:674
 msgid "Holat"
 msgstr "Статус"
 
@@ -553,7 +641,7 @@ msgstr "Редактирование посещаемости"
 #: blog/templates/attendance/employee_form.html:66
 #: blog/templates/attendance/individual_attendance_form.html:190
 #: blog/templates/attendance/nalivshik_schedule.html:58
-#: blog/templates/attendance/salary_statistics.html:580
+#: blog/templates/attendance/salary_statistics.html:644
 msgid "Saqlash"
 msgstr "Сохранить"
 
@@ -610,14 +698,6 @@ msgstr "Новая посещаемость"
 msgid "Filtrlash"
 msgstr "Фильтрация"
 
-#: blog/templates/attendance/attendance_list.html:21
-#: blog/templates/attendance/edit_attendance_history.html:178
-#: blog/templates/attendance/individual_attendance_form.html:117
-#: blog/templates/attendance/individual_employee_statistics.html:229
-#: blog/templates/attendance/nalivshik_schedule.html:22 blog/views.py:1069
-msgid "Sana"
-msgstr "Дата"
-
 #: blog/templates/attendance/attendance_list.html:27
 #: blog/templates/attendance/employee_attendance_history.html:118
 msgid "Barcha holatlar"
@@ -628,14 +708,6 @@ msgstr "Все статусы"
 msgid "Qidirish"
 msgstr "Поиск"
 
-#: blog/templates/attendance/attendance_list.html:50
-#: blog/templates/attendance/edit_attendance_history.html:181
-#: blog/templates/attendance/individual_employee_statistics.html:232
-#: blog/templates/attendance/salary_payment_history.html:100 blog/views.py:1069
-#: blog/views.py:2398
-msgid "Izoh"
-msgstr "Примечание"
-
 #: blog/templates/attendance/attendance_list.html:51
 #: blog/templates/attendance/dayoff_list.html:20
 msgid "Amal"
@@ -645,10 +717,10 @@ msgstr "Действие"
 #: blog/templates/attendance/attendance_list.html:106
 #: blog/templates/attendance/employees.html:148
 #: blog/templates/attendance/nalivshik_schedule.html:26
-#: blog/templates/attendance/salary_statistics.html:258
 #: blog/templates/attendance/salary_statistics.html:260
-#: blog/templates/attendance/salary_statistics.html:275
-#: blog/templates/attendance/salary_statistics.html:396
+#: blog/templates/attendance/salary_statistics.html:262
+#: blog/templates/attendance/salary_statistics.html:277
+#: blog/templates/attendance/salary_statistics.html:410
 msgid "Tahrirlash"
 msgstr "Редактировать"
 
@@ -689,15 +761,12 @@ msgstr "За неделю"
 
 #: blog/templates/attendance/attendance_statistics.html:33
 #: blog/templates/attendance/base.html:78
-#: blog/templates/attendance/salary_statistics.html:212
-#: blog/templates/attendance/salary_statistics.html:349
-#: blog/templates/attendance/salary_statistics.html:479 blog/views.py:1772
 msgid "Oylik"
 msgstr "Зарплата"
 
 #: blog/templates/attendance/attendance_statistics.html:34
 msgid "3 oylik"
-msgstr "Зарплата"
+msgstr "За 3 месяца"
 
 #: blog/templates/attendance/attendance_statistics.html:35
 msgid "Yillik"
@@ -714,16 +783,6 @@ msgstr "Команда"
 #: blog/templates/attendance/attendance_statistics.html:45
 msgid "Gacha"
 msgstr "По"
-
-#: blog/templates/attendance/attendance_statistics.html:50
-#: blog/templates/attendance/attendance_statistics.html:185
-#: blog/templates/attendance/edit_attendance_history.html:179
-#: blog/templates/attendance/salary_payment_history.html:54
-#: blog/templates/attendance/salary_payment_history.html:96
-#: blog/templates/attendance/select_employee.html:31 blog/views.py:1772
-#: blog/views.py:2007
-msgid "Xodim"
-msgstr "Сотрудники"
 
 #: blog/templates/attendance/attendance_statistics.html:52
 #: blog/templates/attendance/edit_attendance_history.html:132
@@ -743,12 +802,6 @@ msgstr "История посещаемости"
 #: blog/templates/attendance/attendance_statistics.html:68
 msgid "Davomat tarixini tahrirlash"
 msgstr "Редактирование посещаемости"
-
-#: blog/templates/attendance/attendance_statistics.html:71
-#: blog/templates/attendance/dashboard.html:124
-#: blog/templates/attendance/salary_payment_history.html:81
-msgid "Oylik statistika"
-msgstr "Статистика зарплаты"
 
 #: blog/templates/attendance/attendance_statistics.html:88
 #: blog/templates/attendance/dashboard.html:32
@@ -817,7 +870,7 @@ msgstr "Повторите с фильтром «Все сотрудники»"
 #: blog/templates/attendance/base.html:7 blog/templates/attendance/base.html:48
 #: blog/templates/attendance/base.html:68
 #: blog/templates/attendance/employees.html:144
-#: blog/templates/attendance/employees.html:183 blog/views.py:1067
+#: blog/templates/attendance/employees.html:183 blog/views.py:1071
 msgid "Davomat"
 msgstr "Посещаемость"
 
@@ -844,7 +897,7 @@ msgstr "Панель"
 #: blog/templates/attendance/employees.html:3
 #: blog/templates/attendance/employees.html:6
 #: blog/templates/attendance/salary_statistics.html:43
-#: blog/templates/attendance/salary_statistics.html:676
+#: blog/templates/attendance/salary_statistics.html:740
 msgid "Xodimlar"
 msgstr "Сотрудники"
 
@@ -937,7 +990,9 @@ msgstr "Список посещаемости"
 msgid ""
 "Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun "
 "davomat kuzatiladi."
-msgstr "Сегодня воскресенье или выходной — посещаемость отслеживается только для <strong>наливщиков</strong>."
+msgstr ""
+"Сегодня воскресенье или выходной — посещаемость отслеживается только для "
+"<strong>наливщиков</strong>."
 
 #: blog/templates/attendance/dashboard.html:29
 msgid "Bugungi davomat"
@@ -1053,7 +1108,7 @@ msgstr "Все отделы"
 #: blog/templates/attendance/employees.html:74
 #: blog/templates/attendance/salary_payment_history.html:77
 #: blog/templates/attendance/salary_statistics.html:141
-#: blog/templates/attendance/salary_statistics.html:685
+#: blog/templates/attendance/salary_statistics.html:749
 msgid "Tozalash"
 msgstr "Очистить"
 
@@ -1154,7 +1209,7 @@ msgstr "Список посещаемости"
 #: blog/templates/attendance/employee_attendance_history.html:349
 #: blog/templates/attendance/individual_employee_statistics.html:70
 #: blog/templates/attendance/individual_employee_statistics.html:261
-#: blog/views.py:2989
+#: blog/views.py:3078
 msgid "Kelmadi"
 msgstr "Не пришёл"
 
@@ -1177,7 +1232,7 @@ msgstr "Действия"
 #: blog/templates/attendance/employee_attendance_history.html:373
 #: blog/templates/attendance/individual_employee_statistics.html:134
 #: blog/templates/attendance/individual_employee_statistics.html:265
-#: blog/views.py:2993
+#: blog/views.py:3082
 msgid "Ish safari"
 msgstr "В командировке"
 
@@ -1194,9 +1249,10 @@ msgid "Davomat o'zgartirish"
 msgstr "Вход в систему"
 
 #: blog/templates/attendance/employee_attendance_history.html:405
-#: blog/templates/attendance/salary_statistics.html:467
-#: blog/templates/attendance/salary_statistics.html:602
-#: blog/templates/attendance/salary_statistics.html:712
+#: blog/templates/attendance/salary_statistics.html:481
+#: blog/templates/attendance/salary_statistics.html:567
+#: blog/templates/attendance/salary_statistics.html:666
+#: blog/templates/attendance/salary_statistics.html:776
 msgid "Yopish"
 msgstr "Закрыть"
 
@@ -1222,7 +1278,7 @@ msgstr "Это действие нельзя отменить"
 
 #: blog/templates/attendance/employee_attendance_history.html:504
 #: blog/templates/attendance/employee_attendance_history.html:578
-#: blog/templates/attendance/salary_statistics.html:734
+#: blog/templates/attendance/salary_statistics.html:798
 msgid "Xatolik yuz berdi:"
 msgstr "Произошла ошибка:"
 
@@ -1237,7 +1293,7 @@ msgid "Iltimos, izoh/sabab kiriting!"
 msgstr "Пожалуйста, введите примечание/причину!"
 
 #: blog/templates/attendance/employee_attendance_history.html:552
-#: blog/templates/attendance/salary_statistics.html:995
+#: blog/templates/attendance/salary_statistics.html:1111
 msgid "Saqlanmoqda..."
 msgstr "Сохранение..."
 
@@ -1297,9 +1353,10 @@ msgid ""
 "avtomatik <strong>0 so'm</strong> —\n"
 "        keyin <em>Oylik statistika</em>dan kiritasiz."
 msgstr ""
-"Для нового сотрудника <strong>имя, фамилия и отчество</strong> обязательны."
-"        Также укажите <strong>отработанные дни</strong>. Зарплата автоматически <strong>0 сум</strong> —"
-"        затем введите на странице <em>Статистика зарплаты</em>."
+"Для нового сотрудника <strong>имя, фамилия и отчество</strong> "
+"обязательны.        Также укажите <strong>отработанные дни</strong>. "
+"Зарплата автоматически <strong>0 сум</strong> —        затем введите на "
+"странице <em>Статистика зарплаты</em>."
 
 #: blog/templates/attendance/employees.html:7
 msgid "Barcha xodimlar ro'yxati va boshqaruv"
@@ -1339,11 +1396,11 @@ msgstr "Все"
 
 #: blog/templates/attendance/employees.html:69
 #: blog/templates/attendance/employees.html:139
-#: blog/templates/attendance/employees.html:174 blog/views.py:705
+#: blog/templates/attendance/employees.html:174 blog/views.py:709
 msgid "Noaktiv"
 msgstr "Неактивен"
 
-#: blog/templates/attendance/employees.html:118 blog/views.py:664
+#: blog/templates/attendance/employees.html:118 blog/views.py:668
 msgid "Telefon"
 msgstr "Телефон"
 
@@ -1374,7 +1431,7 @@ msgid "Tarix"
 msgstr "История"
 
 #: blog/templates/attendance/employees.html:185
-#: blog/templates/attendance/salary_statistics.html:496 blog/views.py:2394
+#: blog/templates/attendance/salary_statistics.html:510 blog/views.py:2410
 msgid "To'lovlar"
 msgstr "Выплаты"
 
@@ -1448,7 +1505,7 @@ msgstr "Всего записей"
 
 #: blog/templates/attendance/individual_employee_statistics.html:194
 #: blog/templates/attendance/salary_statistics.html:216
-#: blog/templates/attendance/salary_statistics.html:361
+#: blog/templates/attendance/salary_statistics.html:375
 msgid "Ishchi kunlar"
 msgstr "Рабочие дни"
 
@@ -1512,10 +1569,12 @@ msgstr "Ночная (21:00–09:00)"
 msgid ""
 "<strong>Eslatma:</strong> Jadval navbatchilik siklini ko'rsatadi. Davomat "
 "bulk saqlanganda yoziladi."
-msgstr "<strong>Примечание:</strong> Таблица показывает цикл смен. Записывается при массовом сохранении посещаемости."
+msgstr ""
+"<strong>Примечание:</strong> Таблица показывает цикл смен. Записывается при "
+"массовом сохранении посещаемости."
 
 #: blog/templates/attendance/partials/empty_state.html:4
-#: blog/templates/attendance/salary_statistics.html:285
+#: blog/templates/attendance/salary_statistics.html:293
 msgid "Ma'lumot topilmadi"
 msgstr "Нет данных"
 
@@ -1528,7 +1587,7 @@ msgid "To'lovlar soni"
 msgstr "Выплаты"
 
 #: blog/templates/attendance/salary_payment_history.html:31
-#: blog/templates/attendance/salary_statistics.html:294
+#: blog/templates/attendance/salary_statistics.html:302
 msgid "Jami"
 msgstr "Итого"
 
@@ -1549,16 +1608,16 @@ msgid "Ism, lavozim, izoh..."
 msgstr "Поиск (имя, должность...)"
 
 #: blog/templates/attendance/salary_payment_history.html:95
-#: blog/templates/attendance/salary_statistics.html:526 blog/views.py:2397
+#: blog/templates/attendance/salary_statistics.html:540 blog/views.py:2413
 msgid "To'lov sanasi"
 msgstr "Дата платежа"
 
-#: blog/templates/attendance/salary_payment_history.html:98 blog/views.py:2398
+#: blog/templates/attendance/salary_payment_history.html:98 blog/views.py:2414
 msgid "Hisobot oyi"
 msgstr "Отчётный месяц"
 
 #: blog/templates/attendance/salary_payment_history.html:99
-#: blog/templates/attendance/salary_statistics.html:667 blog/views.py:2398
+#: blog/templates/attendance/salary_statistics.html:731 blog/views.py:2414
 msgid "Summa"
 msgstr "Сумма"
 
@@ -1600,9 +1659,9 @@ msgstr "Не пришли (всего)"
 
 #: blog/templates/attendance/salary_statistics.html:58
 #: blog/templates/attendance/salary_statistics.html:219
-#: blog/templates/attendance/salary_statistics.html:373
-#: blog/templates/attendance/salary_statistics.html:422 blog/views.py:1773
-#: blog/views.py:1900
+#: blog/templates/attendance/salary_statistics.html:387
+#: blog/templates/attendance/salary_statistics.html:436 blog/views.py:1789
+#: blog/views.py:1916
 msgid "Hisoblangan"
 msgstr "Начислено"
 
@@ -1617,12 +1676,6 @@ msgstr "Например: Алиев, наливщик..."
 #: blog/templates/attendance/salary_statistics.html:109
 msgid "Rol (tizim)"
 msgstr "Роль (система)"
-
-#: blog/templates/attendance/salary_statistics.html:118
-#: blog/templates/attendance/salary_statistics.html:483 blog/views.py:1772
-#: blog/views.py:1900 blog/views.py:2398
-msgid "Valyuta"
-msgstr "Валюта"
 
 #: blog/templates/attendance/salary_statistics.html:127
 msgid "Lokatsiya"
@@ -1641,7 +1694,7 @@ msgid "To'lovlar tarixi"
 msgstr "История выплат зарплаты"
 
 #: blog/templates/attendance/salary_statistics.html:148
-#: blog/templates/attendance/salary_statistics.html:598
+#: blog/templates/attendance/salary_statistics.html:662
 msgid "Premiya"
 msgstr "Премия"
 
@@ -1654,7 +1707,7 @@ msgid "Jadvalda tahrirlash uchun ✎ tugmasini bosing"
 msgstr "Нажмите ✎ в таблице для редактирования"
 
 #: blog/templates/attendance/salary_statistics.html:201
-#: blog/templates/attendance/salary_statistics.html:614
+#: blog/templates/attendance/salary_statistics.html:678
 msgid "xodim"
 msgstr "сотрудник"
 
@@ -1662,15 +1715,21 @@ msgstr "сотрудник"
 msgid "Turi"
 msgstr "Тип"
 
+#: blog/templates/attendance/salary_statistics.html:212
+#: blog/templates/attendance/salary_statistics.html:363
+#: blog/templates/attendance/salary_statistics.html:493 blog/views.py:1788
+msgid "Oklad"
+msgstr "Оклад"
+
 #: blog/templates/attendance/salary_statistics.html:213
-#: blog/templates/attendance/salary_statistics.html:353
-#: blog/templates/attendance/salary_statistics.html:544
+#: blog/templates/attendance/salary_statistics.html:367
+#: blog/templates/attendance/salary_statistics.html:608
 msgid "Mukofot"
 msgstr "Премия"
 
 #: blog/templates/attendance/salary_statistics.html:214
-#: blog/templates/attendance/salary_statistics.html:357
-#: blog/templates/attendance/salary_statistics.html:571
+#: blog/templates/attendance/salary_statistics.html:371
+#: blog/templates/attendance/salary_statistics.html:635
 msgid "Jarima"
 msgstr "Штраф"
 
@@ -1679,60 +1738,60 @@ msgid "Oy kunlari"
 msgstr "Дней в месяце"
 
 #: blog/templates/attendance/salary_statistics.html:217
-#: blog/templates/attendance/salary_statistics.html:365
+#: blog/templates/attendance/salary_statistics.html:379
 msgid "Ishlangan kunlar"
 msgstr "Отработано дней"
 
 #: blog/templates/attendance/salary_statistics.html:218
-#: blog/templates/attendance/salary_statistics.html:369
-#: blog/templates/attendance/salary_statistics.html:414
+#: blog/templates/attendance/salary_statistics.html:383
+#: blog/templates/attendance/salary_statistics.html:428
 msgid "Kelmagan kunlar"
 msgstr "Пропущено дней"
 
 #: blog/templates/attendance/salary_statistics.html:220
-#: blog/templates/attendance/salary_statistics.html:377
-#: blog/templates/attendance/salary_statistics.html:426 blog/views.py:1773
-#: blog/views.py:1900
+#: blog/templates/attendance/salary_statistics.html:391
+#: blog/templates/attendance/salary_statistics.html:440 blog/views.py:1789
+#: blog/views.py:1916
 msgid "To'langan"
 msgstr "Выплачено"
 
-#: blog/templates/attendance/salary_statistics.html:221
-#: blog/templates/attendance/salary_statistics.html:386
-#: blog/templates/attendance/salary_statistics.html:430
+#: blog/templates/attendance/salary_statistics.html:223
+#: blog/templates/attendance/salary_statistics.html:400
+#: blog/templates/attendance/salary_statistics.html:444
 msgid "Qarzdorlik (boshl.)"
 msgstr "Задолженность (нач.)"
 
-#: blog/templates/attendance/salary_statistics.html:222
-#: blog/templates/attendance/salary_statistics.html:390
-#: blog/templates/attendance/salary_statistics.html:434
+#: blog/templates/attendance/salary_statistics.html:224
+#: blog/templates/attendance/salary_statistics.html:404
+#: blog/templates/attendance/salary_statistics.html:448
 msgid "Qarzdorlik (oxiri)"
 msgstr "Задолженность (кон.)"
 
-#: blog/templates/attendance/salary_statistics.html:256
+#: blog/templates/attendance/salary_statistics.html:258
 msgid "Ishlab chiqarish premiyasi"
 msgstr "Производственные работники"
 
-#: blog/templates/attendance/salary_statistics.html:256
+#: blog/templates/attendance/salary_statistics.html:258
 msgid "avto"
 msgstr "авто"
 
-#: blog/templates/attendance/salary_statistics.html:273
+#: blog/templates/attendance/salary_statistics.html:275
 msgid "To'lov"
 msgstr "Выплаты"
 
-#: blog/templates/attendance/salary_statistics.html:286
+#: blog/templates/attendance/salary_statistics.html:294
 msgid "Filtrlarni o'zgartiring yoki boshqa oy tanlang"
 msgstr "Измените фильтры или выберите другой месяц"
 
-#: blog/templates/attendance/salary_statistics.html:403
+#: blog/templates/attendance/salary_statistics.html:417
 msgid "Ma'lumotlar topilmadi"
 msgstr "Не найдены"
 
-#: blog/templates/attendance/salary_statistics.html:410
+#: blog/templates/attendance/salary_statistics.html:424
 msgid "JAMI"
 msgstr "ИТОГО"
 
-#: blog/templates/attendance/salary_statistics.html:444
+#: blog/templates/attendance/salary_statistics.html:458
 msgid ""
 "<strong>*Ishchi kunlar:</strong> Faqat to'liq stavka xodimlar uchun hisobga "
 "olinadi (yakshanba va bayram kunlari chiqarilgan). 15 kunlik ishchilar har "
@@ -1750,178 +1809,211 @@ msgstr ""
 "4 дня в месяц, для охранников — 10 дней. Офисные сотрудники получают полную "
 "зарплату без учёта посещаемости."
 
-#: blog/templates/attendance/salary_statistics.html:459
+#: blog/templates/attendance/salary_statistics.html:473
 msgid "Ma'lumotlarni tahrirlash"
 msgstr "Редактирование данных"
 
-#: blog/templates/attendance/salary_statistics.html:475
+#: blog/templates/attendance/salary_statistics.html:489
 msgid "Asosiy ma'lumotlar"
 msgstr "Основные данные"
 
-#: blog/templates/attendance/salary_statistics.html:485
+#: blog/templates/attendance/salary_statistics.html:499
 msgid "So'm (UZS)"
 msgstr "Сум (UZS)"
 
-#: blog/templates/attendance/salary_statistics.html:486
+#: blog/templates/attendance/salary_statistics.html:500
 msgid "Dollar (USD)"
 msgstr "Доллар (USD)"
 
-#: blog/templates/attendance/salary_statistics.html:487
+#: blog/templates/attendance/salary_statistics.html:501
 msgid "Yevro (EUR)"
 msgstr "Евро (EUR)"
 
-#: blog/templates/attendance/salary_statistics.html:516
+#: blog/templates/attendance/salary_statistics.html:530
 msgid "Jami to'langan"
 msgstr "Всего выплачено"
 
-#: blog/templates/attendance/salary_statistics.html:518
+#: blog/templates/attendance/salary_statistics.html:532
 msgid "Hali to'lov kiritilmagan"
 msgstr "Платежи ещё не внесены"
 
-#: blog/templates/attendance/salary_statistics.html:522
+#: blog/templates/attendance/salary_statistics.html:536
 msgid "Yangi to'lov summasi"
 msgstr "Сумма нового платежа"
 
-#: blog/templates/attendance/salary_statistics.html:523
+#: blog/templates/attendance/salary_statistics.html:537
 msgid "Masalan: 2 000 000"
 msgstr "Например: 2 000 000"
 
-#: blog/templates/attendance/salary_statistics.html:530
+#: blog/templates/attendance/salary_statistics.html:544
 msgid "Izoh (ixtiyoriy)"
 msgstr "Примечание (необяз.)"
 
-#: blog/templates/attendance/salary_statistics.html:531
+#: blog/templates/attendance/salary_statistics.html:545
 msgid "Masalan: avans, qisman to'lov"
 msgstr "Например: аванс, частичная выплата"
 
-#: blog/templates/attendance/salary_statistics.html:532
+#: blog/templates/attendance/salary_statistics.html:546
 msgid "Har bir to'lov alohida saqlanadi — isbot uchun sana muhim."
 msgstr "Каждая выплата сохраняется отдельно — дата важна для подтверждения."
 
-#: blog/templates/attendance/salary_statistics.html:540
+#: blog/templates/attendance/salary_statistics.html:562
+msgid "Har oy"
+msgstr "Ежемесячно"
+
+#: blog/templates/attendance/salary_statistics.html:566
+msgid "Qarzni yopishni tasdiqlaysizmi?"
+msgstr "Подтвердить закрытие долга?"
+
+#: blog/templates/attendance/salary_statistics.html:574
+msgid "Faol qarz yo'q"
+msgstr "Нет активного долга"
+
+#: blog/templates/attendance/salary_statistics.html:579
+msgid "Masalan: 56 000 000"
+msgstr "Например: 56 000 000"
+
+#: blog/templates/attendance/salary_statistics.html:583
+msgid "Masalan: 4 000 000"
+msgstr "Например: 4 000 000"
+
+#: blog/templates/attendance/salary_statistics.html:591
+msgid "Masalan: oldindan avans"
+msgstr "Например: аванс"
+
+#: blog/templates/attendance/salary_statistics.html:597
+msgid "Yangi qarz qo'shish"
+msgstr "Добавить долг"
+
+#: blog/templates/attendance/salary_statistics.html:604
 msgid "Mukofot va jarima"
 msgstr "Премия и штраф"
 
-#: blog/templates/attendance/salary_statistics.html:547
-#: blog/templates/attendance/salary_statistics.html:761
+#: blog/templates/attendance/salary_statistics.html:611
+#: blog/templates/attendance/salary_statistics.html:825
 msgid "so'm"
 msgstr "сум"
 
-#: blog/templates/attendance/salary_statistics.html:548
+#: blog/templates/attendance/salary_statistics.html:612
 msgid "Avtomatik premiya"
 msgstr "Автоматическая премия"
 
-#: blog/templates/attendance/salary_statistics.html:553
+#: blog/templates/attendance/salary_statistics.html:617
 msgid "Premiyani sozlash"
 msgstr "Настроить премию"
 
-#: blog/templates/attendance/salary_statistics.html:556
-#: blog/templates/attendance/salary_statistics.html:564
+#: blog/templates/attendance/salary_statistics.html:620
+#: blog/templates/attendance/salary_statistics.html:628
 msgid "Shu xodimning premiyasi bekor qilinsinmi?"
 msgstr "Отменить премию этого сотрудника?"
 
-#: blog/templates/attendance/salary_statistics.html:565
+#: blog/templates/attendance/salary_statistics.html:629
 msgid "Premiyani bekor qilish"
 msgstr "Отмена"
 
-#: blog/templates/attendance/salary_statistics.html:576
+#: blog/templates/attendance/salary_statistics.html:640
 msgid "Saqlangandan keyin faqat shu xodim uchun oylik qayta hisoblanadi."
 msgstr "После сохранения зарплата пересчитается только для этого сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:597
+#: blog/templates/attendance/salary_statistics.html:661
 msgid "Ishlab chiqarish"
 msgstr "Производственные работники"
 
-#: blog/templates/attendance/salary_statistics.html:613
+#: blog/templates/attendance/salary_statistics.html:677
 msgid "Faol premiya"
 msgstr "Активная премия"
 
-#: blog/templates/attendance/salary_statistics.html:619
+#: blog/templates/attendance/salary_statistics.html:683
 msgid "Premiya qoidalari"
 msgstr "Правила премии"
 
-#: blog/templates/attendance/salary_statistics.html:622
+#: blog/templates/attendance/salary_statistics.html:686
 msgid "Premiya yo'q"
 msgstr "Премии нет"
 
-#: blog/templates/attendance/salary_statistics.html:634
+#: blog/templates/attendance/salary_statistics.html:698
 msgid "Amal turi"
 msgstr "Тип сотрудника"
 
-#: blog/templates/attendance/salary_statistics.html:636
+#: blog/templates/attendance/salary_statistics.html:700
 msgid "Premiya berish"
 msgstr "Назначить премию"
 
-#: blog/templates/attendance/salary_statistics.html:644
+#: blog/templates/attendance/salary_statistics.html:708
 msgid ""
 "Tonna kiriting, keyin premiya oladigan xodimlarni belgilang va "
 "<strong>Saqlash</strong> ni bosing."
-msgstr "Введите тонны, выберите сотрудников для премии и нажмите <strong>Сохранить</strong>."
+msgstr ""
+"Введите тонны, выберите сотрудников для премии и нажмите <strong>Сохранить</"
+"strong>."
 
-#: blog/templates/attendance/salary_statistics.html:647
+#: blog/templates/attendance/salary_statistics.html:711
 msgid ""
 "Faqat bekor qilmoqchi bo'lgan xodim(lar)ni belgilang — boshqalarga "
 "tegilmaydi."
-msgstr "Выберите только сотрудника(ов), у которых хотите отменить премию — остальные не затрагиваются."
+msgstr ""
+"Выберите только сотрудника(ов), у которых хотите отменить премию — остальные "
+"не затрагиваются."
 
-#: blog/templates/attendance/salary_statistics.html:658
+#: blog/templates/attendance/salary_statistics.html:722
 msgid "Masalan: 2500"
 msgstr "Например: 2500"
 
-#: blog/templates/attendance/salary_statistics.html:665
+#: blog/templates/attendance/salary_statistics.html:729
 msgid "Hisoblangan premiya"
 msgstr "Рассчитанная премия"
 
-#: blog/templates/attendance/salary_statistics.html:677
-#: blog/templates/attendance/salary_statistics.html:800
+#: blog/templates/attendance/salary_statistics.html:741
+#: blog/templates/attendance/salary_statistics.html:864
 msgid "tanlandi"
 msgstr "выбрано"
 
-#: blog/templates/attendance/salary_statistics.html:682
+#: blog/templates/attendance/salary_statistics.html:746
 msgid "Ism yoki lavozim bo'yicha qidirish..."
 msgstr "Поиск по имени или должности..."
 
-#: blog/templates/attendance/salary_statistics.html:701
-msgid "Faol"
-msgstr "Активна"
-
-#: blog/templates/attendance/salary_statistics.html:706
+#: blog/templates/attendance/salary_statistics.html:770
 msgid "Aktiv xodim yo'q"
 msgstr "Нет активных сотрудников"
 
-#: blog/templates/attendance/salary_statistics.html:714
+#: blog/templates/attendance/salary_statistics.html:778
 msgid "Tanlanganlardan olib tashlash"
 msgstr "Убрать у выбранных"
 
-#: blog/templates/attendance/salary_statistics.html:728
+#: blog/templates/attendance/salary_statistics.html:792
 msgid "Kamida bitta xodim belgilang."
 msgstr "Выберите хотя бы одного сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:729
+#: blog/templates/attendance/salary_statistics.html:793
 msgid "Premiya uchun kamida"
 msgstr "Для премии минимум"
 
-#: blog/templates/attendance/salary_statistics.html:730
+#: blog/templates/attendance/salary_statistics.html:794
 msgid "tonna kiriting."
 msgstr "тонн."
 
-#: blog/templates/attendance/salary_statistics.html:731
+#: blog/templates/attendance/salary_statistics.html:795
 msgid "Bekor qilish uchun kamida bitta xodim belgilang."
 msgstr "Для отмены выберите хотя бы одного сотрудника."
 
-#: blog/templates/attendance/salary_statistics.html:732
+#: blog/templates/attendance/salary_statistics.html:796
 msgid "Tanlangan"
 msgstr "Выбрано"
 
-#: blog/templates/attendance/salary_statistics.html:733
+#: blog/templates/attendance/salary_statistics.html:797
 msgid "ta xodimdan premiya olib tashlansinmi?"
 msgstr "сотрудников — снять премию?"
 
-#: blog/templates/attendance/salary_statistics.html:735
+#: blog/templates/attendance/salary_statistics.html:799
 msgid "Noma'lum xatolik"
 msgstr "Неизвестная ошибка"
 
-#: blog/templates/attendance/salary_statistics.html:1015
+#: blog/templates/attendance/salary_statistics.html:1068
+#: blog/templates/attendance/salary_statistics.html:1092
+msgid "Xatolik yuz berdi"
+msgstr "Произошла ошибка:"
+
+#: blog/templates/attendance/salary_statistics.html:1131
 msgid "Muvaffaqiyat"
 msgstr "Успех"
 
@@ -1941,80 +2033,80 @@ msgstr "— Выберите сотрудника —"
 msgid "Davom etish"
 msgstr "Редактирование посещаемости"
 
-#: blog/views.py:220
+#: blog/views.py:224
 msgid "Muvaffaqiyatli tizimga kirdingiz!"
 msgstr "Успешный вход!"
 
-#: blog/views.py:223
+#: blog/views.py:227
 msgid "Login yoki parol noto'g'ri!"
 msgstr "Неверный логин или пароль!"
 
-#: blog/views.py:230
+#: blog/views.py:234
 msgid "Tizimdan chiqdingiz."
 msgstr "Вы вышли из системы."
 
-#: blog/views.py:358 blog/views.py:659 blog/views.py:1069 blog/views.py:2397
+#: blog/views.py:362 blog/views.py:663 blog/views.py:1073 blog/views.py:2413
 msgid "Familiya"
 msgstr "Фамилия"
 
-#: blog/views.py:361
+#: blog/views.py:365
 msgid "Oldingi oylar kelmagan"
 msgstr "Предыдущие месяцы"
 
-#: blog/views.py:362
+#: blog/views.py:366
 msgid "Joriy oy kelmagan"
 msgstr "Текущий месяц"
 
-#: blog/views.py:364
+#: blog/views.py:368
 msgid "Kvotadan kechirilgan (oy)"
 msgstr "Прощено по квоте"
 
-#: blog/views.py:365
+#: blog/views.py:369
 msgid "Oylikka ta'sir qiladi (oy)"
 msgstr "Статистика зарплаты"
 
-#: blog/views.py:366
+#: blog/views.py:370
 #, python-format
 msgid "Kvotadan foydalangan (0-%(limit)s)"
 msgstr "Использовано из квоты (0-%(limit)s)"
 
-#: blog/views.py:367
+#: blog/views.py:371
 msgid "Qolgan kvota"
 msgstr "Оставшаяся квота"
 
-#: blog/views.py:439
+#: blog/views.py:443
 msgid "Sana formati noto'g'ri."
 msgstr "Неверный формат даты."
 
-#: blog/views.py:445
+#: blog/views.py:449
 msgid "Hech bo'lmaganda bitta komanda tanlang."
 msgstr "Выберите хотя бы одну команду."
 
-#: blog/views.py:505
+#: blog/views.py:509
 #, python-format
 msgid "%(date)s sanadan boshlab keyingi kunlar jadvali yangilandi!"
 msgstr "График обновлён с %(date)s на следующие дни!"
 
-#: blog/views.py:675
+#: blog/views.py:679
 msgid "ISOMER OIL — Xodimlar ro'yxati"
 msgstr "ISOMER OIL — Список сотрудников"
 
-#: blog/views.py:682
+#: blog/views.py:686
 #, python-format
 msgid "Sana: %(date)s"
 msgstr "Дата: %(date)s"
 
-#: blog/views.py:683
+#: blog/views.py:687
 #, python-format
 msgid "Jami: %(count)s ta xodim"
 msgstr "Всего: %(count)s сотрудников"
 
-#: blog/views.py:686
+#: blog/views.py:690
 #, python-format
 msgid "Qidiruv: «%(query)s»"
 msgstr "Поиск: «%(query)s»"
 
-#: blog/views.py:784
+#: blog/views.py:788
 #, python-format
 msgid ""
 "Xodim qo'shildi. Kelgan kunlar: %(days)s ta. Oylik 0 so'm — Oylik statistika "
@@ -2023,15 +2115,15 @@ msgstr ""
 "Сотрудник добавлен. Отработано дней: %(days)s. Зарплата 0 сум — введите на "
 "странице статистики зарплаты."
 
-#: blog/views.py:798
+#: blog/views.py:802
 msgid "Xodim ma'lumoti yangilandi!"
 msgstr "Данные сотрудника обновлены!"
 
-#: blog/views.py:809
+#: blog/views.py:813
 msgid "Xodim o'chirildi!"
 msgstr "Сотрудник удалён!"
 
-#: blog/views.py:843
+#: blog/views.py:847
 #, python-format
 msgid "%(date)s — %(reason)s. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi."
 msgstr ""
@@ -2039,1494 +2131,284 @@ msgstr ""
 "%(date)s — %(reason)s. Нет активных наливщиков, посещаемость ввести нельзя."
 "%(date)s — %(reason)s. Нет активных наливщиков, посещаемость ввести нельзя."
 
-#: blog/views.py:887
+#: blog/views.py:891
 msgid "Davomat muvaffaqiyatli saqlandi!"
 msgstr "Посещаемость успешно сохранена!"
 
-#: blog/views.py:941
+#: blog/views.py:945
 msgid "Davomat yangilandi!"
 msgstr "Система посещаемости"
 
-#: blog/views.py:954
+#: blog/views.py:958
 msgid "Davomat o'chirildi!"
 msgstr "Посещаемость удалена!"
 
-#: blog/views.py:1020
+#: blog/views.py:1024
 #, python-format
 msgid "%(count)s ta davomat import qilindi!"
 msgstr "Импортировано %(count)s записей посещаемости!"
 
-#: blog/views.py:1022
+#: blog/views.py:1026
 #, python-format
 msgid "Quyidagi satrlarda xatoliklar: %(errors)s"
 msgstr "Ошибки в следующих строках: %(errors)s"
 
-#: blog/views.py:1031
+#: blog/views.py:1035
 #, python-format
 msgid "Importda xatolik: %(error)s"
 msgstr "Ошибка импорта: %(error)s"
 
-#: blog/views.py:1054
+#: blog/views.py:1058
 #, python-format
 msgid "Sana formatida xatolik: %(error)s"
 msgstr "Ошибка формата даты: %(error)s"
 
-#: blog/views.py:1069
+#: blog/views.py:1073
 msgid "Status"
 msgstr "Статистика"
 
-#: blog/views.py:1116
+#: blog/views.py:1120
 msgid "Yopiq sana qo'shildi!"
 msgstr "Выходной день добавлен!"
 
-#: blog/views.py:1127
+#: blog/views.py:1131
 msgid "Yopiq sana o'chirildi!"
 msgstr "Выходной день удалён!"
 
-#: blog/views.py:1143
+#: blog/views.py:1147
 msgid "Xodimni tanlang!"
 msgstr "Редактирование сотрудника"
 
-#: blog/views.py:1164
+#: blog/views.py:1168
 msgid "Noto'g'ri sana formati. Bugungi sana ishlatilmoqda."
 msgstr "Неверный формат даты. Используется сегодняшняя дата."
 
-#: blog/views.py:1170 blog/views.py:1193
+#: blog/views.py:1174 blog/views.py:1197
 #, python-format
 msgid ""
 "%(date)s — %(reason)s. Bu kunda faqat nalivshiklar davomat kiritishi mumkin."
-msgstr "%(date)s — %(reason)s. В этот день только наливщики могут вводить посещаемость."
+msgstr ""
+"%(date)s — %(reason)s. В этот день только наливщики могут вводить "
+"посещаемость."
 
-#: blog/views.py:1206
+#: blog/views.py:1210
 msgid "Davomat holatini tanlang!"
 msgstr "Редактирование посещаемости"
 
-#: blog/views.py:1220
+#: blog/views.py:1224
 msgid "Izoh/sabab kiritish majburiy!"
 msgstr "Примечание/причина обязательны!"
 
-#: blog/views.py:1250
+#: blog/views.py:1254
 #, python-format
 msgid "%(employee)s uchun davomat saqlandi!"
 msgstr "Посещаемость для %(employee)s сохранена!"
 
-#: blog/views.py:1269
+#: blog/views.py:1273
 msgid "Siz ushbu joylashuvdagi oxirgi xodimga davomat kiritdingiz."
 msgstr "Вы ввели посещаемость последнему сотруднику в этом месте."
 
-#: blog/views.py:1278
+#: blog/views.py:1282
 #, python-format
 msgid "Xatolik yuz berdi: %(error)s"
 msgstr "Произошла ошибка: %(error)s"
 
-#: blog/views.py:1338
+#: blog/views.py:1342
 msgid "Sana formatida xatolik!"
 msgstr "Ошибка формата даты!"
 
-#: blog/views.py:1504
+#: blog/views.py:1510
 msgid "Premiyani bekor qilish uchun kamida bitta xodim belgilang."
 msgstr "Выберите хотя бы одного сотрудника для отмены премии."
 
-#: blog/views.py:1507
+#: blog/views.py:1513
 #, python-format
 msgid "%(count)s ta xodimning premiyasi bekor qilindi."
 msgstr "Премия отменена у %(count)s сотрудников."
 
-#: blog/views.py:1520
+#: blog/views.py:1526
 msgid ""
 "Kamida bitta xodim belgilang. Premiyani olib tashlash uchun xodimni belgilab "
 "«Premiyani bekor qilish» ni bosing."
-msgstr "Выберите хотя бы одного сотрудника. Для отмены премии выберите сотрудника и нажмите «Отменить премию»."
+msgstr ""
+"Выберите хотя бы одного сотрудника. Для отмены премии выберите сотрудника и "
+"нажмите «Отменить премию»."
 
-#: blog/views.py:1526
+#: blog/views.py:1532
 #, python-format
 msgid "Premiya uchun kamida %(min_tons)s tonna kiriting."
 msgstr "Для премии введите минимум %(min_tons)s тонн."
 
-#: blog/views.py:1532
+#: blog/views.py:1538
 msgid "Premiya saqlandi — mukofotlar yangilandi."
 msgstr "Премия сохранена — вознаграждения обновлены."
 
-#: blog/views.py:1534
+#: blog/views.py:1540
 msgid "Tonna yoki xodimlar ro'yxatini tekshiring."
 msgstr "Проверьте тонны или список сотрудников."
 
-#: blog/views.py:1540
+#: blog/views.py:1546
 msgid "Oylik statistika qayta hisoblandi."
 msgstr "Статистика зарплаты"
 
-#: blog/views.py:1772
+#: blog/views.py:1788
 msgid "Kelgan/Jami"
 msgstr "Осталось"
 
-#: blog/views.py:1773
+#: blog/views.py:1789
 msgid "Foiz"
 msgstr "Процент"
 
-#: blog/views.py:1773 blog/views.py:1900
+#: blog/views.py:1789 blog/views.py:1916
 msgid "Bonus"
 msgstr "Бонус"
 
-#: blog/views.py:1888
+#: blog/views.py:1904
 msgid "VALYUTA BO'YICHA JAMI"
 msgstr "ИТОГО ПО ВАЛЮТАМ"
 
-#: blog/views.py:1900
+#: blog/views.py:1916
 msgid "Soni"
 msgstr "Кол-во"
 
-#: blog/views.py:1900
-msgid "Jami oylik"
-msgstr "Зарплата"
+#: blog/views.py:1916
+msgid "Jami oklad"
+msgstr "Итого оклад"
 
-#: blog/views.py:1900
+#: blog/views.py:1916
 msgid "Qarzdorlik"
 msgstr "Задолженность (кон.)"
 
-#: blog/views.py:2007
-msgid "oylik"
-msgstr "Зарплата"
+#: blog/views.py:2023
+msgid "oklad"
+msgstr "Оклад"
 
-#: blog/views.py:2007
+#: blog/views.py:2023
 msgid "hisoblandi"
 msgstr "Начислено"
 
-#: blog/views.py:2007
+#: blog/views.py:2023
 msgid "tulandi"
 msgstr "выбрано"
 
-#: blog/views.py:2008
+#: blog/views.py:2024
 msgid "qarzdorlik (bosh)"
 msgstr "Задолженность (нач.)"
 
-#: blog/views.py:2008
+#: blog/views.py:2024
 msgid "qarzdorlik (oxiri)"
 msgstr "Задолженность (кон.)"
 
-#: blog/views.py:2045
+#: blog/views.py:2061
 msgid "⭐ To'liq stavka xodimlar"
 msgstr "⭐ Сотрудники на полную ставку"
 
-#: blog/views.py:2046
+#: blog/views.py:2062
 msgid "📋 15 kunlik xodimlar"
 msgstr "📋 Сотрудники на 15 дней"
 
-#: blog/views.py:2047
+#: blog/views.py:2063
 msgid "📆 Haftada 1 kun xodimlar"
 msgstr "📆 Сотрудники 1 день в неделю"
 
-#: blog/views.py:2048
+#: blog/views.py:2064
 msgid "🛡️ Qorovul xodimlar"
 msgstr "🛡️ Охранники"
 
-#: blog/views.py:2049
+#: blog/views.py:2065
 msgid "💼 Ofis xodimlari"
 msgstr "💼 Офисные сотрудники"
 
-#: blog/views.py:2340
+#: blog/views.py:2356
 msgid "BARCHA XODIMLAR"
 msgstr "ВСЕ СОТРУДНИКИ"
 
-#: blog/views.py:2341
+#: blog/views.py:2357
 msgid "Barcha xodimlar (umumiy)"
 msgstr "Аппарат сотрудников"
 
-#: blog/views.py:2397
+#: blog/views.py:2413
 msgid "Ism"
 msgstr "Имя"
 
-#: blog/views.py:2398
+#: blog/views.py:2414
 msgid "Hisobot yili"
 msgstr "Отчётный месяц"
 
-#: blog/views.py:2398
+#: blog/views.py:2414
 msgid "Kiritilgan"
 msgstr "Не внесённые"
 
-#: blog/views.py:2476
+#: blog/views.py:2496
 msgid "Yangi to'lov uchun summa va sana birga kiritilishi kerak."
 msgstr "Для новой выплаты сумма и дата должны быть введены вместе."
 
-#: blog/views.py:2481
+#: blog/views.py:2501
 msgid "To'lov summasi musbat bo'lishi kerak."
 msgstr "Сумма выплаты должна быть положительной."
 
-#: blog/views.py:2485
+#: blog/views.py:2505
 msgid "To'lov summasi yoki sanasi noto'g'ri."
 msgstr "Неверная сумма или дата выплаты."
 
-#: blog/views.py:2507
+#: blog/views.py:2527
 msgid "Premiya bekor qilindi."
 msgstr "Отмена"
 
-#: blog/views.py:2725
+#: blog/views.py:2601
+msgid "Ma'lumotlar noto'g'ri."
+msgstr "Не найдены"
+
+#: blog/views.py:2603
+msgid "Qarz ma'lumotlarini tekshiring."
+msgstr "Проверьте данные долга."
+
+#: blog/views.py:2622 blog/views.py:2626
+msgid "Oldindan qarz qo'shildi."
+msgstr "Авансовый долг добавлен."
+
+#: blog/views.py:2644 blog/views.py:2648
+msgid "Qarz yopildi."
+msgstr "Долг закрыт."
+
+#: blog/views.py:2814
 msgid "Sana formati noto'g'ri!"
 msgstr "Неверный логин или пароль!"
 
-#: blog/views.py:2758
+#: blog/views.py:2847
 msgid "Davomat ma'lumotlari yangilandi!"
 msgstr "Обновите данные"
 
-#: blog/views.py:2999
+#: blog/views.py:3088
 msgid "Noma'lum"
 msgstr "Неизвестно"
 
-#: venv/lib/python3.11/site-packages/django/contrib/messages/apps.py:16
-msgid "Messages"
-msgstr ""
+#~ msgid "and"
+#~ msgstr "Команда"
 
-#: venv/lib/python3.11/site-packages/django/contrib/sitemaps/apps.py:8
-msgid "Site Maps"
-msgstr ""
+#~ msgid "Sun"
+#~ msgstr "День"
 
-#: venv/lib/python3.11/site-packages/django/contrib/staticfiles/apps.py:9
-msgid "Static Files"
-msgstr ""
+#~ msgid "August"
+#~ msgstr "Август"
 
-#: venv/lib/python3.11/site-packages/django/contrib/syndication/apps.py:7
-msgid "Syndication"
-msgstr ""
+#~ msgid "mar"
+#~ msgstr "Действия"
 
-#. Translators: String used to replace omitted page numbers in elided page
-#. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
-#: venv/lib/python3.11/site-packages/django/core/paginator.py:30
-msgid "…"
-msgstr ""
+#~ msgid "may"
+#~ msgstr "Май"
 
-#: venv/lib/python3.11/site-packages/django/core/paginator.py:32
-msgid "That page number is not an integer"
-msgstr ""
+#~ msgid "jun"
+#~ msgstr "День"
 
-#: venv/lib/python3.11/site-packages/django/core/paginator.py:33
-msgid "That page number is less than 1"
-msgstr ""
+#~ msgctxt "abbrev. month"
+#~ msgid "May"
+#~ msgstr "Май"
 
-#: venv/lib/python3.11/site-packages/django/core/paginator.py:34
-msgid "That page contains no results"
-msgstr ""
+#~ msgctxt "alt. month"
+#~ msgid "May"
+#~ msgstr "Май"
 
-#: venv/lib/python3.11/site-packages/django/core/validators.py:22
-msgid "Enter a valid value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:70
-msgid "Enter a valid domain name."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:153
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:775
-msgid "Enter a valid URL."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:200
-msgid "Enter a valid integer."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:211
-msgid "Enter a valid email address."
-msgstr ""
-
-#. Translators: "letters" means latin letters: a-z and A-Z.
-#: venv/lib/python3.11/site-packages/django/core/validators.py:289
-msgid ""
-"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:297
-msgid ""
-"Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
-"hyphens."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:309
-#: venv/lib/python3.11/site-packages/django/core/validators.py:318
-#: venv/lib/python3.11/site-packages/django/core/validators.py:332
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2220
-#, python-format
-msgid "Enter a valid %(protocol)s address."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:311
-msgid "IPv4"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:320
-#: venv/lib/python3.11/site-packages/django/utils/ipv6.py:43
-msgid "IPv6"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:334
-msgid "IPv4 or IPv6"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:375
-msgid "Enter only digits separated by commas."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:381
-#, python-format
-msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:416
-#, python-format
-msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:425
-#, python-format
-msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:434
-#, python-format
-msgid "Ensure this value is a multiple of step size %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:441
-#, python-format
-msgid ""
-"Ensure this value is a multiple of step size %(limit_value)s, starting from "
-"%(offset)s, e.g. %(offset)s, %(valid_value1)s, %(valid_value2)s, and so on."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:473
-#, python-format
-msgid ""
-"Ensure this value has at least %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at least %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:491
-#, python-format
-msgid ""
-"Ensure this value has at most %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at most %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:514
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:366
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:405
-msgid "Enter a number."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:516
-#, python-format
-msgid "Ensure that there are no more than %(max)s digit in total."
-msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:521
-#, python-format
-msgid "Ensure that there are no more than %(max)s decimal place."
-msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:526
-#, python-format
-msgid ""
-"Ensure that there are no more than %(max)s digit before the decimal point."
-msgid_plural ""
-"Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:597
-#, python-format
-msgid ""
-"File extension “%(extension)s” is not allowed. Allowed extensions are: "
-"%(allowed_extensions)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/core/validators.py:659
-msgid "Null characters are not allowed."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/base.py:1600
-#: venv/lib/python3.11/site-packages/django/forms/models.py:908
-#, fuzzy
-msgid "and"
-msgstr "Команда"
-
-#: venv/lib/python3.11/site-packages/django/db/models/base.py:1602
-#, python-format
-msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/constraints.py:22
-#, python-format
-msgid "Constraint “%(name)s” is violated."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:134
-#, python-format
-msgid "Value %(value)r is not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:135
-msgid "This field cannot be null."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:136
-msgid "This field cannot be blank."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:137
-#, python-format
-msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr ""
-
-#. Translators: The 'lookup_type' is one of 'date', 'year' or
-#. 'month'. Eg: "Title must be unique for pub_date year"
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:141
-#, python-format
-msgid ""
-"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:180
-#, python-format
-msgid "Field of type: %(field_type)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1162
-#, python-format
-msgid "“%(value)s” value must be either True or False."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1163
-#, python-format
-msgid "“%(value)s” value must be either True, False, or None."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1165
-msgid "Boolean (Either True or False)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1215
-#, python-format
-msgid "String (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1217
-msgid "String (unlimited)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1326
-msgid "Comma-separated integers"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1427
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
-"format."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1431
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1566
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
-"date."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1435
-msgid "Date (without time)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1562
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in YYYY-MM-DD "
-"HH:MM[:ss[.uuuuuu]][TZ] format."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1570
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
-"[TZ]) but it is an invalid date/time."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1575
-msgid "Date (with time)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1702
-#, python-format
-msgid "“%(value)s” value must be a decimal number."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1704
-msgid "Decimal number"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1864
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in [DD] "
-"[[HH:]MM:]ss[.uuuuuu] format."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1868
-msgid "Duration"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1920
-msgid "Email address"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:1945
-msgid "File path"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2023
-#, python-format
-msgid "“%(value)s” value must be a float."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2025
-msgid "Floating point number"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2065
-#, python-format
-msgid "“%(value)s” value must be an integer."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2067
-msgid "Integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2163
-msgid "Big (8 byte) integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2180
-msgid "Small integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2188
-msgid "IPv4 address"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2219
-msgid "IP address"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2310
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2311
-#, python-format
-msgid "“%(value)s” value must be either None, True or False."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2313
-msgid "Boolean (Either True, False or None)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2364
-msgid "Positive big integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2379
-msgid "Positive integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2394
-msgid "Positive small integer"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2410
-#, python-format
-msgid "Slug (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2446
-msgid "Text"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2526
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
-"format."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2530
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
-"invalid time."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2534
-msgid "Time"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2642
-msgid "URL"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2666
-msgid "Raw binary data"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2731
-#, python-format
-msgid "“%(value)s” is not a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/__init__.py:2733
-msgid "Universally unique identifier"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/files.py:244
-msgid "File"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/files.py:420
-msgid "Image"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/json.py:24
-msgid "A JSON object"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/json.py:26
-msgid "Value must be valid JSON."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:978
-#, python-format
-msgid "%(model)s instance with %(field)s %(value)r is not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:981
-msgid "Foreign Key (type determined by related field)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:1275
-msgid "One-to-one relationship"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:1332
-#, python-format
-msgid "%(from)s-%(to)s relationship"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:1334
-#, python-format
-msgid "%(from)s-%(to)s relationships"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/db/models/fields/related.py:1382
-msgid "Many-to-many relationship"
-msgstr ""
-
-#. Translators: If found as last label character, these punctuation
-#. characters will prevent the default label_suffix to be appended to the label
-#: venv/lib/python3.11/site-packages/django/forms/boundfield.py:185
-msgid ":?.!"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:95
-msgid "This field is required."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:315
-msgid "Enter a whole number."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:486
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1267
-msgid "Enter a valid date."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:509
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1268
-msgid "Enter a valid time."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:536
-msgid "Enter a valid date/time."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:570
-msgid "Enter a valid duration."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:571
-#, python-brace-format
-msgid "The number of days must be between {min_days} and {max_days}."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:640
-msgid "No file was submitted. Check the encoding type on the form."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:641
-msgid "No file was submitted."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:642
-msgid "The submitted file is empty."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:644
-#, python-format
-msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
-msgid_plural ""
-"Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:649
-msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:717
-msgid ""
-"Upload a valid image. The file you uploaded was either not an image or a "
-"corrupted image."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:889
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:975
-#: venv/lib/python3.11/site-packages/django/forms/models.py:1592
-#, python-format
-msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:977
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1096
-#: venv/lib/python3.11/site-packages/django/forms/models.py:1590
-msgid "Enter a list of values."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1097
-msgid "Enter a complete value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1339
-msgid "Enter a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/fields.py:1369
-msgid "Enter a valid JSON."
-msgstr ""
-
-#. Translators: This is the default suffix added to form field labels
-#: venv/lib/python3.11/site-packages/django/forms/forms.py:97
-msgid ":"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/forms.py:239
-#, python-format
-msgid "(Hidden field %(name)s) %(error)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:61
-#, python-format
-msgid ""
-"ManagementForm data is missing or has been tampered with. Missing fields: "
-"%(field_names)s. You may need to file a bug report if the issue persists."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:65
-#, python-format
-msgid "Please submit at most %(num)d form."
-msgid_plural "Please submit at most %(num)d forms."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:70
-#, python-format
-msgid "Please submit at least %(num)d form."
-msgid_plural "Please submit at least %(num)d forms."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:484
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:491
-msgid "Order"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/formsets.py:499
-msgid "Delete"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:901
-#, python-format
-msgid "Please correct the duplicate data for %(field)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:906
-#, python-format
-msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:913
-#, python-format
-msgid ""
-"Please correct the duplicate data for %(field_name)s which must be unique "
-"for the %(lookup)s in %(date_field)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:922
-msgid "Please correct the duplicate values below."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:1359
-msgid "The inline value did not match the parent instance."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:1450
-msgid "Select a valid choice. That choice is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/models.py:1594
-#, python-format
-msgid "“%(pk)s” is not a valid value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/utils.py:229
-#, python-format
-msgid ""
-"%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
-"may be ambiguous or it may not exist."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:527
-msgid "Clear"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:528
-msgid "Currently"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:529
-msgid "Change"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:866
-msgid "Unknown"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:867
-msgid "Yes"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/forms/widgets.py:868
-msgid "No"
-msgstr ""
-
-#. Translators: Please do not add spaces around commas.
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:873
-msgid "yes,no,maybe"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:903
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:920
-#, python-format
-msgid "%(size)d byte"
-msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:922
-#, python-format
-msgid "%s KB"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:924
-#, python-format
-msgid "%s MB"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:926
-#, python-format
-msgid "%s GB"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:928
-#, python-format
-msgid "%s TB"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/template/defaultfilters.py:930
-#, python-format
-msgid "%s PB"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:74
-msgid "p.m."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:75
-msgid "a.m."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:80
-msgid "PM"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:81
-msgid "AM"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:153
-msgid "midnight"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dateformat.py:155
-msgid "noon"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:7
-msgid "Monday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:8
-msgid "Tuesday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:9
-msgid "Wednesday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:10
-msgid "Thursday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:11
-msgid "Friday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:12
-msgid "Saturday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:13
-msgid "Sunday"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:16
-msgid "Mon"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:17
-msgid "Tue"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:18
-msgid "Wed"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:19
-msgid "Thu"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:20
-msgid "Fri"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:21
-msgid "Sat"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:22
-#, fuzzy
-msgid "Sun"
-msgstr "День"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:25
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:26
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:27
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:28
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:30
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:31
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:32
-#, fuzzy
-msgid "August"
-msgstr "Август"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:33
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:34
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:35
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:36
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:39
-msgid "jan"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:40
-msgid "feb"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:41
-#, fuzzy
-msgid "mar"
-msgstr "Действия"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:42
-msgid "apr"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:43
-#, fuzzy
-msgid "may"
-msgstr "Май"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:44
-#, fuzzy
-msgid "jun"
-msgstr "День"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:45
-msgid "jul"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:46
-msgid "aug"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:47
-msgid "sep"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:48
-msgid "oct"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:49
-msgid "nov"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:50
-msgid "dec"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:53
-msgctxt "abbrev. month"
-msgid "Jan."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:54
-msgctxt "abbrev. month"
-msgid "Feb."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:55
-msgctxt "abbrev. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:56
-msgctxt "abbrev. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:57
-#, fuzzy
-msgctxt "abbrev. month"
-msgid "May"
-msgstr "Май"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:58
-msgctxt "abbrev. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:59
-msgctxt "abbrev. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:60
-msgctxt "abbrev. month"
-msgid "Aug."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:61
-msgctxt "abbrev. month"
-msgid "Sept."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:62
-msgctxt "abbrev. month"
-msgid "Oct."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:63
-msgctxt "abbrev. month"
-msgid "Nov."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:64
-msgctxt "abbrev. month"
-msgid "Dec."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:67
-msgctxt "alt. month"
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:68
-msgctxt "alt. month"
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:69
-msgctxt "alt. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:70
-msgctxt "alt. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:71
-#, fuzzy
-msgctxt "alt. month"
-msgid "May"
-msgstr "Май"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:72
-msgctxt "alt. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:73
-msgctxt "alt. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:74
-#, fuzzy
-msgctxt "alt. month"
-msgid "August"
-msgstr "Август"
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:75
-msgctxt "alt. month"
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:76
-msgctxt "alt. month"
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:77
-msgctxt "alt. month"
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/dates.py:78
-msgctxt "alt. month"
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/ipv6.py:20
-msgid "This is not a valid IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/text.py:76
-#, python-format
-msgctxt "String to return when truncating text"
-msgid "%(truncated_text)s…"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/text.py:287
-msgid "or"
-msgstr ""
-
-#. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.11/site-packages/django/utils/text.py:306
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:135
-msgid ", "
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:8
-#, python-format
-msgid "%(num)d year"
-msgid_plural "%(num)d years"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:9
-#, python-format
-msgid "%(num)d month"
-msgid_plural "%(num)d months"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:10
-#, python-format
-msgid "%(num)d week"
-msgid_plural "%(num)d weeks"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:11
-#, python-format
-msgid "%(num)d day"
-msgid_plural "%(num)d days"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:12
-#, python-format
-msgid "%(num)d hour"
-msgid_plural "%(num)d hours"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/utils/timesince.py:13
-#, python-format
-msgid "%(num)d minute"
-msgid_plural "%(num)d minutes"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:29
-msgid "Forbidden"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:30
-msgid "CSRF verification failed. Request aborted."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:34
-msgid ""
-"You are seeing this message because this HTTPS site requires a “Referer "
-"header” to be sent by your web browser, but none was sent. This header is "
-"required for security reasons, to ensure that your browser is not being "
-"hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:40
-msgid ""
-"If you have configured your browser to disable “Referer” headers, please re-"
-"enable them, at least for this site, or for HTTPS connections, or for “same-"
-"origin” requests."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:45
-msgid ""
-"If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or "
-"including the “Referrer-Policy: no-referrer” header, please remove them. The "
-"CSRF protection requires the “Referer” header to do strict referer checking. "
-"If you’re concerned about privacy, use alternatives like <a "
-"rel=\"noreferrer\" …> for links to third-party sites."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:54
-msgid ""
-"You are seeing this message because this site requires a CSRF cookie when "
-"submitting forms. This cookie is required for security reasons, to ensure "
-"that your browser is not being hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:60
-msgid ""
-"If you have configured your browser to disable cookies, please re-enable "
-"them, at least for this site, or for “same-origin” requests."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/csrf.py:66
-msgid "More information is available with DEBUG=True."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:44
-msgid "No year specified"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:64
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:115
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:214
-msgid "Date out of range"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:94
-msgid "No month specified"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:147
-msgid "No day specified"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:194
-msgid "No week specified"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:353
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:384
-#, python-format
-msgid "No %(verbose_name_plural)s available"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:680
-#, python-format
-msgid ""
-"Future %(verbose_name_plural)s not available because "
-"%(class_name)s.allow_future is False."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/dates.py:720
-#, python-format
-msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/detail.py:56
-#, python-format
-msgid "No %(verbose_name)s found matching the query"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/list.py:70
-msgid "Page is not “last”, nor can it be converted to an int."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/list.py:77
-#, python-format
-msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/generic/list.py:173
-#, python-format
-msgid "Empty list and “%(class_name)s.allow_empty” is False."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/static.py:49
-msgid "Directory indexes are not allowed here."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/static.py:51
-#, python-format
-msgid "“%(path)s” does not exist"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/static.py:68
-#: venv/lib/python3.11/site-packages/django/views/templates/directory_index.html:8
-#: venv/lib/python3.11/site-packages/django/views/templates/directory_index.html:11
-#, python-format
-msgid "Index of %(directory)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:7
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:204
-msgid "The install worked successfully! Congratulations!"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:206
-#, python-format
-msgid ""
-"View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
-"target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:208
-#, python-format
-msgid ""
-"You are seeing this page because <a href=\"https://docs.djangoproject.com/en/"
-"%(version)s/ref/settings/#debug\" target=\"_blank\" "
-"rel=\"noopener\">DEBUG=True</a> is in your settings file and you have not "
-"configured any URLs."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:217
-msgid "Django Documentation"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:218
-msgid "Topics, references, &amp; how-to’s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:226
-msgid "Tutorial: A Polling App"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:227
-msgid "Get started with Django"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:235
-msgid "Django Community"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/django/views/templates/default_urlconf.html:236
-msgid "Connect, get help, or contribute"
-msgstr ""
-
+#~ msgctxt "alt. month"
+#~ msgid "August"
+#~ msgstr "Август"

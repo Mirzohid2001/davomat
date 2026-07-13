@@ -5,16 +5,29 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from blog.models import Attendance, Employee, MonthlyEmployeeStat, MonthlyProduction, Team, AttendanceImportLog
+from blog.models import (
+    Attendance,
+    Employee,
+    EmployeeAdvanceLoan,
+    LoanDeduction,
+    MonthlyEmployeeStat,
+    MonthlyProduction,
+    Team,
+    AttendanceImportLog,
+)
 from blog.services import (
     calculate_debt_end,
     calculate_monthly_stats,
+    close_advance_loan,
+    create_advance_loan,
     create_initial_attendance_for_new_employee,
     ensure_initial_monthly_stat,
     ensure_monthly_stats_for_month,
     generate_nalivshik_attendance_for_day,
     get_absence_quota_for_period,
     normalize_attendance_status,
+    recalculate_employee_loan_chain,
+    aggregate_salary_currency_totals,
     round_money,
     sync_monthly_stats_for_date,
     YEARLY_ABSENCE_FREE_LIMIT,
@@ -97,6 +110,319 @@ class CalculateDebtEndTests(TestCase):
             currency="UZS",
         )
         self.assertEqual(debt_end, Decimal("-2100000"))
+
+
+class AdvanceLoanTests(TestCase):
+    def setUp(self):
+        self.employee = Employee.objects.create(
+            first_name="Mirzo",
+            last_name="Test",
+            position="Muhandis",
+            employee_type="office",
+        )
+        self.year = 2026
+        self.month = 7
+
+    def _ensure_stat(self, accrued, paid=Decimal("0"), salary=Decimal("10000000")):
+        stat, _ = MonthlyEmployeeStat.objects.update_or_create(
+            employee=self.employee,
+            year=self.year,
+            month=self.month,
+            defaults={
+                "salary": salary,
+                "bonus": Decimal("0"),
+                "penalty": Decimal("0"),
+                "accrued": accrued,
+                "paid": paid,
+                "currency": "UZS",
+                "manual_salary": True,
+                "days_in_month": 31,
+                "worked_days": 31,
+                "debt_start": Decimal("0"),
+                "debt_end": accrued - paid,
+            },
+        )
+        return stat
+
+    def test_create_loan_and_monthly_deduction(self):
+        self._ensure_stat(accrued=Decimal("10000000"))
+        loan = create_advance_loan(
+            self.employee,
+            total_amount=Decimal("56000000"),
+            monthly_deduction=Decimal("4000000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("4000000"))
+        self.assertEqual(stat.debt_end, Decimal("10000000"))
+        loan.refresh_from_db()
+        self.assertEqual(loan.remaining_amount, Decimal("52000000"))
+        self.assertTrue(LoanDeduction.objects.filter(loan=loan, stat=stat).exists())
+
+    def test_no_deduction_without_accrued_or_paid(self):
+        """Hisoblangan va to'langan 0 bo'lsa — ushlab qolish ham 0."""
+        self._ensure_stat(accrued=Decimal("0"), paid=Decimal("0"), salary=Decimal("9800000"))
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("80000000"),
+            monthly_deduction=Decimal("1200000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("0"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("80000000"))
+
+    def test_deduction_when_accrued_zero_but_paid(self):
+        """To'lov kiritilgan, hisoblangan 0 — baribir oylik ushlab qolish qo'llanadi."""
+        self._ensure_stat(accrued=Decimal("0"), paid=Decimal("9800000"), salary=Decimal("9800000"))
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("80000000"),
+            monthly_deduction=Decimal("6000000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("6000000"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("74000000"))
+
+    def test_deduction_capped_by_accrued(self):
+        self._ensure_stat(accrued=Decimal("3000000"))
+        loan = create_advance_loan(
+            self.employee,
+            total_amount=Decimal("56000000"),
+            monthly_deduction=Decimal("4000000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("3000000"))
+        loan.refresh_from_db()
+        self.assertEqual(loan.remaining_amount, Decimal("53000000"))
+
+    def test_loan_deduction_carries_across_months(self):
+        for m in (6, 7):
+            MonthlyEmployeeStat.objects.update_or_create(
+                employee=self.employee,
+                year=self.year,
+                month=m,
+                defaults={
+                    "salary": Decimal("10000000"),
+                    "bonus": Decimal("0"),
+                    "penalty": Decimal("0"),
+                    "accrued": Decimal("10000000"),
+                    "paid": Decimal("0"),
+                    "currency": "UZS",
+                    "manual_salary": True,
+                    "days_in_month": 30,
+                    "worked_days": 30,
+                    "debt_start": Decimal("0"),
+                    "debt_end": Decimal("10000000"),
+                },
+            )
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("56000000"),
+            monthly_deduction=Decimal("4000000"),
+            issued_at=date(self.year, 6, 1),
+        )
+        june = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=6)
+        july = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=7)
+        self.assertEqual(june.loan_deduction, Decimal("4000000"))
+        self.assertEqual(july.loan_deduction, Decimal("4000000"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("48000000"))
+
+    def test_close_loan_stops_future_deductions(self):
+        for m in (7, 8):
+            MonthlyEmployeeStat.objects.update_or_create(
+                employee=self.employee,
+                year=self.year,
+                month=m,
+                defaults={
+                    "salary": Decimal("10000000"),
+                    "bonus": Decimal("0"),
+                    "penalty": Decimal("0"),
+                    "accrued": Decimal("10000000"),
+                    "paid": Decimal("0"),
+                    "currency": "UZS",
+                    "manual_salary": True,
+                    "days_in_month": 31,
+                    "worked_days": 31,
+                    "debt_start": Decimal("0"),
+                    "debt_end": Decimal("10000000"),
+                },
+            )
+        loan = create_advance_loan(
+            self.employee,
+            total_amount=Decimal("10000000"),
+            monthly_deduction=Decimal("4000000"),
+            issued_at=date(self.year, 7, 1),
+        )
+        close_advance_loan(loan)
+        july = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=7)
+        august = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=8)
+        self.assertEqual(july.loan_deduction, Decimal("0"))
+        self.assertEqual(august.loan_deduction, Decimal("0"))
+        loan.refresh_from_db()
+        self.assertFalse(loan.is_active)
+
+    def test_loan_deduction_does_not_affect_salary_debt(self):
+        """Oldindan qarz ushlab qolish oylik qarzdorlik formulasiiga aralashmaydi."""
+        debt_end = calculate_debt_end(
+            debt_start=Decimal("719769"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+        )
+        self.assertEqual(debt_end, Decimal("719769"))
+
+    def test_recalculate_is_idempotent(self):
+        self._ensure_stat(accrued=Decimal("10000000"))
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("20000000"),
+            monthly_deduction=Decimal("4000000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        first_deduction = stat.loan_deduction
+        first_debt_end = stat.debt_end
+        recalculate_employee_loan_chain(self.employee, self.year, self.month)
+        stat.refresh_from_db()
+        self.assertEqual(stat.loan_deduction, first_deduction)
+        self.assertEqual(stat.debt_end, first_debt_end)
+
+
+class SalaryCurrencyTotalsTests(TestCase):
+    def setUp(self):
+        self.employee = Employee.objects.create(
+            first_name="Jami",
+            last_name="Test",
+            position="Muhandis",
+            employee_type="office",
+        )
+
+    def _stat(self, **kwargs):
+        defaults = dict(
+            employee=self.employee,
+            year=2026,
+            month=7,
+            salary=Decimal("10000000"),
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            accrued=Decimal("0"),
+            paid=Decimal("14000000"),
+            loan_deduction=Decimal("9000000"),
+            debt_start=Decimal("-1941769"),
+            debt_end=Decimal("-15941769"),
+            currency="UZS",
+            manual_salary=True,
+            days_in_month=31,
+            worked_days=31,
+        )
+        defaults.update(kwargs)
+        return MonthlyEmployeeStat.objects.create(**defaults)
+
+    def test_totals_follow_debt_formula(self):
+        stat = self._stat()
+        totals = aggregate_salary_currency_totals([stat])
+        uzs = totals["UZS"]
+        self.assertEqual(uzs["paid"], Decimal("14000000"))
+        self.assertEqual(uzs["loan_deduction"], Decimal("9000000"))
+        self.assertEqual(uzs["net_received"], Decimal("5000000"))
+        self.assertEqual(uzs["debt_start"], Decimal("-1941769"))
+        self.assertEqual(
+            uzs["debt_end"],
+            calculate_debt_end(uzs["debt_start"], uzs["accrued"], uzs["paid"], "UZS"),
+        )
+        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
+
+    def test_totals_sum_multiple_employees(self):
+        emp2 = Employee.objects.create(
+            first_name="Ikkinchi",
+            last_name="Xodim",
+            position="Haydovchi",
+            employee_type="full",
+        )
+        stats = [
+            self._stat(),
+            MonthlyEmployeeStat.objects.create(
+                employee=emp2,
+                year=2026,
+                month=7,
+                salary=Decimal("5000000"),
+                bonus=Decimal("0"),
+                penalty=Decimal("0"),
+                accrued=Decimal("5000000"),
+                paid=Decimal("5000000"),
+                loan_deduction=Decimal("0"),
+                debt_start=Decimal("0"),
+                debt_end=Decimal("0"),
+                currency="UZS",
+                manual_salary=True,
+                days_in_month=31,
+                worked_days=20,
+            ),
+        ]
+        totals = aggregate_salary_currency_totals(stats)
+        uzs = totals["UZS"]
+        self.assertEqual(uzs["paid"], Decimal("19000000"))
+        self.assertEqual(uzs["accrued"], Decimal("5000000"))
+        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
+
+
+class AdvanceLoanViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="loanadmin", password="secret123")
+        self.client = Client()
+        self.client.login(username="loanadmin", password="secret123")
+        self.employee = Employee.objects.create(
+            first_name="Ali",
+            last_name="Karimov",
+            position="Muhandis",
+            employee_type="office",
+        )
+        MonthlyEmployeeStat.objects.create(
+            employee=self.employee,
+            year=2026,
+            month=7,
+            salary=Decimal("10000000"),
+            accrued=Decimal("10000000"),
+            currency="UZS",
+            manual_salary=True,
+            days_in_month=31,
+            worked_days=31,
+        )
+
+    def test_create_loan_via_view(self):
+        url = reverse("advance_loan_create", args=[self.employee.id])
+        response = self.client.post(
+            url,
+            {
+                "total_amount": "56000000",
+                "monthly_deduction": "4000000",
+                "issued_at": "2026-07-01",
+                "currency": "UZS",
+                "note": "avans",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
+        stat = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=7)
+        self.assertEqual(stat.loan_deduction, Decimal("4000000"))
 
 
 class NewEmployeeTests(TestCase):

@@ -209,7 +209,7 @@
             <th>{% trans "F.I.O" %}</th>
             <th>{% trans "Lavozim" %}</th>
             <th>{% trans "Turi" %}</th>
-            <th>{% trans "Oylik" %}</th>
+            <th>{% trans "Oklad" %}</th>
             <th>{% trans "Mukofot" %}</th>
             <th>{% trans "Jarima" %}</th>
             <th>{% trans "Oy kunlari" %}</th>
@@ -218,6 +218,9 @@
             <th>{% trans "Kelmagan kunlar" %}</th>
             <th>{% trans "Hisoblangan" %}</th>
             <th>{% trans "To'langan" %}</th>
+            <th>{% trans "Ushlab qolish" %}</th>
+            <th>{% trans "Qo'lga oladi" %}</th>
+            <th>{% trans "Qolgan qarz" %}</th>
             <th>{% trans "Qarzdorlik (boshl.)" %}</th>
             <th>{% trans "Qarzdorlik (oxiri)" %}</th>
         </tr>
@@ -274,12 +277,26 @@
                 {% endfor %}
                 <button type="button" class="btn-edit-salary" data-bs-toggle="modal" data-bs-target="#editModal{{ stat.id }}" aria-label="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil-square"></i></button>
             </td>
+            <td class="salary-money-cell {% if stat.loan_deduction > 0 %}table-info{% endif %}">
+                <span class="salary-money">{{ stat.loan_deduction|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
+            </td>
+            <td class="salary-money-cell {% if stat.net_received > 0 %}table-success{% endif %}">
+                <span class="salary-money">{{ stat.net_received|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
+            </td>
+            <td class="salary-money-cell {% if stat.active_loan_remaining > 0 %}table-warning{% endif %}">
+                <span class="salary-money">{{ stat.active_loan_remaining|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span>
+                {% if stat.active_loans|length > 1 %}
+                <br><small class="text-danger" title="{% trans 'Bir nechta qarz yozuvi bor — jami qoldiq' %}">
+                    {{ stat.active_loans|length }} {% trans "ta qarz" %}
+                </small>
+                {% endif %}
+            </td>
             <td class="salary-money-cell {% if stat.debt_start < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
             <td class="salary-money-cell {% if stat.debt_end < 0 %}table-danger{% endif %}"><span class="salary-money">{{ stat.debt_end|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="15" class="salary-empty-cell">
+            <td colspan="18" class="salary-empty-cell">
                 <div class="salary-empty">
                   <div class="salary-empty__icon"><i class="bi bi-inbox"></i></div>
                   <p class="salary-empty__title">{% trans "Ma'lumot topilmadi" %}</p>
@@ -301,6 +318,21 @@
             <td>
                 {% for cur, vals in currency_totals.items %}
                     <div class="salary-total-line"><span class="salary-money">{{ vals.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.loan_deduction|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.net_received|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                {% endfor %}
+            </td>
+            <td>
+                {% for cur, vals in currency_totals.items %}
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.active_loan_remaining|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
                 {% endfor %}
             </td>
             <td>
@@ -346,7 +378,7 @@
             </div>
             <div class="salary-mobile-card__body">
                 <div class="salary-mobile-card__row">
-                    <span class="salary-mobile-card__label">{% trans "Oylik" %}:</span>
+                    <span class="salary-mobile-card__label">{% trans "Oklad" %}:</span>
                     <span class="salary-mobile-card__value"><span class="salary-money">{{ stat.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ stat.currency }}</span></span>
                 </div>
                 <div class="salary-mobile-card__row">
@@ -427,6 +459,18 @@
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.paid|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">{% trans "Ushlab qolish" %}:</span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.loan_deduction|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
+            </div>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">{% trans "Qo'lga oladi" %}:</span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.net_received|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
+            </div>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">{% trans "Qolgan qarz" %}:</span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.active_loan_remaining|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
+            </div>
+            <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">{% trans "Qarzdorlik (boshl.)" %}:</span>
                 <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.debt_start|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
@@ -442,6 +486,8 @@
 
   <aside class="salary-footnote">
     {% blocktrans %}<strong>*Ishchi kunlar:</strong> Faqat to'liq stavka xodimlar uchun hisobga olinadi (yakshanba va bayram kunlari chiqarilgan). 15 kunlik ishchilar har kuni ishlaydi, haftada 1 kun keladigan xodimlar uchun oyda 4 kun optimal, qorovullar uchun oyda 10 kun optimal. Ofis xodimlari esa davomatsiz to'liq oylik oladi.{% endblocktrans %}
+    <br>
+    {% trans "Ushlab qolish — oldindan qarzdan oylik to'lovdan ayiriladi (faqat hisoblangan yoki to'langan summa bo'lganda). Qolgan qarz — alohida oldindan qarz qoldig'i. Qarzdorlik ustunlari — oylik hisob-kitobi (alohida)." %}
   </aside>
 
 </div><!-- .salary-page -->
@@ -476,7 +522,7 @@
                         </div>
                         <div class="salary-modal__grid">
                         <div class="salary-modal__field">
-                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label">{% trans "Oylik" %}</label>
+                            <label for="id_salary_{{ stat.id }}" class="salary-modal__label">{% trans "Oklad" %}</label>
                             <input type="number" name="salary" value="{{ stat.salary|stringformat:".2f" }}" step="any" class="form-control salary-modal__input" id="id_salary_{{ stat.id }}" required>
                         </div>
                         <div class="salary-modal__field">
@@ -532,6 +578,60 @@
                             <small class="salary-modal__field-hint">{% trans "Har bir to'lov alohida saqlanadi — isbot uchun sana muhim." %}</small>
                         </div>
                         </div>
+                    </div>
+
+                    <div class="salary-modal__section">
+                        <div class="salary-modal__section-head">
+                            <span class="salary-modal__section-icon salary-modal__section-icon--rose"><i class="bi bi-piggy-bank"></i></span>
+                            <span class="salary-modal__section-title">{% trans "Oldindan qarz" %}</span>
+                        </div>
+                        {% if stat.active_loans|length > 1 %}
+                        <div class="alert alert-warning py-2 small mb-3">
+                            {% trans "Diqqat: bir nechta faol qarz bor. Ushlab qolish ketma-ket har ikkisidan ham olinadi." %}
+                        </div>
+                        {% endif %}
+                        {% if stat.active_loans %}
+                        <ul class="salary-payment-list mb-3">
+                            {% for loan in stat.active_loans %}
+                            <li class="salary-payment-item">
+                                <div class="salary-payment-item__main">
+                                    <span class="salary-payment-item__amount">{{ loan.remaining_amount|floatformat:0|intcomma }} / {{ loan.total_amount|floatformat:0|intcomma }} {{ loan.currency }}</span>
+                                    <span class="salary-payment-item__note">{% trans "Har oy" %}: {{ loan.monthly_deduction|floatformat:0|intcomma }} · {{ loan.issued_at|date:"d.m.Y" }}{% if loan.note %} · {{ loan.note }}{% endif %}</span>
+                                </div>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger js-close-loan-btn"
+                                        data-url="{% url 'advance_loan_close' loan.id %}?next={{ request.get_full_path|urlencode }}"
+                                        data-csrf="{{ csrf_token }}">
+                                    {% trans "Yopish" %}
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="salary-payment-empty mb-3"><i class="bi bi-piggy-bank"></i> {% trans "Faol qarz yo'q" %}</div>
+                        {% endif %}
+                        <div class="salary-modal__grid js-loan-fields" data-stat-id="{{ stat.id }}" data-employee-id="{{ stat.employee.id }}" data-currency="{{ stat.currency }}" data-create-url="{% url 'advance_loan_create' stat.employee.id %}?next={{ request.get_full_path|urlencode }}">
+                            <div class="salary-modal__field">
+                                <label class="salary-modal__label" for="loan_total_{{ stat.id }}">{% trans "Jami qarz" %}</label>
+                                <input type="number" step="any" min="0" class="form-control salary-modal__input js-loan-total" id="loan_total_{{ stat.id }}" placeholder="{% trans 'Masalan: 56 000 000' %}">
+                            </div>
+                            <div class="salary-modal__field">
+                                <label class="salary-modal__label" for="loan_monthly_{{ stat.id }}">{% trans "Oylik ushlab qolish" %}</label>
+                                <input type="number" step="any" min="0" class="form-control salary-modal__input js-loan-monthly" id="loan_monthly_{{ stat.id }}" placeholder="{% trans 'Masalan: 4 000 000' %}">
+                            </div>
+                            <div class="salary-modal__field">
+                                <label class="salary-modal__label" for="loan_issued_{{ stat.id }}">{% trans "Qarz berilgan sana" %}</label>
+                                <input type="date" class="form-control salary-modal__input js-loan-issued" id="loan_issued_{{ stat.id }}" value="{{ year }}-{{ month|stringformat:'02d' }}-01">
+                            </div>
+                            <div class="salary-modal__field salary-modal__field--wide">
+                                <label class="salary-modal__label" for="loan_note_{{ stat.id }}">{% trans "Izoh" %}</label>
+                                <input type="text" class="form-control salary-modal__input js-loan-note" id="loan_note_{{ stat.id }}" placeholder="{% trans 'Masalan: oldindan avans' %}">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary js-loan-create-btn mt-2" data-stat-id="{{ stat.id }}">
+                            <i class="bi bi-plus-circle"></i> {% trans "Yangi qarz qo'shish" %}
+                        </button>
+                        <small class="salary-modal__field-hint d-block mt-2">{% trans "Qarzni saqlash uchun «Yangi qarz qo'shish» yoki pastdagi «Saqlash» tugmasini bosing." %}</small>
                     </div>
 
                     <div class="salary-modal__section">
@@ -949,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = document.getElementById('salary-row-' + stat.id);
         if (!row) return false;
         const cells = row.querySelectorAll('td');
-        if (cells.length < 15) return false;
+        if (cells.length < 18) return false;
         const cur = stat.currency;
         setMoneyCell(cells[4], stat.salary, cur, false);
         setMoneyCell(cells[5], stat.bonus, cur, true);
@@ -967,44 +1067,146 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         cells[12].innerHTML = paidHtml + ' ';
         if (paidBtn) cells[12].appendChild(paidBtn);
-        setMoneyCell(cells[13], stat.debt_start, cur, false);
-        setMoneyCell(cells[14], stat.debt_end, cur, false);
+        setMoneyCell(cells[13], stat.loan_deduction || 0, cur, false);
+        setMoneyCell(cells[14], stat.net_received || 0, cur, false);
+        setMoneyCell(cells[15], stat.active_loan_remaining || 0, cur, false);
+        setMoneyCell(cells[16], stat.debt_start, cur, false);
+        setMoneyCell(cells[17], stat.debt_end, cur, false);
         cells[12].classList.remove('table-success', 'table-warning');
         if (stat.paid >= stat.accrued) {
             cells[12].classList.add('table-success');
         } else if (stat.paid === 0) {
             cells[12].classList.add('table-warning');
         }
-        cells[13].classList.toggle('table-danger', stat.debt_start < 0);
-        cells[14].classList.toggle('table-danger', stat.debt_end < 0);
+        cells[13].classList.toggle('table-info', (stat.loan_deduction || 0) > 0);
+        cells[14].classList.toggle('table-success', (stat.net_received || 0) > 0);
+        cells[15].classList.toggle('table-warning', (stat.active_loan_remaining || 0) > 0);
+        cells[16].classList.toggle('table-danger', stat.debt_start < 0);
+        cells[17].classList.toggle('table-danger', stat.debt_end < 0);
         return true;
     }
 
-    // Har bir modal uchun form submit handler
-    {% for stat in stats %}
-    const form{{ stat.id }} = document.querySelector('#editModal{{ stat.id }} form');
-    if (form{{ stat.id }}) {
-        form{{ stat.id }}.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalHtml = submitBtn.innerHTML;
-            
-            // Loading state
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {% trans "Saqlanmoqda..." %}';
-            submitBtn.disabled = true;
-            
-            fetch(this.action, {
+    function getCsrfToken() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        return input ? input.value : '';
+    }
+
+    function collectLoanPayload(container) {
+        const total = container.querySelector('.js-loan-total');
+        const monthly = container.querySelector('.js-loan-monthly');
+        const issued = container.querySelector('.js-loan-issued');
+        const note = container.querySelector('.js-loan-note');
+        if (!total || !total.value.trim()) {
+            return null;
+        }
+        if (!monthly || !monthly.value.trim() || !issued || !issued.value.trim()) {
+            throw new Error("{% trans 'Qarz uchun jami summa, oylik ushlab qolish va sana kerak.'|escapejs %}");
+        }
+        const formData = new FormData();
+        formData.append('total_amount', total.value);
+        formData.append('monthly_deduction', monthly.value);
+        formData.append('issued_at', issued.value);
+        formData.append('note', note ? note.value : '');
+        formData.append('currency', container.dataset.currency || 'UZS');
+        formData.append('csrfmiddlewaretoken', getCsrfToken());
+        return formData;
+    }
+
+    function submitLoanCreate(container) {
+        const formData = collectLoanPayload(container);
+        if (!formData) {
+            return Promise.resolve();
+        }
+        return fetch(container.dataset.createUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken(),
+            },
+        }).then(function(response) { return response.json(); })
+          .then(function(data) {
+            if (!data.success) {
+                throw new Error(data.message || "{% trans 'Qarz saqlanmadi'|escapejs %}");
+            }
+        });
+    }
+
+    document.querySelectorAll('.js-loan-create-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const container = btn.closest('.salary-modal__body').querySelector('.js-loan-fields[data-stat-id="' + btn.dataset.statId + '"]');
+            if (!container) return;
+            submitLoanCreate(container)
+                .then(function() { window.location.reload(); })
+                .catch(function(err) { alert(err.message || "{% trans 'Xatolik yuz berdi'|escapejs %}"); });
+        });
+    });
+
+    document.querySelectorAll('.js-close-loan-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (!confirm("{% trans 'Qarzni yopishni tasdiqlaysizmi?'|escapejs %}")) {
+                return;
+            }
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', btn.dataset.csrf || getCsrfToken());
+            fetch(btn.dataset.url, {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': btn.dataset.csrf || getCsrfToken(),
+                },
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || "{% trans 'Xatolik yuz berdi'|escapejs %}");
                 }
             })
-            .then(response => response.json())
-            .then(data => {
+            .catch(function() { window.location.reload(); });
+        });
+    });
+
+    // Har bir modal uchun form submit handler
+    {% for stat in stats %}
+    const form{{ stat.id }} = document.querySelector('#editModal{{ stat.id }} form.salary-modal__form');
+    if (form{{ stat.id }}) {
+        form{{ stat.id }}.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const loanContainer = this.querySelector('.js-loan-fields[data-stat-id="{{ stat.id }}"]');
+            const submitBtn = this.querySelector('.salary-modal__btn-save');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {% trans "Saqlanmoqda..." %}';
+            submitBtn.disabled = true;
+
+            const saveSalary = function() {
+                const formData = new FormData(form{{ stat.id }});
+                return fetch(form{{ stat.id }}.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                }).then(function(response) { return response.json(); });
+            };
+
+            let loanPromise;
+            try {
+                loanPromise = loanContainer ? submitLoanCreate(loanContainer) : Promise.resolve();
+            } catch (err) {
+                alert(err.message);
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+                return;
+            }
+
+            loanPromise
+                .then(saveSalary)
+                .then(function(data) {
                 if (data.success) {
                     // Success message
                     const toast = document.createElement('div');
@@ -1031,11 +1233,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert("{{ msg_error_prefix|escapejs }} " + (data.message || "{{ msg_unknown_error|escapejs }}"));
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error:', error);
-                alert("{{ msg_error_prefix|escapejs }} " + error.message);
+                alert("{{ msg_error_prefix|escapejs }} " + (error && error.message ? error.message : "{{ msg_unknown_error|escapejs }}"));
             })
-            .finally(() => {
+            .finally(function() {
                 // Reset button
                 submitBtn.innerHTML = originalHtml;
                 submitBtn.disabled = false;

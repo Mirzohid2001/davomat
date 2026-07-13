@@ -1,4 +1,5 @@
 from django import forms
+from decimal import Decimal
 from django.utils.translation import gettext_lazy as _
 from .models import Attendance, Employee, DayOff, NalivshikShiftOverride, Team, MonthlyProduction
 import datetime
@@ -163,6 +164,33 @@ class SalaryStatEditForm(forms.ModelForm):
             'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
             'penalty': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'min': '0'}),
         }
+
+
+class AdvanceLoanForm(forms.Form):
+    total_amount = forms.DecimalField(
+        label=_("Jami qarz"),
+        min_value=Decimal('0.01'),
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'min': '0'}),
+    )
+    monthly_deduction = forms.DecimalField(
+        label=_("Oylik ushlab qolish"),
+        min_value=Decimal('0.01'),
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': 'any', 'min': '0'}),
+    )
+    issued_at = forms.DateField(
+        label=_("Qarz berilgan sana"),
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+    )
+    note = forms.CharField(
+        label=_("Izoh"),
+        required=False,
+        max_length=255,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
 
 
 class ProductionBonusSettingsForm(forms.Form):

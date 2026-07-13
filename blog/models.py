@@ -207,6 +207,13 @@ class MonthlyEmployeeStat(models.Model):
     paid_at = models.DateField("To'lov sanasi", null=True, blank=True)
     debt_start = models.DecimalField("Boshlang'ich qarzdorlik", max_digits=12, decimal_places=2, default=0)
     debt_end = models.DecimalField("Oxirgi qarzdorlik", max_digits=12, decimal_places=2, default=0)
+    loan_deduction = models.DecimalField(
+        "Qarzdan ushlab qolish",
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Shu oy oylikdan ushlab qolingan oldindan qarz summasi.",
+    )
     currency = models.CharField("Valyuta", max_length=3, choices=CURRENCY_CHOICES, default='UZS')
     manual_salary = models.BooleanField("Oylik faqat qo‘lda kiritiladi (ofis xodimi)", default=False)
     calculated_at = models.DateTimeField("Oxirgi hisoblash vaqti", null=True, blank=True)
@@ -219,6 +226,62 @@ class MonthlyEmployeeStat(models.Model):
 
     def __str__(self):
         return f"{self.year}-{self.month:02d} - {self.employee}"
+
+
+class EmployeeAdvanceLoan(models.Model):
+    """Xodimga berilgan oldindan qarz — har oy belgilangan summa ushlab qolinadi."""
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name='advance_loans',
+        verbose_name=_("Xodim"),
+    )
+    total_amount = models.DecimalField(_("Jami qarz"), max_digits=12, decimal_places=2)
+    remaining_amount = models.DecimalField(_("Qolgan qarz"), max_digits=12, decimal_places=2)
+    monthly_deduction = models.DecimalField(_("Oylik ushlab qolish"), max_digits=12, decimal_places=2)
+    issued_at = models.DateField(_("Qarz berilgan sana"))
+    note = models.CharField(_("Izoh"), max_length=255, blank=True, default='')
+    currency = models.CharField(_("Valyuta"), max_length=3, choices=MonthlyEmployeeStat.CURRENCY_CHOICES, default='UZS')
+    is_active = models.BooleanField(_("Faol"), default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Oldindan qarz")
+        verbose_name_plural = _("Oldindan qarzlar")
+        ordering = ['issued_at', 'pk']
+
+    def __str__(self):
+        return f"{self.employee} — {self.remaining_amount}/{self.total_amount} {self.currency}"
+
+
+class LoanDeduction(models.Model):
+    """Berilgan oyda oldindan qarzdan ushlab qolingan summa."""
+
+    loan = models.ForeignKey(
+        EmployeeAdvanceLoan,
+        on_delete=models.CASCADE,
+        related_name='deductions',
+        verbose_name=_("Qarz"),
+    )
+    stat = models.ForeignKey(
+        MonthlyEmployeeStat,
+        on_delete=models.CASCADE,
+        related_name='loan_deductions',
+        verbose_name=_("Oylik statistika"),
+    )
+    amount = models.DecimalField(_("Ushlab qolish"), max_digits=12, decimal_places=2)
+    deducted_at = models.DateField(_("Sana"))
+
+    class Meta:
+        verbose_name = _("Qarz ushlab qolish")
+        verbose_name_plural = _("Qarz ushlab qolishlar")
+        ordering = ['deducted_at', 'pk']
+        unique_together = ('loan', 'stat')
+
+    def __str__(self):
+        return f"{self.deducted_at} — {self.amount}"
 
 
 class SalaryPayment(models.Model):

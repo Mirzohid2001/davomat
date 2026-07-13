@@ -2,10 +2,11 @@ from datetime import date, timedelta, datetime
 from calendar import monthrange
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment
+from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment, EmployeeAdvanceLoan, LoanDeduction
 
 
 # Oylik hisobda ishlangan kun sifatida qabul qilinadigan davomat holatlari
@@ -220,7 +221,7 @@ def round_money(amount, currency: str) -> Decimal:
 
 def calculate_debt_end(debt_start, accrued, paid, currency: str) -> Decimal:
     """
-    Qarzdorlik oxirini hisoblaydi.
+    Oylik qarzdorlik oxirini hisoblaydi (oldindan qarz alohida kuzatiladi).
     Musbat — kompaniya xodimga qarzdor; manfiy — xodim ortiqcha olgan (avans).
     """
     debt_start = round_money(debt_start, currency)
@@ -597,6 +598,213 @@ def apply_salary_payment_changes(stat, delete_ids, new_amount=None, new_date=Non
     sync_stat_paid_from_payments(stat)
 
 
+def _loan_deductions_before(loan: EmployeeAdvanceLoan, year: int, month: int) -> Decimal:
+    """Berilgan oydan oldin ushlab qolingan jami summa."""
+    from django.db.models import Sum
+
+    total = LoanDeduction.objects.filter(loan=loan).filter(
+        Q(stat__year__lt=year) | Q(stat__year=year, stat__month__lt=month)
+    ).aggregate(total=Sum('amount'))['total']
+    return round_money(total or Decimal('0'), loan.currency)
+
+
+def _loan_deduction_base(stat: MonthlyEmployeeStat) -> Decimal:
+    """
+    Ushlab qolish faqat haqiqiy pul oqimi bo'lganda: hisoblangan yoki to'langan.
+    Oklad yozilgan, lekin oylik berilmagan oyda ushlab qolmaymiz.
+    """
+    return round_money(max(stat.accrued, stat.paid), stat.currency)
+
+
+def apply_loan_deductions_for_stat(stat: MonthlyEmployeeStat) -> Decimal:
+    """
+    Shu oy uchun faol qarzlardan ushlab qolishni hisoblaydi.
+    Mavjud yozuvlarni qayta hisoblash uchun avval o'chiriladi.
+    """
+    from calendar import monthrange
+
+    LoanDeduction.objects.filter(stat=stat).delete()
+    month_end = date(stat.year, stat.month, monthrange(stat.year, stat.month)[1])
+    loans = EmployeeAdvanceLoan.objects.filter(
+        employee=stat.employee,
+        currency=stat.currency,
+        is_active=True,
+        issued_at__lte=month_end,
+    ).order_by('issued_at', 'pk')
+
+    total_holdback = Decimal('0')
+    available = _loan_deduction_base(stat)
+
+    for loan in loans:
+        if loan.issued_at.year > stat.year or (
+            loan.issued_at.year == stat.year and loan.issued_at.month > stat.month
+        ):
+            continue
+
+        prior = _loan_deductions_before(loan, stat.year, stat.month)
+        remaining = round_money(loan.total_amount - prior, loan.currency)
+        if remaining <= 0:
+            continue
+
+        holdback = min(loan.monthly_deduction, remaining, available)
+        holdback = round_money(holdback, stat.currency)
+        if holdback <= 0:
+            continue
+
+        LoanDeduction.objects.create(
+            loan=loan,
+            stat=stat,
+            amount=holdback,
+            deducted_at=month_end,
+        )
+        total_holdback += holdback
+        available -= holdback
+        if available <= 0:
+            break
+
+    return round_money(total_holdback, stat.currency)
+
+
+def sync_loan_remaining_amounts(employee: Employee):
+    """Har bir qarzning qolgan summasini ushlab qolishlar bo'yicha yangilaydi."""
+    from django.db.models import Sum
+
+    for loan in EmployeeAdvanceLoan.objects.filter(employee=employee):
+        deducted = LoanDeduction.objects.filter(loan=loan).aggregate(total=Sum('amount'))['total']
+        deducted = round_money(deducted or Decimal('0'), loan.currency)
+        remaining = round_money(max(Decimal('0'), loan.total_amount - deducted), loan.currency)
+        loan.remaining_amount = remaining
+        if loan.is_active:
+            loan.is_active = remaining > 0
+        loan.save(update_fields=['remaining_amount', 'is_active', 'updated_at'])
+
+
+def recalculate_employee_loan_chain(employee: Employee, from_year: int, from_month: int):
+    """
+    Berilgan oydan boshlab qarz ushlab qolishlarni va qarzdorlikni qayta hisoblaydi.
+    Keyingi oylarning debt_start qiymatlari ham yangilanadi.
+    """
+    stats = MonthlyEmployeeStat.objects.filter(employee=employee).filter(
+        Q(year__gt=from_year) | Q(year=from_year, month__gte=from_month)
+    ).order_by('year', 'month')
+
+    prev_debt_end = None
+    for stat in stats:
+        if prev_debt_end is not None:
+            stat.debt_start = prev_debt_end
+        else:
+            prev_stat = get_previous_month_stat(employee, stat.year, stat.month)
+            stat.debt_start = round_money(
+                prev_stat.debt_end if prev_stat else Decimal('0'),
+                stat.currency,
+            )
+
+        loan_deduction = apply_loan_deductions_for_stat(stat)
+        stat.loan_deduction = loan_deduction
+        stat.debt_end = calculate_debt_end(
+            stat.debt_start, stat.accrued, stat.paid, stat.currency
+        )
+        stat.save(update_fields=['debt_start', 'loan_deduction', 'debt_end'])
+        prev_debt_end = stat.debt_end
+
+    sync_loan_remaining_amounts(employee)
+
+
+def create_advance_loan(
+    employee: Employee,
+    total_amount,
+    monthly_deduction,
+    issued_at: date,
+    note: str = '',
+    currency: str = 'UZS',
+) -> EmployeeAdvanceLoan:
+    """Yangi oldindan qarz yaratadi va tegishli oylarni qayta hisoblaydi."""
+    currency = currency or 'UZS'
+    total_amount = round_money(total_amount, currency)
+    monthly_deduction = round_money(monthly_deduction, currency)
+    if total_amount <= 0:
+        raise ValueError("Jami qarz musbat bo'lishi kerak.")
+    if monthly_deduction <= 0:
+        raise ValueError("Oylik ushlab qolish musbat bo'lishi kerak.")
+
+    loan = EmployeeAdvanceLoan.objects.create(
+        employee=employee,
+        total_amount=total_amount,
+        remaining_amount=total_amount,
+        monthly_deduction=monthly_deduction,
+        issued_at=issued_at,
+        note=(note or '').strip(),
+        currency=currency,
+        is_active=True,
+    )
+    recalculate_employee_loan_chain(employee, issued_at.year, issued_at.month)
+    loan.refresh_from_db()
+    return loan
+
+
+def close_advance_loan(loan: EmployeeAdvanceLoan):
+    """Qarzni yopadi — kelajakdagi ushlab qolishlar to'xtaydi."""
+    loan.is_active = False
+    loan.save(update_fields=['is_active', 'updated_at'])
+    recalculate_employee_loan_chain(loan.employee, loan.issued_at.year, loan.issued_at.month)
+    sync_loan_remaining_amounts(loan.employee)
+
+
+def get_active_loan_remaining_total(employee: Employee, currency: str = 'UZS') -> Decimal:
+    """Xodimning faol qarzlari bo'yicha jami qolgan summa."""
+    from django.db.models import Sum
+
+    total = EmployeeAdvanceLoan.objects.filter(
+        employee=employee,
+        currency=currency,
+        is_active=True,
+    ).aggregate(total=Sum('remaining_amount'))['total']
+    return round_money(total or Decimal('0'), currency)
+
+
+def aggregate_salary_currency_totals(stats) -> dict:
+    """
+    Jadval «Jami» qatori uchun valyuta bo'yicha yig'indilar.
+    debt_end har doim debt_start + accrued - paid formulasi bo'yicha hisoblanadi.
+    """
+    from collections import defaultdict
+
+    totals = defaultdict(lambda: {
+        'salary': Decimal('0'),
+        'bonus': Decimal('0'),
+        'penalty': Decimal('0'),
+        'accrued': Decimal('0'),
+        'paid': Decimal('0'),
+        'loan_deduction': Decimal('0'),
+        'net_received': Decimal('0'),
+        'active_loan_remaining': Decimal('0'),
+        'debt_start': Decimal('0'),
+        'debt_end': Decimal('0'),
+    })
+
+    for stat in stats:
+        cur = stat.currency
+        bucket = totals[cur]
+        bucket['salary'] += round_money(stat.salary, cur)
+        bucket['bonus'] += round_money(stat.bonus, cur)
+        bucket['penalty'] += round_money(stat.penalty, cur)
+        bucket['accrued'] += round_money(stat.accrued, cur)
+        bucket['paid'] += round_money(stat.paid, cur)
+        bucket['loan_deduction'] += round_money(stat.loan_deduction, cur)
+        bucket['net_received'] += round_money(
+            max(stat.paid - stat.loan_deduction, Decimal('0')), cur
+        )
+        bucket['active_loan_remaining'] += get_active_loan_remaining_total(stat.employee, cur)
+        bucket['debt_start'] += round_money(stat.debt_start, cur)
+
+    for cur, bucket in totals.items():
+        bucket['debt_end'] = calculate_debt_end(
+            bucket['debt_start'], bucket['accrued'], bucket['paid'], cur
+        )
+
+    return dict(totals)
+
+
 def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
     """
     Oylik statistikani hisoblaydi.
@@ -760,6 +968,7 @@ def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
                     'paid_at': paid_at,
                     'debt_start': debt_start,
                     'debt_end': debt_end,
+                    'loan_deduction': Decimal('0'),
                     'manual_salary': manual_salary,
                     'currency': currency,
                     'calculated_at': now,
@@ -786,6 +995,8 @@ def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
                     'debt_end', 'manual_salary', 'currency', 'calculated_at',
                 ]
                 stat_obj.save(update_fields=update_fields)
+
+        recalculate_employee_loan_chain(employee, year, month)
 
 
 def sync_monthly_stats_for_date(employee, day: date):

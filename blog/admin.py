@@ -11,6 +11,8 @@ from .models import (
     NalivshikShiftOverride,
     MonthlyProduction,
     SalaryPayment,
+    EmployeeAdvanceLoan,
+    LoanDeduction,
 )
 
 
@@ -70,6 +72,7 @@ class MonthlyEmployeeStatAdmin(ImportExportModelAdmin):
         "bonus",
         "accrued",
         "paid",
+        "loan_deduction",
         "debt_start",
         "debt_end",
         "currency",
@@ -82,6 +85,27 @@ class NalivshikShiftOverrideAdmin(admin.ModelAdmin):
     list_display = ("date", "day_team", "night_team", "comment")
     list_filter = ("day_team", "night_team")
     search_fields = ("comment",)
+
+
+@admin.register(EmployeeAdvanceLoan)
+class EmployeeAdvanceLoanAdmin(admin.ModelAdmin):
+    list_display = (
+        "employee",
+        "total_amount",
+        "remaining_amount",
+        "monthly_deduction",
+        "issued_at",
+        "currency",
+        "is_active",
+    )
+    list_filter = ("is_active", "currency", "issued_at")
+    search_fields = ("employee__first_name", "employee__last_name", "note")
+
+
+@admin.register(LoanDeduction)
+class LoanDeductionAdmin(admin.ModelAdmin):
+    list_display = ("loan", "stat", "amount", "deducted_at")
+    list_filter = ("deducted_at",)
 
 
 @admin.register(SalaryPayment)
