@@ -308,7 +308,17 @@
     </tbody>
     <tfoot>
         <tr class="text-center">
-            <td colspan="10">{% trans "Jami" %}</td>
+            <td colspan="4">{% trans "Jami" %}</td>
+            <td class="salary-money-cell">
+                {% for cur, vals in currency_totals.items %}
+                    <div class="salary-total-line"><span class="salary-money">{{ vals.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></div>
+                {% endfor %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
             <td>{{ total_absent }}</td>
             <td>
                 {% for cur, vals in currency_totals.items %}
@@ -449,6 +459,10 @@
             {% for cur, vals in currency_totals.items %}
             <div class="salary-mobile-card__row border-top pt-2 mt-2">
                 <span class="salary-mobile-card__label fw-bold">{{ cur }}</span>
+            </div>
+            <div class="salary-mobile-card__row">
+                <span class="salary-mobile-card__label">{% trans "Oklad" %}:</span>
+                <span class="salary-mobile-card__value"><span class="salary-money">{{ vals.salary|floatformat:0|intcomma }}</span> <span class="salary-currency">{{ cur }}</span></span>
             </div>
             <div class="salary-mobile-card__row">
                 <span class="salary-mobile-card__label">{% trans "Hisoblangan" %}:</span>
