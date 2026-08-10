@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from blog.models import Attendance, Employee, MonthlyEmployeeStat
+from blog.models import Attendance, Employee, MonthlyEmployeeStat, SalaryPayment
 
 User = get_user_model()
 
@@ -66,7 +66,7 @@ class ApiIntegrationTests(APITestCase):
             first_name="Ali",
             last_name="Valiyev",
             position="Operator",
-            employee_type="full",
+            employee_type="office",
             role="other",
             is_active=True,
         )
@@ -75,9 +75,14 @@ class ApiIntegrationTests(APITestCase):
             year=2026,
             month=4,
             salary=7000000,
-            accrued=7000000,
+            bonus=500000,
+            penalty=100000,
+            accrued=7400000,
             paid=5000000,
             currency="UZS",
+            manual_salary=True,
+            bonus_override=True,
+            salary_override=True,
         )
         Attendance.objects.create(employee=employee, date=date(2026, 4, 1), status="present")
         Attendance.objects.create(employee=employee, date=date(2026, 4, 2), status="absent")
@@ -88,8 +93,8 @@ class ApiIntegrationTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("employees", response.data)
-        self.assertTrue(len(response.data["employees"]) >= 1)
-        first = response.data["employees"][0]
+        self.assertIn("summary", response.data)
+        first = next(e for e in response.data["employees"] if e["worker_code"] == str(employee.id))
         self.assertIn("worker_code", first)
         self.assertIn("full_name", first)
         self.assertIn("present_days", first)
@@ -97,3 +102,50 @@ class ApiIntegrationTests(APITestCase):
         self.assertIn("salary", first)
         self.assertIn("currency", first)
         self.assertIn("davomat_id", first)
+        self.assertEqual(first["oklad"], 7000000.0)
+        self.assertEqual(first["bonus"], 500000.0)
+        self.assertEqual(first["penalty"], 100000.0)
+        self.assertEqual(first["accrued"], 7400000.0)
+        self.assertEqual(first["paid"], 5000000.0)
+        self.assertTrue(first["has_bonus"])
+        self.assertTrue(first["has_penalty"])
+        self.assertTrue(first["is_paid"])
+        self.assertFalse(first["is_fully_paid"])
+        self.assertEqual(first["payment_status"], "partial")
+        self.assertEqual(response.data["summary"]["employees_with_bonus"], 1)
+        self.assertEqual(response.data["summary"]["employees_with_penalty"], 1)
+
+    def test_salary_statistics_includes_payment_breakdown(self):
+        employee = Employee.objects.create(
+            first_name="Dilshod",
+            last_name="Karimov",
+            position="Haydovchi",
+            employee_type="full",
+            role="other",
+            is_active=True,
+        )
+        stat = MonthlyEmployeeStat.objects.create(
+            employee=employee,
+            year=2026,
+            month=5,
+            salary=10000000,
+            accrued=10000000,
+            paid=10000000,
+            currency="UZS",
+        )
+        SalaryPayment.objects.create(stat=stat, amount=6000000, paid_at=date(2026, 5, 10))
+        SalaryPayment.objects.create(stat=stat, amount=4000000, paid_at=date(2026, 5, 25), note="qoldiq")
+
+        token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        response = self.client.get(f"{reverse('api-salary-statistics')}?year=2026&month=5")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        emp = next(e for e in response.data["employees"] if e["worker_code"] == str(employee.id))
+        self.assertEqual(emp["payment_status"], "paid")
+        self.assertTrue(emp["is_fully_paid"])
+        self.assertEqual(len(emp["payments"]), 2)
+        self.assertEqual(emp["payments"][0]["amount"], 6000000.0)
+        self.assertEqual(emp["payments"][1]["note"], "qoldiq")
+        self.assertIn("UZS", response.data["summary"]["totals_by_currency"])
+
