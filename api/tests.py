@@ -149,3 +149,42 @@ class ApiIntegrationTests(APITestCase):
         self.assertEqual(emp["payments"][1]["note"], "qoldiq")
         self.assertIn("UZS", response.data["summary"]["totals_by_currency"])
 
+    def test_employees_endpoint_requires_authentication(self):
+        response = self.client.get(reverse("api-employees"))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_employees_endpoint_returns_active_only(self):
+        active = Employee.objects.create(
+            first_name="Sardor",
+            last_name="Aliyev",
+            position="Operator",
+            employee_type="full",
+            role="other",
+            is_active=True,
+            phone_number="+998901112233",
+        )
+        Employee.objects.create(
+            first_name="Bek",
+            last_name="Tursunov",
+            position="Haydovchi",
+            employee_type="full",
+            role="other",
+            is_active=False,
+        )
+
+        token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        response = self.client.get(reverse("api-employees"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(len(response.data["employees"]), 1)
+        emp = response.data["employees"][0]
+        self.assertEqual(emp["worker_code"], str(active.id))
+        self.assertEqual(emp["full_name"], "Aliyev Sardor")
+        self.assertEqual(emp["position"], "Operator")
+        self.assertEqual(emp["phone_number"], "+998901112233")
+        self.assertTrue(emp["is_active"])
+        self.assertIn("employee_type", emp)
+        self.assertIn("davomat_id", emp)
+

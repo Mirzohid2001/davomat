@@ -6,14 +6,18 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from blog.models import Attendance, MonthlyEmployeeStat, SalaryPayment
+from blog.models import Attendance, Employee, MonthlyEmployeeStat, SalaryPayment
 from blog.services import (
     aggregate_salary_currency_totals,
     calculate_monthly_stats,
     get_active_loan_remaining_total,
 )
 
-from .serializers import SalaryStatisticsItemSerializer, UserInfoSerializer
+from .serializers import (
+    EmployeeItemSerializer,
+    SalaryStatisticsItemSerializer,
+    UserInfoSerializer,
+)
 
 
 def _money(value) -> float:
@@ -53,6 +57,55 @@ class MeAPIView(APIView):
     def get(self, request):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data)
+
+
+class EmployeesAPIView(APIView):
+    """
+    ERP integratsiyasi uchun aktiv xodimlar ro'yxati.
+    URL: /api/employees/
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        employees = (
+            Employee.objects.filter(is_active=True)
+            .select_related("team")
+            .order_by("last_name", "first_name", "pk")
+        )
+        data = []
+        for emp in employees:
+            data.append(
+                {
+                    "worker_code": str(emp.id),
+                    "davomat_id": f"emp_{emp.id}",
+                    "full_name": emp.get_full_name(),
+                    "first_name": emp.first_name,
+                    "last_name": emp.last_name,
+                    "middle_name": emp.middle_name or "",
+                    "position": emp.position or "",
+                    "department": emp.department or "",
+                    "phone_number": emp.phone_number or "",
+                    "location": emp.location,
+                    "location_label": emp.get_location_display(),
+                    "employee_type": emp.employee_type,
+                    "employee_type_label": emp.get_employee_type_display(),
+                    "role": emp.role,
+                    "role_label": emp.get_role_display(),
+                    "team": emp.team.name if emp.team_id else None,
+                    "hire_date": emp.hire_date,
+                    "is_active": emp.is_active,
+                    "production_bonus_eligible": emp.production_bonus_eligible,
+                }
+            )
+
+        serializer = EmployeeItemSerializer(instance=data, many=True)
+        return Response(
+            {
+                "count": len(data),
+                "employees": serializer.data,
+            }
+        )
 
 
 class SalaryStatisticsAPIView(APIView):

@@ -17,6 +17,28 @@ class SalaryPaymentItemSerializer(serializers.Serializer):
     note = serializers.CharField(allow_blank=True)
 
 
+class EmployeeItemSerializer(serializers.Serializer):
+    worker_code = serializers.CharField()
+    davomat_id = serializers.CharField()
+    full_name = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    middle_name = serializers.CharField(allow_blank=True)
+    position = serializers.CharField(allow_blank=True)
+    department = serializers.CharField(allow_blank=True, allow_null=True)
+    phone_number = serializers.CharField(allow_blank=True, allow_null=True)
+    location = serializers.CharField()
+    location_label = serializers.CharField()
+    employee_type = serializers.CharField()
+    employee_type_label = serializers.CharField()
+    role = serializers.CharField()
+    role_label = serializers.CharField()
+    team = serializers.CharField(allow_blank=True, allow_null=True)
+    hire_date = serializers.DateField(allow_null=True)
+    is_active = serializers.BooleanField()
+    production_bonus_eligible = serializers.BooleanField()
+
+
 class SalaryStatisticsItemSerializer(serializers.Serializer):
     worker_code = serializers.CharField()
     full_name = serializers.CharField()
