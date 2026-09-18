@@ -608,23 +608,27 @@ def _loan_deductions_before(loan: EmployeeAdvanceLoan, year: int, month: int) ->
     return round_money(total or Decimal('0'), loan.currency)
 
 
-def _loan_deduction_base(stat: MonthlyEmployeeStat) -> Decimal:
+def _loan_deduction_base(
+    stat: MonthlyEmployeeStat,
+    salary_fallback_through: tuple[int, int] | None = None,
+) -> Decimal:
     """
     Ushlab qolish asosi: hisoblangan yoki to'langan.
-    Ikkalasi ham 0 bo'lsa — faqat joriy/o'tgan oyda okladga qarab ushlaymiz.
-    Kelajakdagi (hali kelmagan) oylarda oklad yozilgan bo'lsa ham oldindan ushlamaymiz.
+    salary_fallback_through gacha bo'lgan oylarda (shu oy bilan) oklad ham asos bo'ladi.
+    Bu — foydalanuvchi 10-oyga o'tganda ushlab qolish avtomatik chiqishi uchun.
+    Undan keyingi (hali ochilmagan) oylarga oldindan ushlamaymiz.
     """
-    from django.utils import timezone
-
     base = max(stat.accrued, stat.paid)
-    if base <= 0 and stat.salary > 0:
-        today = timezone.localdate()
-        if (stat.year, stat.month) <= (today.year, today.month):
+    if base <= 0 and stat.salary > 0 and salary_fallback_through is not None:
+        if (stat.year, stat.month) <= salary_fallback_through:
             base = stat.salary
     return round_money(base, stat.currency)
 
 
-def apply_loan_deductions_for_stat(stat: MonthlyEmployeeStat) -> Decimal:
+def apply_loan_deductions_for_stat(
+    stat: MonthlyEmployeeStat,
+    salary_fallback_through: tuple[int, int] | None = None,
+) -> Decimal:
     """
     Shu oy uchun faol qarzlardan ushlab qolishni hisoblaydi.
     Mavjud yozuvlarni qayta hisoblash uchun avval o'chiriladi.
@@ -641,7 +645,7 @@ def apply_loan_deductions_for_stat(stat: MonthlyEmployeeStat) -> Decimal:
     ).order_by('issued_at', 'pk')
 
     total_holdback = Decimal('0')
-    available = _loan_deduction_base(stat)
+    available = _loan_deduction_base(stat, salary_fallback_through=salary_fallback_through)
 
     for loan in loans:
         if loan.issued_at.year > stat.year or (
@@ -687,11 +691,21 @@ def sync_loan_remaining_amounts(employee: Employee):
         loan.save(update_fields=['remaining_amount', 'is_active', 'updated_at'])
 
 
-def recalculate_employee_loan_chain(employee: Employee, from_year: int, from_month: int):
+def recalculate_employee_loan_chain(
+    employee: Employee,
+    from_year: int,
+    from_month: int,
+    salary_fallback_through: tuple[int, int] | None = None,
+):
     """
     Berilgan oydan boshlab qarz ushlab qolishlarni va qarzdorlikni qayta hisoblaydi.
     Keyingi oylarning debt_start qiymatlari ham yangilanadi.
+    salary_fallback_through — shu oygacha oklad asosida ushlashga ruxsat (masalan ochilgan oy).
     """
+    if salary_fallback_through is None:
+        today = timezone.localdate()
+        salary_fallback_through = (today.year, today.month)
+
     stats = MonthlyEmployeeStat.objects.filter(employee=employee).filter(
         Q(year__gt=from_year) | Q(year=from_year, month__gte=from_month)
     ).order_by('year', 'month')
@@ -707,7 +721,9 @@ def recalculate_employee_loan_chain(employee: Employee, from_year: int, from_mon
                 stat.currency,
             )
 
-        loan_deduction = apply_loan_deductions_for_stat(stat)
+        loan_deduction = apply_loan_deductions_for_stat(
+            stat, salary_fallback_through=salary_fallback_through
+        )
         stat.loan_deduction = loan_deduction
         stat.debt_end = calculate_debt_end(
             stat.debt_start, stat.accrued, stat.paid, stat.currency
@@ -745,7 +761,13 @@ def create_advance_loan(
         currency=currency,
         is_active=True,
     )
-    recalculate_employee_loan_chain(employee, issued_at.year, issued_at.month)
+    today = timezone.localdate()
+    recalculate_employee_loan_chain(
+        employee,
+        issued_at.year,
+        issued_at.month,
+        salary_fallback_through=(today.year, today.month),
+    )
     loan.refresh_from_db()
     return loan
 
@@ -1004,7 +1026,9 @@ def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
                 ]
                 stat_obj.save(update_fields=update_fields)
 
-        recalculate_employee_loan_chain(employee, year, month)
+        recalculate_employee_loan_chain(
+            employee, year, month, salary_fallback_through=(year, month)
+        )
 
 
 def sync_monthly_stats_for_date(employee, day: date):
@@ -1021,7 +1045,7 @@ def ensure_monthly_stats_for_month(year: int, month: int):
     """
     Yangi oy ochilganda faqat yo'q bo'lgan xodim statlarini yaratadi.
     Mavjud yozuvlarni qayta hisoblamaydi — bu «Qayta hisoblash» tugmasi vazifasi.
-    Joriy oyda faol qarzlar bo'lsa — ushlab qolishni yangilaydi (oklad asosida).
+    Sahifa ochilganda faol qarzlar uchun shu oyda oylik ushlab qolishni avtomatik qo'llaydi.
     """
     active_ids = set(Employee.objects.filter(is_active=True).values_list('id', flat=True))
     if not active_ids:
@@ -1040,10 +1064,11 @@ def ensure_monthly_stats_for_month(year: int, month: int):
 
     sync_salary_from_previous_month(year, month)
 
-    today = timezone.localdate()
-    if (year, month) == (today.year, today.month):
-        loan_emp_ids = set(
-            EmployeeAdvanceLoan.objects.filter(is_active=True).values_list('employee_id', flat=True)
+    # 9-oydan 10-oyga o'tganda ham oylik ushlab qolish avtomatik chiqishi kerak
+    loan_emp_ids = set(
+        EmployeeAdvanceLoan.objects.filter(is_active=True).values_list('employee_id', flat=True)
+    )
+    for emp in Employee.objects.filter(id__in=loan_emp_ids):
+        recalculate_employee_loan_chain(
+            emp, year, month, salary_fallback_through=(year, month)
         )
-        for emp in Employee.objects.filter(id__in=loan_emp_ids):
-            recalculate_employee_loan_chain(emp, year, month)

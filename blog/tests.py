@@ -287,6 +287,55 @@ class AdvanceLoanTests(TestCase):
         loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
         self.assertEqual(loan.remaining_amount, Decimal("48000000"))
 
+    def test_next_month_auto_deduction_via_ensure(self):
+        """9-oyda ushlagandan keyin 10-oyga o'tganda ham oylik ushlab qolish avtomatik."""
+        from blog.services import ensure_monthly_stats_for_month, sync_loan_remaining_amounts
+
+        for m, accrued in ((9, Decimal("5907692")), (10, Decimal("0"))):
+            MonthlyEmployeeStat.objects.update_or_create(
+                employee=self.employee,
+                year=2025,
+                month=m,
+                defaults={
+                    "salary": Decimal("9600000"),
+                    "bonus": Decimal("0"),
+                    "penalty": Decimal("0"),
+                    "accrued": accrued,
+                    "paid": Decimal("0"),
+                    "currency": "UZS",
+                    "manual_salary": False,
+                    "days_in_month": 30,
+                    "worked_days": 15 if m == 9 else 0,
+                    "debt_start": Decimal("0"),
+                    "debt_end": accrued,
+                    "loan_deduction": Decimal("0"),
+                },
+            )
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("44840000"),
+            monthly_deduction=Decimal("3540000"),
+            issued_at=date(2025, 9, 1),
+        )
+        sep = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2025, month=9)
+        self.assertEqual(sep.loan_deduction, Decimal("3540000"))
+
+        # Foydalanuvchi holati: 10-oyda ushlab qolish hali 0 (eski logika)
+        oct_stat = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2025, month=10)
+        LoanDeduction.objects.filter(stat=oct_stat).delete()
+        oct_stat.loan_deduction = Decimal("0")
+        oct_stat.save(update_fields=["loan_deduction"])
+        sync_loan_remaining_amounts(self.employee)
+        oct_stat.refresh_from_db()
+        self.assertEqual(oct_stat.loan_deduction, Decimal("0"))
+
+        # 10-oy sahifasi ochilganda avtomatik ushlashi kerak
+        ensure_monthly_stats_for_month(2025, 10)
+        oct_stat.refresh_from_db()
+        self.assertEqual(oct_stat.loan_deduction, Decimal("3540000"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("37760000"))
+
     def test_close_loan_stops_future_deductions(self):
         for m in (7, 8):
             MonthlyEmployeeStat.objects.update_or_create(
