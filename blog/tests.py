@@ -161,9 +161,55 @@ class AdvanceLoanTests(TestCase):
         self.assertEqual(loan.remaining_amount, Decimal("52000000"))
         self.assertTrue(LoanDeduction.objects.filter(loan=loan, stat=stat).exists())
 
-    def test_no_deduction_without_accrued_or_paid(self):
-        """Hisoblangan va to'langan 0 bo'lsa — ushlab qolish ham 0."""
+    def test_deduction_from_salary_when_accrued_and_paid_zero(self):
+        """Hisoblangan/to'langan 0, lekin joriy oyda oklad bor — oklad asosida ushlab qolinadi."""
         self._ensure_stat(accrued=Decimal("0"), paid=Decimal("0"), salary=Decimal("9800000"))
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("80000000"),
+            monthly_deduction=Decimal("1200000"),
+            issued_at=date(self.year, self.month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("1200000"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("78800000"))
+
+    def test_no_deduction_from_future_month_salary_only(self):
+        """Kelajakdagi oyda faqat oklad bor — oldindan ushlab qolinmaydi."""
+        future_year, future_month = 2030, 3
+        MonthlyEmployeeStat.objects.create(
+            employee=self.employee,
+            year=future_year,
+            month=future_month,
+            salary=Decimal("9800000"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+            manual_salary=True,
+            days_in_month=31,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+        create_advance_loan(
+            self.employee,
+            total_amount=Decimal("80000000"),
+            monthly_deduction=Decimal("1200000"),
+            issued_at=date(future_year, future_month, 1),
+        )
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.employee, year=future_year, month=future_month
+        )
+        self.assertEqual(stat.loan_deduction, Decimal("0"))
+        loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+        self.assertEqual(loan.remaining_amount, Decimal("80000000"))
+
+    def test_no_deduction_without_salary_accrued_or_paid(self):
+        """Oklad, hisoblangan va to'langan hammasi 0 — ushlab qolish ham 0."""
+        self._ensure_stat(accrued=Decimal("0"), paid=Decimal("0"), salary=Decimal("0"))
         create_advance_loan(
             self.employee,
             total_amount=Decimal("80000000"),

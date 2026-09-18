@@ -610,10 +610,18 @@ def _loan_deductions_before(loan: EmployeeAdvanceLoan, year: int, month: int) ->
 
 def _loan_deduction_base(stat: MonthlyEmployeeStat) -> Decimal:
     """
-    Ushlab qolish faqat haqiqiy pul oqimi bo'lganda: hisoblangan yoki to'langan.
-    Oklad yozilgan, lekin oylik berilmagan oyda ushlab qolmaymiz.
+    Ushlab qolish asosi: hisoblangan yoki to'langan.
+    Ikkalasi ham 0 bo'lsa — faqat joriy/o'tgan oyda okladga qarab ushlaymiz.
+    Kelajakdagi (hali kelmagan) oylarda oklad yozilgan bo'lsa ham oldindan ushlamaymiz.
     """
-    return round_money(max(stat.accrued, stat.paid), stat.currency)
+    from django.utils import timezone
+
+    base = max(stat.accrued, stat.paid)
+    if base <= 0 and stat.salary > 0:
+        today = timezone.localdate()
+        if (stat.year, stat.month) <= (today.year, today.month):
+            base = stat.salary
+    return round_money(base, stat.currency)
 
 
 def apply_loan_deductions_for_stat(stat: MonthlyEmployeeStat) -> Decimal:
@@ -1013,6 +1021,7 @@ def ensure_monthly_stats_for_month(year: int, month: int):
     """
     Yangi oy ochilganda faqat yo'q bo'lgan xodim statlarini yaratadi.
     Mavjud yozuvlarni qayta hisoblamaydi — bu «Qayta hisoblash» tugmasi vazifasi.
+    Joriy oyda faol qarzlar bo'lsa — ushlab qolishni yangilaydi (oklad asosida).
     """
     active_ids = set(Employee.objects.filter(is_active=True).values_list('id', flat=True))
     if not active_ids:
@@ -1030,3 +1039,11 @@ def ensure_monthly_stats_for_month(year: int, month: int):
                 calculate_monthly_stats(year, month, employee=emp)
 
     sync_salary_from_previous_month(year, month)
+
+    today = timezone.localdate()
+    if (year, month) == (today.year, today.month):
+        loan_emp_ids = set(
+            EmployeeAdvanceLoan.objects.filter(is_active=True).values_list('employee_id', flat=True)
+        )
+        for emp in Employee.objects.filter(id__in=loan_emp_ids):
+            recalculate_employee_loan_chain(emp, year, month)
