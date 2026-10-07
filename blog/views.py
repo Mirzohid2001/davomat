@@ -1881,13 +1881,16 @@ def export_salary_statistics_excel(request):
             for stat in data:
                 currency = stat.currency.upper() if stat.currency else 'UZS'
                 if currency not in currency_totals:
-                    currency_totals[currency] = {'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0, 'bonus': 0}
+                    currency_totals[currency] = {
+                        'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0, 'bonus': 0, 'penalty': 0,
+                    }
                 
                 currency_totals[currency]['count'] += 1
                 currency_totals[currency]['salary'] += float(stat.salary)
                 currency_totals[currency]['accrued'] += float(stat.accrued)
                 currency_totals[currency]['paid'] += float(stat.paid)
                 currency_totals[currency]['bonus'] += float(stat.bonus) if stat.bonus else 0
+                currency_totals[currency]['penalty'] += float(stat.penalty) if stat.penalty else 0
             
             # Umumiy ma'lumotlar sarlavhasi
             summary_start_row = data_end_row + 2
@@ -1905,7 +1908,10 @@ def export_salary_statistics_excel(request):
             )
             
             # Valyuta sarlavhalari
-            headers = [_("Valyuta"), _("Soni"), _("Jami oklad"), _("Hisoblangan"), _("To'langan"), _("Bonus"), _("Qarzdorlik"), ""]
+            headers = [
+                _("Valyuta"), _("Soni"), _("Jami oklad"), _("Hisoblangan"),
+                _("To'langan"), _("Mukofot"), _("Jarima"), _("Qarzdorlik"),
+            ]
             
             header_row = summary_start_row + 1
             for col, header in enumerate(headers, 1):
@@ -1928,7 +1934,7 @@ def export_salary_statistics_excel(request):
                 
                 currency_data = [
                     currency, totals['count'], totals['salary'], totals['accrued'],
-                    totals['paid'], totals['bonus'], debt_amount, ""
+                    totals['paid'], totals['bonus'], totals.get('penalty', 0), debt_amount,
                 ]
                 
                 for col, value in enumerate(currency_data, 1):
@@ -1947,7 +1953,7 @@ def export_salary_statistics_excel(request):
                     )
                     
                     # Pul ustunlari uchun formatlash
-                    if col in [3, 4, 5, 6, 7] and isinstance(value, (int, float)):
+                    if col in [3, 4, 5, 6, 7, 8] and isinstance(value, (int, float)):
                         if currency == 'USD':
                             cell.number_format = '"$" #,##0'
                         elif currency in ['UZS', 'SUM']:
@@ -1979,7 +1985,11 @@ def export_salary_statistics_excel(request):
     
     # Guruhlash bilan worksheet yaratish funksiyasi (BARCHA XODIMLAR uchun)
     def create_grouped_worksheet(worksheet, title, all_stats, color_bg='1E3A5F', color_accent='2C5282'):
-        LAST_COL = 12  # №, Xodim + 5 juft (sum/$): oylik, hisoblandi, tulandi, qarzdorlik bosh, qarzdorlik oxiri
+        # №, Xodim + 7 juft (sum/$): oklad, mukofot, jarima, hisoblandi, tulandi, qarzdorlik bosh/oxiri
+        LAST_COL = 16
+        SUM_COLS = [3, 5, 7, 9, 11, 13, 15]
+        USD_COLS = [4, 6, 8, 10, 12, 14, 16]
+        DEBT_COLS = [13, 14, 15, 16]
 
         # Professional sarlavha - gradient effekt
         worksheet.merge_cells(f'A1:{get_column_letter(LAST_COL)}2')
@@ -2002,20 +2012,12 @@ def export_salary_statistics_excel(request):
                 cell.fill = PatternFill(start_color=color_bg, end_color=color_accent, fill_type='solid')
                 cell.border = thick_border
         
-        # №, Xodim, oylik/hisoblandi/tulandi/qarzdorlik bosh/qarzdorlik oxiri (har biri sum/$)
-        worksheet.merge_cells('A3:A4')  # №
-        worksheet.merge_cells('B3:B4')  # Xodim
-        worksheet.merge_cells('C3:D3')  # oylik
-        worksheet.merge_cells('E3:F3')  # hisoblandi
-        worksheet.merge_cells('G3:H3')  # tulandi
-        worksheet.merge_cells('I3:J3')  # qarzdorlik (bosh)
-        worksheet.merge_cells('K3:L3')  # qarzdorlik (oxiri)
-        
         main_headers = [
-            "№", _("Xodim"), _("oklad"), _("hisoblandi"), _("tulandi"),
+            "№", _("Xodim"), _("oklad"), _("mukofot"), _("jarima"),
+            _("hisoblandi"), _("tulandi"),
             _("qarzdorlik (bosh)"), _("qarzdorlik (oxiri)"),
         ]
-        main_header_cols = [1, 2, 3, 5, 7, 9, 11]
+        main_header_cols = [1, 2, 3, 5, 7, 9, 11, 13, 15]
         
         header_border = Border(
             left=Side(style='medium', color='1E3A5F'),
@@ -2025,7 +2027,8 @@ def export_salary_statistics_excel(request):
         )
         
         merge_ranges = [
-            'A3:A4', 'B3:B4', 'C3:D3', 'E3:F3', 'G3:H3', 'I3:J3', 'K3:L3',
+            'A3:A4', 'B3:B4', 'C3:D3', 'E3:F3', 'G3:H3',
+            'I3:J3', 'K3:L3', 'M3:N3', 'O3:P3',
         ]
         for (col, header), merge_range in zip(zip(main_header_cols, main_headers), merge_ranges):
             
@@ -2037,7 +2040,7 @@ def export_salary_statistics_excel(request):
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             cell.border = header_border
         
-        sub_headers = ["sum", "$"] * 5
+        sub_headers = ["sum", "$"] * 7
         sub_header_cols = list(range(3, LAST_COL + 1))
         
         for col, header in zip(sub_header_cols, sub_headers):
@@ -2096,37 +2099,47 @@ def export_salary_statistics_excel(request):
                 
                 debt_start_amount = float(stat.debt_start)
                 debt_end_amount = float(stat.debt_end)
+                bonus_amount = float(stat.bonus or 0)
+                penalty_amount = float(stat.penalty or 0)
                 
                 row_data = {
                     1: employee_number,
                     2: f"{stat.employee.get_full_name()}"
                         + (f" — {stat.employee.position}" if stat.employee.position else ""),
-                    3: None, 4: None,  # oylik
-                    5: None, 6: None,  # hisoblandi
-                    7: None, 8: None,  # tulandi
-                    9: None, 10: None,  # qarzdorlik bosh
-                    11: None, 12: None,  # qarzdorlik oxiri
+                    3: None, 4: None,  # oklad
+                    5: None, 6: None,  # mukofot
+                    7: None, 8: None,  # jarima
+                    9: None, 10: None,  # hisoblandi
+                    11: None, 12: None,  # tulandi
+                    13: None, 14: None,  # qarzdorlik bosh
+                    15: None, 16: None,  # qarzdorlik oxiri
                 }
                 
                 if currency == 'USD':
                     row_data[4] = float(stat.salary)
-                    row_data[6] = float(stat.accrued)
-                    row_data[8] = float(stat.paid)
-                    row_data[10] = debt_start_amount
-                    row_data[12] = debt_end_amount
+                    row_data[6] = bonus_amount
+                    row_data[8] = penalty_amount
+                    row_data[10] = float(stat.accrued)
+                    row_data[12] = float(stat.paid)
+                    row_data[14] = debt_start_amount
+                    row_data[16] = debt_end_amount
                     row_data[3] = float(stat.salary) * USD_TO_UZS_RATE
-                    row_data[5] = float(stat.accrued) * USD_TO_UZS_RATE
-                    row_data[7] = float(stat.paid) * USD_TO_UZS_RATE
-                    row_data[9] = debt_start_amount * USD_TO_UZS_RATE
-                    row_data[11] = debt_end_amount * USD_TO_UZS_RATE
+                    row_data[5] = bonus_amount * USD_TO_UZS_RATE
+                    row_data[7] = penalty_amount * USD_TO_UZS_RATE
+                    row_data[9] = float(stat.accrued) * USD_TO_UZS_RATE
+                    row_data[11] = float(stat.paid) * USD_TO_UZS_RATE
+                    row_data[13] = debt_start_amount * USD_TO_UZS_RATE
+                    row_data[15] = debt_end_amount * USD_TO_UZS_RATE
                 else:
                     row_data[3] = float(stat.salary)
-                    row_data[5] = float(stat.accrued)
-                    row_data[7] = float(stat.paid)
-                    row_data[9] = debt_start_amount
-                    row_data[11] = debt_end_amount
-                    row_data[4] = row_data[6] = row_data[8] = ""
-                    row_data[10] = row_data[12] = ""
+                    row_data[5] = bonus_amount
+                    row_data[7] = penalty_amount
+                    row_data[9] = float(stat.accrued)
+                    row_data[11] = float(stat.paid)
+                    row_data[13] = debt_start_amount
+                    row_data[15] = debt_end_amount
+                    for usd_col in USD_COLS:
+                        row_data[usd_col] = ""
                 
                 # Professional cell border
                 data_border = Border(
@@ -2149,18 +2162,18 @@ def export_salary_statistics_excel(request):
                     elif col == 2:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='left', vertical='center')
-                    elif col in [3, 5, 7, 9, 11]:
+                    elif col in SUM_COLS:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='right', vertical='center')
                         if value is not None and value != "":
                             cell.number_format = '#,##0 "so\'m"'
-                    elif col in [4, 6, 8, 10, 12]:
+                    elif col in USD_COLS:
                         cell.font = Font(name='Calibri', size=11, color='1F1F1F')
                         cell.alignment = Alignment(horizontal='right', vertical='center')
                         if value is not None and value != "":
                             cell.number_format = '"$" #,##0.00'
                     
-                    if col in [9, 10, 11, 12] and value is not None and value != "":
+                    if col in DEBT_COLS and value is not None and value != "":
                         debt_val = float(value) if isinstance(value, (int, float)) else 0
                         if debt_val > 0:
                             cell.fill = PatternFill(start_color='FFE4E1', end_color='FFE4E1', fill_type='solid')
@@ -2172,11 +2185,13 @@ def export_salary_statistics_excel(request):
                 # Umumiy valyuta hisob-kitobiga qo'shish
                 if currency not in all_currency_totals:
                     all_currency_totals[currency] = {
-                        'count': 0, 'salary': 0, 'accrued': 0, 'paid': 0,
-                        'debt_start': 0, 'debt_end': 0,
+                        'count': 0, 'salary': 0, 'bonus': 0, 'penalty': 0,
+                        'accrued': 0, 'paid': 0, 'debt_start': 0, 'debt_end': 0,
                     }
                 all_currency_totals[currency]['count'] += 1
                 all_currency_totals[currency]['salary'] += float(stat.salary)
+                all_currency_totals[currency]['bonus'] += bonus_amount
+                all_currency_totals[currency]['penalty'] += penalty_amount
                 all_currency_totals[currency]['accrued'] += float(stat.accrued)
                 all_currency_totals[currency]['paid'] += float(stat.paid)
                 all_currency_totals[currency]['debt_start'] += debt_start_amount
@@ -2195,7 +2210,7 @@ def export_salary_statistics_excel(request):
             current_row += 1
         
         # Ustun kengliklari
-        column_widths = [8, 30, 18, 14, 18, 14, 18, 14, 18, 14, 18, 14]
+        column_widths = [8, 30, 16, 12, 14, 12, 14, 12, 16, 12, 16, 12, 16, 12, 16, 12]
         for col, width in enumerate(column_widths, 1):
             column_letter = get_column_letter(col)
             worksheet.column_dimensions[column_letter].width = width
@@ -2224,6 +2239,10 @@ def export_salary_statistics_excel(request):
             # Barcha valyutalar uchun jami hisoblash
             total_salary_sum = 0
             total_salary_usd = 0
+            total_bonus_sum = 0
+            total_bonus_usd = 0
+            total_penalty_sum = 0
+            total_penalty_usd = 0
             total_accrued_sum = 0
             total_accrued_usd = 0
             total_paid_sum = 0
@@ -2236,17 +2255,23 @@ def export_salary_statistics_excel(request):
             for currency, totals in sorted(all_currency_totals.items()):
                 if currency == 'USD':
                     total_salary_usd += totals['salary']
+                    total_bonus_usd += totals['bonus']
+                    total_penalty_usd += totals['penalty']
                     total_accrued_usd += totals['accrued']
                     total_paid_usd += totals['paid']
                     total_debt_start_usd += totals['debt_start']
                     total_debt_end_usd += totals['debt_end']
                     total_salary_sum += totals['salary'] * USD_TO_UZS_RATE
+                    total_bonus_sum += totals['bonus'] * USD_TO_UZS_RATE
+                    total_penalty_sum += totals['penalty'] * USD_TO_UZS_RATE
                     total_accrued_sum += totals['accrued'] * USD_TO_UZS_RATE
                     total_paid_sum += totals['paid'] * USD_TO_UZS_RATE
                     total_debt_start_sum += totals['debt_start'] * USD_TO_UZS_RATE
                     total_debt_end_sum += totals['debt_end'] * USD_TO_UZS_RATE
                 else:
                     total_salary_sum += totals['salary']
+                    total_bonus_sum += totals['bonus']
+                    total_penalty_sum += totals['penalty']
                     total_accrued_sum += totals['accrued']
                     total_paid_sum += totals['paid']
                     total_debt_start_sum += totals['debt_start']
@@ -2257,14 +2282,18 @@ def export_salary_statistics_excel(request):
                 2: "JAMI",
                 3: total_salary_sum if total_salary_sum > 0 else "",
                 4: total_salary_usd if total_salary_usd > 0 else "",
-                5: total_accrued_sum if total_accrued_sum > 0 else "",
-                6: total_accrued_usd if total_accrued_usd > 0 else "",
-                7: total_paid_sum if total_paid_sum > 0 else "",
-                8: total_paid_usd if total_paid_usd > 0 else "",
-                9: total_debt_start_sum if total_debt_start_sum != 0 else "",
-                10: total_debt_start_usd if total_debt_start_usd != 0 else "",
-                11: total_debt_end_sum if total_debt_end_sum != 0 else "",
-                12: total_debt_end_usd if total_debt_end_usd != 0 else "",
+                5: total_bonus_sum,
+                6: total_bonus_usd if total_bonus_usd > 0 else "",
+                7: total_penalty_sum,
+                8: total_penalty_usd if total_penalty_usd > 0 else "",
+                9: total_accrued_sum if total_accrued_sum > 0 else "",
+                10: total_accrued_usd if total_accrued_usd > 0 else "",
+                11: total_paid_sum if total_paid_sum > 0 else "",
+                12: total_paid_usd if total_paid_usd > 0 else "",
+                13: total_debt_start_sum if total_debt_start_sum != 0 else "",
+                14: total_debt_start_usd if total_debt_start_usd != 0 else "",
+                15: total_debt_end_sum if total_debt_end_sum != 0 else "",
+                16: total_debt_end_usd if total_debt_end_usd != 0 else "",
             }
             
             # JAMI qatori uchun aniq chiziqlar:
@@ -2295,20 +2324,20 @@ def export_salary_statistics_excel(request):
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='center', vertical='center')
                     cell.fill = dark_blue_fill
-                elif col in [3, 5, 7, 9, 11]:
+                elif col in SUM_COLS:
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='right', vertical='center')
                     cell.fill = dark_blue_fill
                     if value is not None and value != "":
                         cell.number_format = '#,##0 "so\'m"'
-                elif col in [4, 6, 8, 10, 12]:
+                elif col in USD_COLS:
                     cell.font = Font(name='Calibri', bold=True, size=12, color='FFFFFF')
                     cell.alignment = Alignment(horizontal='right', vertical='center')
                     cell.fill = dark_blue_fill
                     if value is not None and value != "":
                         cell.number_format = '"$" #,##0.00'
                 
-                if col in [9, 10, 11, 12] and value is not None and value != "":
+                if col in DEBT_COLS and value is not None and value != "":
                     debt_val = float(value) if isinstance(value, (int, float)) else 0
                     if debt_val > 0:
                         cell.fill = PatternFill(start_color='FF6B6B', end_color='FF6B6B', fill_type='solid')
