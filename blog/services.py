@@ -2,7 +2,7 @@ from datetime import date, timedelta, datetime
 from calendar import monthrange
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Min, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -621,19 +621,33 @@ def _loan_deductions_before(loan: EmployeeAdvanceLoan, year: int, month: int) ->
     return round_money(total or Decimal('0'), loan.currency)
 
 
+def _resolve_salary_fallback_through(
+    salary_fallback_through: tuple[int, int] | None = None,
+) -> tuple[int, int]:
+    """
+    Oklad asosida ushlash qaysi oygacha ruxsat.
+    Har doim kamida bugungi oygacha — sentabrni saqlaganda oktyabr ushlashi o'chib ketmasin.
+    """
+    today = timezone.localdate()
+    today_key = (today.year, today.month)
+    if salary_fallback_through is None:
+        return today_key
+    return max(tuple(salary_fallback_through), today_key)
+
+
 def _loan_deduction_base(
     stat: MonthlyEmployeeStat,
     salary_fallback_through: tuple[int, int] | None = None,
 ) -> Decimal:
     """
     Ushlab qolish asosi: hisoblangan yoki to'langan.
-    salary_fallback_through gacha bo'lgan oylarda (shu oy bilan) oklad ham asos bo'ladi.
-    Bu — foydalanuvchi 10-oyga o'tganda ushlab qolish avtomatik chiqishi uchun.
+    salary_fallback_through (va bugungi oy) gacha oklad ham asos bo'ladi.
     Undan keyingi (hali ochilmagan) oylarga oldindan ushlamaymiz.
     """
     base = max(stat.accrued, stat.paid)
-    if base <= 0 and stat.salary > 0 and salary_fallback_through is not None:
-        if (stat.year, stat.month) <= salary_fallback_through:
+    if base <= 0 and stat.salary > 0:
+        through = _resolve_salary_fallback_through(salary_fallback_through)
+        if (stat.year, stat.month) <= through:
             base = stat.salary
     return round_money(base, stat.currency)
 
@@ -713,11 +727,9 @@ def recalculate_employee_loan_chain(
     """
     Berilgan oydan boshlab qarz ushlab qolishlarni va qarzdorlikni qayta hisoblaydi.
     Keyingi oylarning debt_start qiymatlari ham yangilanadi.
-    salary_fallback_through — shu oygacha oklad asosida ushlashga ruxsat (masalan ochilgan oy).
+    salary_fallback_through — ochilgan oy; amalda max(shu oy, bugun) gacha oklad asosida ushlanadi.
     """
-    if salary_fallback_through is None:
-        today = timezone.localdate()
-        salary_fallback_through = (today.year, today.month)
+    salary_fallback_through = _resolve_salary_fallback_through(salary_fallback_through)
 
     stats = MonthlyEmployeeStat.objects.filter(employee=employee).filter(
         Q(year__gt=from_year) | Q(year=from_year, month__gte=from_month)
@@ -1078,11 +1090,21 @@ def ensure_monthly_stats_for_month(year: int, month: int):
 
     sync_salary_from_previous_month(year, month)
 
-    # 9-oydan 10-oyga o'tganda ham oylik ushlab qolish avtomatik chiqishi kerak
-    loan_emp_ids = set(
-        EmployeeAdvanceLoan.objects.filter(is_active=True).values_list('employee_id', flat=True)
+    # Faol qarzlar: qarz berilgan oydan boshlab qayta hisobla (qoldiq to'g'ri kamaysin)
+    # salary_fallback_through = ochilgan oy (va bugun) — keyingi oyda ushlash chiqadi
+    loan_emps = (
+        EmployeeAdvanceLoan.objects.filter(is_active=True)
+        .values('employee_id')
+        .annotate(first_issued=Min('issued_at'))
     )
-    for emp in Employee.objects.filter(id__in=loan_emp_ids):
+    for row in loan_emps:
+        emp = Employee.objects.filter(pk=row['employee_id']).first()
+        if not emp or not row['first_issued']:
+            continue
+        issued = row['first_issued']
         recalculate_employee_loan_chain(
-            emp, year, month, salary_fallback_through=(year, month)
+            emp,
+            issued.year,
+            issued.month,
+            salary_fallback_through=(year, month),
         )

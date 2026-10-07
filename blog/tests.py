@@ -342,6 +342,53 @@ class AdvanceLoanTests(TestCase):
         loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
         self.assertEqual(loan.remaining_amount, Decimal("37760000"))
 
+    def test_saving_prior_month_does_not_wipe_current_month_deduction(self):
+        """Sentabrni saqlash/qayta hisoblash oktyabr ushlashini o'chirmasligi kerak."""
+        from unittest.mock import patch
+
+        for m in (9, 10):
+            MonthlyEmployeeStat.objects.update_or_create(
+                employee=self.employee,
+                year=2026,
+                month=m,
+                defaults={
+                    "salary": Decimal("9600000"),
+                    "bonus": Decimal("2400000") if m == 9 else Decimal("0"),
+                    "penalty": Decimal("0"),
+                    "accrued": Decimal("12000000") if m == 9 else Decimal("0"),
+                    "paid": Decimal("8460000") if m == 9 else Decimal("0"),
+                    "currency": "UZS",
+                    "manual_salary": False,
+                    "days_in_month": 30,
+                    "worked_days": 26 if m == 9 else 0,
+                    "debt_start": Decimal("0"),
+                    "debt_end": Decimal("0"),
+                    "loan_deduction": Decimal("0"),
+                },
+            )
+        with patch("blog.services.timezone.localdate", return_value=date(2026, 10, 7)):
+            create_advance_loan(
+                self.employee,
+                total_amount=Decimal("44840000"),
+                monthly_deduction=Decimal("3540000"),
+                issued_at=date(2026, 9, 1),
+            )
+            sep = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=9)
+            oct_stat = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=10)
+            self.assertEqual(sep.loan_deduction, Decimal("3540000"))
+            self.assertEqual(oct_stat.loan_deduction, Decimal("3540000"))
+
+            # Sentabrni qayta hisoblash (to'lov saqlash kabi) — oktyabr saqlanishi kerak
+            recalculate_employee_loan_chain(
+                self.employee, 2026, 9, salary_fallback_through=(2026, 9)
+            )
+            sep.refresh_from_db()
+            oct_stat.refresh_from_db()
+            self.assertEqual(sep.loan_deduction, Decimal("3540000"))
+            self.assertEqual(oct_stat.loan_deduction, Decimal("3540000"))
+            loan = EmployeeAdvanceLoan.objects.get(employee=self.employee)
+            self.assertEqual(loan.remaining_amount, Decimal("37760000"))
+
     def test_close_loan_stops_future_deductions(self):
         for m in (7, 8):
             MonthlyEmployeeStat.objects.update_or_create(
