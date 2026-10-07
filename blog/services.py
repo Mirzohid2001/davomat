@@ -219,15 +219,28 @@ def round_money(amount, currency: str) -> Decimal:
     return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
-def calculate_debt_end(debt_start, accrued, paid, currency: str) -> Decimal:
+def calculate_debt_end(debt_start, accrued, paid, currency: str, loan_deduction=0) -> Decimal:
     """
-    Oylik qarzdorlik oxirini hisoblaydi (oldindan qarz alohida kuzatiladi).
+    Oylik qarzdorlik oxirini hisoblaydi.
+    Ushlab qolish (oldindan qarz) oylikdan ayiriladi — kompaniya shu qismni endi
+    naqd to'lamaydi, balki qarzga yozadi.
     Musbat — kompaniya xodimga qarzdor; manfiy — xodim ortiqcha olgan (avans).
     """
     debt_start = round_money(debt_start, currency)
     accrued = round_money(accrued, currency)
     paid = round_money(paid, currency)
-    return round_money(debt_start + accrued - paid, currency)
+    loan_deduction = round_money(loan_deduction, currency)
+    return round_money(debt_start + accrued - paid - loan_deduction, currency)
+
+
+def calculate_net_received(accrued, paid, loan_deduction, currency: str) -> Decimal:
+    """
+    Xodim qo'liga oladigan summa: hisoblangan (yoki to'langan) minus oylik ushlab qolish.
+    To'lov kiritilmagan bo'lsa ham hisoblangandan ushlab qolish ayiriladi.
+    """
+    base = max(round_money(accrued, currency), round_money(paid, currency))
+    holdback = round_money(loan_deduction, currency)
+    return round_money(max(base - holdback, Decimal('0')), currency)
 
 
 def is_restricted_attendance_date(for_date: date) -> bool:
@@ -726,7 +739,7 @@ def recalculate_employee_loan_chain(
         )
         stat.loan_deduction = loan_deduction
         stat.debt_end = calculate_debt_end(
-            stat.debt_start, stat.accrued, stat.paid, stat.currency
+            stat.debt_start, stat.accrued, stat.paid, stat.currency, loan_deduction
         )
         stat.save(update_fields=['debt_start', 'loan_deduction', 'debt_end'])
         prev_debt_end = stat.debt_end
@@ -821,15 +834,16 @@ def aggregate_salary_currency_totals(stats) -> dict:
         bucket['accrued'] += round_money(stat.accrued, cur)
         bucket['paid'] += round_money(stat.paid, cur)
         bucket['loan_deduction'] += round_money(stat.loan_deduction, cur)
-        bucket['net_received'] += round_money(
-            max(stat.paid - stat.loan_deduction, Decimal('0')), cur
+        bucket['net_received'] += calculate_net_received(
+            stat.accrued, stat.paid, stat.loan_deduction, cur
         )
         bucket['active_loan_remaining'] += get_active_loan_remaining_total(stat.employee, cur)
         bucket['debt_start'] += round_money(stat.debt_start, cur)
 
     for cur, bucket in totals.items():
         bucket['debt_end'] = calculate_debt_end(
-            bucket['debt_start'], bucket['accrued'], bucket['paid'], cur
+            bucket['debt_start'], bucket['accrued'], bucket['paid'], cur,
+            bucket['loan_deduction'],
         )
 
     return dict(totals)

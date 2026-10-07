@@ -52,6 +52,7 @@ from .services import (
     create_advance_loan,
     close_advance_loan,
     get_active_loan_remaining_total,
+    calculate_net_received,
     aggregate_salary_currency_totals,
     PRODUCTION_BONUS_LOW_MIN_TONS,
     PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
@@ -1614,7 +1615,9 @@ def salary_statistics_view(request):
             loan for loan in stat.employee.advance_loans.all()
             if loan.is_active and loan.currency == stat.currency
         ]
-        stat.net_received = max(stat.paid - stat.loan_deduction, Decimal('0'))
+        stat.net_received = calculate_net_received(
+            stat.accrued, stat.paid, stat.loan_deduction, stat.currency
+        )
     # Umumiy summalar
     total_salary = sum([s.salary for s in stats])
     total_bonus = sum([s.bonus for s in stats])
@@ -2495,7 +2498,10 @@ def edit_salary_stat(request, stat_id):
             'payments': payments_payload(target_stat),
             'accrued': float(target_stat.accrued),
             'loan_deduction': float(target_stat.loan_deduction),
-            'net_received': float(max(target_stat.paid - target_stat.loan_deduction, Decimal('0'))),
+            'net_received': float(calculate_net_received(
+                target_stat.accrued, target_stat.paid,
+                target_stat.loan_deduction, target_stat.currency,
+            )),
             'active_loan_remaining': float(
                 get_active_loan_remaining_total(target_stat.employee, target_stat.currency)
             ),

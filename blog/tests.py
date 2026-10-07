@@ -17,6 +17,7 @@ from blog.models import (
 )
 from blog.services import (
     calculate_debt_end,
+    calculate_net_received,
     calculate_monthly_stats,
     close_advance_loan,
     create_advance_loan,
@@ -156,7 +157,12 @@ class AdvanceLoanTests(TestCase):
             employee=self.employee, year=self.year, month=self.month
         )
         self.assertEqual(stat.loan_deduction, Decimal("4000000"))
-        self.assertEqual(stat.debt_end, Decimal("10000000"))
+        # 10 mln hisoblangan − 4 mln ushlab qolish = 6 mln qarzdorlik / qo'lga
+        self.assertEqual(stat.debt_end, Decimal("6000000"))
+        self.assertEqual(
+            calculate_net_received(stat.accrued, stat.paid, stat.loan_deduction, "UZS"),
+            Decimal("6000000"),
+        )
         loan.refresh_from_db()
         self.assertEqual(loan.remaining_amount, Decimal("52000000"))
         self.assertTrue(LoanDeduction.objects.filter(loan=loan, stat=stat).exists())
@@ -370,15 +376,22 @@ class AdvanceLoanTests(TestCase):
         loan.refresh_from_db()
         self.assertFalse(loan.is_active)
 
-    def test_loan_deduction_does_not_affect_salary_debt(self):
-        """Oldindan qarz ushlab qolish oylik qarzdorlik formulasiiga aralashmaydi."""
+    def test_loan_deduction_reduces_salary_debt_and_net(self):
+        """Ushlab qolish oylikdan ayiriladi — qo'lga oladi va qarzdorlik kamayadi."""
         debt_end = calculate_debt_end(
-            debt_start=Decimal("719769"),
-            accrued=Decimal("0"),
+            debt_start=Decimal("0"),
+            accrued=Decimal("12000000"),
             paid=Decimal("0"),
             currency="UZS",
+            loan_deduction=Decimal("3540000"),
         )
-        self.assertEqual(debt_end, Decimal("719769"))
+        self.assertEqual(debt_end, Decimal("8460000"))
+        self.assertEqual(
+            calculate_net_received(
+                Decimal("12000000"), Decimal("0"), Decimal("3540000"), "UZS"
+            ),
+            Decimal("8460000"),
+        )
 
     def test_recalculate_is_idempotent(self):
         self._ensure_stat(accrued=Decimal("10000000"))
@@ -439,9 +452,12 @@ class SalaryCurrencyTotalsTests(TestCase):
         self.assertEqual(uzs["debt_start"], Decimal("-1941769"))
         self.assertEqual(
             uzs["debt_end"],
-            calculate_debt_end(uzs["debt_start"], uzs["accrued"], uzs["paid"], "UZS"),
+            calculate_debt_end(
+                uzs["debt_start"], uzs["accrued"], uzs["paid"], "UZS",
+                uzs["loan_deduction"],
+            ),
         )
-        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
+        self.assertEqual(uzs["debt_end"], Decimal("-24941769"))
 
     def test_totals_sum_multiple_employees(self):
         emp2 = Employee.objects.create(
@@ -474,7 +490,8 @@ class SalaryCurrencyTotalsTests(TestCase):
         uzs = totals["UZS"]
         self.assertEqual(uzs["paid"], Decimal("19000000"))
         self.assertEqual(uzs["accrued"], Decimal("5000000"))
-        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
+        # Birinchi xodim: -1 941 769 + 0 − 14 000 000 − 9 000 000; ikkinchi: 0
+        self.assertEqual(uzs["debt_end"], Decimal("-24941769"))
 
 
 class AdvanceLoanViewTests(TestCase):
