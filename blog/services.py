@@ -798,10 +798,34 @@ def create_advance_loan(
 
 
 def close_advance_loan(loan: EmployeeAdvanceLoan):
-    """Qarzni yopadi — kelajakdagi ushlab qolishlar to'xtaydi."""
+    """
+    Qarzni yopadi — o'tgan oylardagi ushlashlar saqlanadi,
+    keyingi oylarda yangi ushlash to'xtaydi.
+    """
     loan.is_active = False
     loan.save(update_fields=['is_active', 'updated_at'])
-    recalculate_employee_loan_chain(loan.employee, loan.issued_at.year, loan.issued_at.month)
+
+    last_deduction = (
+        loan.deductions.select_related('stat')
+        .order_by('-stat__year', '-stat__month', '-pk')
+        .first()
+    )
+    if last_deduction:
+        y, m = last_deduction.stat.year, last_deduction.stat.month
+        if m == 12:
+            from_year, from_month = y + 1, 1
+        else:
+            from_year, from_month = y, m + 1
+    else:
+        today = timezone.localdate()
+        from_year, from_month = today.year, today.month
+
+    recalculate_employee_loan_chain(
+        loan.employee,
+        from_year,
+        from_month,
+        salary_fallback_through=(from_year, from_month),
+    )
     sync_loan_remaining_amounts(loan.employee)
 
 

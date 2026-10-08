@@ -10,6 +10,7 @@ from blog.models import Attendance, Employee, MonthlyEmployeeStat, SalaryPayment
 from blog.services import (
     aggregate_salary_currency_totals,
     calculate_monthly_stats,
+    calculate_net_received,
     get_active_loan_remaining_total,
 )
 
@@ -165,7 +166,9 @@ class SalaryStatisticsAPIView(APIView):
             bonus = stat.bonus or Decimal("0")
             penalty = stat.penalty or Decimal("0")
             loan_deduction = stat.loan_deduction or Decimal("0")
-            net_received = max(paid - loan_deduction, Decimal("0"))
+            net_received = calculate_net_received(
+                accrued, paid, loan_deduction, stat.currency
+            )
             status = _payment_status(accrued, paid)
             payments = [
                 {

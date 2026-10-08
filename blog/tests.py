@@ -390,7 +390,12 @@ class AdvanceLoanTests(TestCase):
             self.assertEqual(loan.remaining_amount, Decimal("37760000"))
 
     def test_close_loan_stops_future_deductions(self):
-        for m in (7, 8):
+        """Yopish o'tgan ushlashlarni saqlaydi, keyingi oylarda to'xtatadi."""
+        from unittest.mock import patch
+
+        for m in (7, 8, 9):
+            # Sentabr: faqat oklad (hisoblangan 0) — bugun avgust bo'lsa ushlanmasin
+            accrued = Decimal("0") if m == 9 else Decimal("10000000")
             MonthlyEmployeeStat.objects.update_or_create(
                 employee=self.employee,
                 year=self.year,
@@ -399,29 +404,49 @@ class AdvanceLoanTests(TestCase):
                     "salary": Decimal("10000000"),
                     "bonus": Decimal("0"),
                     "penalty": Decimal("0"),
-                    "accrued": Decimal("10000000"),
+                    "accrued": accrued,
                     "paid": Decimal("0"),
                     "currency": "UZS",
                     "manual_salary": True,
                     "days_in_month": 31,
-                    "worked_days": 31,
+                    "worked_days": 31 if m < 9 else 0,
                     "debt_start": Decimal("0"),
-                    "debt_end": Decimal("10000000"),
+                    "debt_end": accrued,
                 },
             )
-        loan = create_advance_loan(
-            self.employee,
-            total_amount=Decimal("10000000"),
-            monthly_deduction=Decimal("4000000"),
-            issued_at=date(self.year, 7, 1),
-        )
-        close_advance_loan(loan)
-        july = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=7)
-        august = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=8)
-        self.assertEqual(july.loan_deduction, Decimal("0"))
-        self.assertEqual(august.loan_deduction, Decimal("0"))
-        loan.refresh_from_db()
-        self.assertFalse(loan.is_active)
+        with patch("blog.services.timezone.localdate", return_value=date(2026, 8, 15)):
+            loan = create_advance_loan(
+                self.employee,
+                total_amount=Decimal("10000000"),
+                monthly_deduction=Decimal("4000000"),
+                issued_at=date(self.year, 7, 1),
+            )
+            july = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=7)
+            august = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=8)
+            september = MonthlyEmployeeStat.objects.get(employee=self.employee, year=2026, month=9)
+            self.assertEqual(july.loan_deduction, Decimal("4000000"))
+            self.assertEqual(august.loan_deduction, Decimal("4000000"))
+            self.assertEqual(september.loan_deduction, Decimal("0"))
+
+            close_advance_loan(loan)
+            july.refresh_from_db()
+            august.refresh_from_db()
+            september.refresh_from_db()
+            loan.refresh_from_db()
+            # O'tgan oylar saqlanadi
+            self.assertEqual(july.loan_deduction, Decimal("4000000"))
+            self.assertEqual(august.loan_deduction, Decimal("4000000"))
+            # Kelajakda ushlash yo'q
+            self.assertEqual(september.loan_deduction, Decimal("0"))
+            self.assertFalse(loan.is_active)
+            self.assertEqual(loan.remaining_amount, Decimal("2000000"))
+
+            # Sentabr ochilsa ham (ensure) yopilgan qarz ushlamasin
+            ensure_monthly_stats_for_month(2026, 9)
+            september.refresh_from_db()
+            loan.refresh_from_db()
+            self.assertEqual(september.loan_deduction, Decimal("0"))
+            self.assertEqual(loan.remaining_amount, Decimal("2000000"))
 
     def test_loan_deduction_reduces_salary_debt_and_net(self):
         """Ushlab qolish oylikdan ayiriladi — qo'lga oladi va qarzdorlik kamayadi."""
