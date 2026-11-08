@@ -157,8 +157,8 @@ class AdvanceLoanTests(TestCase):
             employee=self.employee, year=self.year, month=self.month
         )
         self.assertEqual(stat.loan_deduction, Decimal("4000000"))
-        # 10 mln hisoblangan − 4 mln ushlab qolish = 6 mln qarzdorlik / qo'lga
-        self.assertEqual(stat.debt_end, Decimal("6000000"))
+        # To'lov hali 0 — qarzdorlik to'liq hisoblangan; qo'lga = 10 − 4
+        self.assertEqual(stat.debt_end, Decimal("10000000"))
         self.assertEqual(
             calculate_net_received(stat.accrued, stat.paid, stat.loan_deduction, "UZS"),
             Decimal("6000000"),
@@ -356,7 +356,8 @@ class AdvanceLoanTests(TestCase):
                     "bonus": Decimal("2400000") if m == 9 else Decimal("0"),
                     "penalty": Decimal("0"),
                     "accrued": Decimal("12000000") if m == 9 else Decimal("0"),
-                    "paid": Decimal("8460000") if m == 9 else Decimal("0"),
+                    # To'langan = to'liq hisoblangan; ushlash avtomatik
+                    "paid": Decimal("12000000") if m == 9 else Decimal("0"),
                     "currency": "UZS",
                     "manual_salary": False,
                     "days_in_month": 30,
@@ -448,19 +449,28 @@ class AdvanceLoanTests(TestCase):
             self.assertEqual(september.loan_deduction, Decimal("0"))
             self.assertEqual(loan.remaining_amount, Decimal("2000000"))
 
-    def test_loan_deduction_reduces_salary_debt_and_net(self):
-        """Ushlab qolish oylikdan ayiriladi — qo'lga oladi va qarzdorlik kamayadi."""
-        debt_end = calculate_debt_end(
+    def test_loan_deduction_reduces_net_not_salary_debt(self):
+        """To'langan = to'liq oylik; ushlash faqat qo'lga oladi, qarzdorlikda ikki marta emas."""
+        unpaid_debt = calculate_debt_end(
             debt_start=Decimal("0"),
             accrued=Decimal("12000000"),
             paid=Decimal("0"),
             currency="UZS",
             loan_deduction=Decimal("3540000"),
         )
-        self.assertEqual(debt_end, Decimal("8460000"))
+        self.assertEqual(unpaid_debt, Decimal("12000000"))
+
+        settled_debt = calculate_debt_end(
+            debt_start=Decimal("0"),
+            accrued=Decimal("12000000"),
+            paid=Decimal("12000000"),
+            currency="UZS",
+            loan_deduction=Decimal("3540000"),
+        )
+        self.assertEqual(settled_debt, Decimal("0"))
         self.assertEqual(
             calculate_net_received(
-                Decimal("12000000"), Decimal("0"), Decimal("3540000"), "UZS"
+                Decimal("12000000"), Decimal("12000000"), Decimal("3540000"), "UZS"
             ),
             Decimal("8460000"),
         )
@@ -529,7 +539,8 @@ class SalaryCurrencyTotalsTests(TestCase):
                 uzs["loan_deduction"],
             ),
         )
-        self.assertEqual(uzs["debt_end"], Decimal("-24941769"))
+        # Ushlash qarzdorlikka kirmaydi: -1 941 769 + 0 − 14 000 000
+        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
 
     def test_totals_sum_multiple_employees(self):
         emp2 = Employee.objects.create(
@@ -562,8 +573,8 @@ class SalaryCurrencyTotalsTests(TestCase):
         uzs = totals["UZS"]
         self.assertEqual(uzs["paid"], Decimal("19000000"))
         self.assertEqual(uzs["accrued"], Decimal("5000000"))
-        # Birinchi xodim: -1 941 769 + 0 − 14 000 000 − 9 000 000; ikkinchi: 0
-        self.assertEqual(uzs["debt_end"], Decimal("-24941769"))
+        # Birinchi: -1 941 769 + 0 − 14 000 000; ikkinchi: 0
+        self.assertEqual(uzs["debt_end"], Decimal("-15941769"))
 
 
 class AdvanceLoanViewTests(TestCase):
@@ -1940,4 +1951,109 @@ class SalaryPaymentHistoryTests(TestCase):
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             response["Content-Type"],
         )
+
+
+class ErpSsoConsumeTests(TestCase):
+    """ERP SSO — sozlanmasa login; muvaffaqiyatda mavjud user session."""
+
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="erp_twin", password="localpass",
+        )
+
+    def test_unconfigured_falls_back_to_login(self):
+        from django.test import override_settings
+
+        with override_settings(PORTAL_SSO_SECRET="", ERP_SSO_VERIFY_URL=""):
+            resp = self.client.get(
+                reverse("erp_sso_consume"), {"token": "x"},
+            )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.url)
+
+    def test_missing_token_falls_back_to_login(self):
+        from django.test import override_settings
+
+        with override_settings(
+            PORTAL_SSO_SECRET="sec",
+            ERP_SSO_VERIFY_URL="https://erp.example/verify/",
+        ):
+            resp = self.client.get(reverse("erp_sso_consume"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.url)
+
+    def test_successful_verify_logs_in_existing_user(self):
+        from unittest.mock import MagicMock, patch
+
+        from django.test import override_settings
+
+        fake = {
+            "ok": True,
+            "user": {
+                "id": 1,
+                "username": "erp_twin",
+                "email": "",
+                "first_name": "",
+                "last_name": "",
+                "roles": [],
+            },
+            "project": "davomat",
+        }
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.read.return_value = json_bytes(fake)
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.__exit__.return_value = False
+
+        with override_settings(
+            PORTAL_SSO_SECRET="sec",
+            ERP_SSO_VERIFY_URL="https://erp.example/verify/",
+            ERP_SSO_PROJECT_CODE="davomat",
+            ERP_SSO_AUTO_CREATE_USER=False,
+        ), patch("blog.erp_sso.urlrequest.urlopen", return_value=mock_resp):
+            resp = self.client.get(
+                reverse("erp_sso_consume"),
+                {"token": "tok", "next": "/dashboard/"},
+            )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.id)
+
+    def test_unknown_username_does_not_create_user(self):
+        from unittest.mock import MagicMock, patch
+
+        from django.test import override_settings
+
+        User = get_user_model()
+        fake = {
+            "ok": True,
+            "user": {"username": "brand_new_erp_user", "email": ""},
+            "project": "davomat",
+        }
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.read.return_value = json_bytes(fake)
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.__exit__.return_value = False
+
+        with override_settings(
+            PORTAL_SSO_SECRET="sec",
+            ERP_SSO_VERIFY_URL="https://erp.example/verify/",
+            ERP_SSO_AUTO_CREATE_USER=False,
+        ), patch("blog.erp_sso.urlrequest.urlopen", return_value=mock_resp):
+            resp = self.client.get(
+                reverse("erp_sso_consume"), {"token": "tok"},
+            )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/login/", resp.url)
+        self.assertFalse(
+            User.objects.filter(username="brand_new_erp_user").exists()
+        )
+
+
+def json_bytes(data):
+    import json
+
+    return json.dumps(data).encode("utf-8")
 

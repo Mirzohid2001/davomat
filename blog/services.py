@@ -222,21 +222,23 @@ def round_money(amount, currency: str) -> Decimal:
 def calculate_debt_end(debt_start, accrued, paid, currency: str, loan_deduction=0) -> Decimal:
     """
     Oylik qarzdorlik oxirini hisoblaydi.
-    Ushlab qolish (oldindan qarz) oylikdan ayiriladi — kompaniya shu qismni endi
-    naqd to'lamaydi, balki qarzga yozadi.
+
+    To'langan = to'liq oylik (ushlab qolishdan oldin). Ushlab qolish qarzdorlikda
+    ikki marta ayirilmasin — u faqat «Qo'lga oladi» va oldindan qarz qoldig'ida.
+    loan_deduction parametri moslik uchun qabul qilinadi, lekin hisobga kirmaydi.
+
     Musbat — kompaniya xodimga qarzdor; manfiy — xodim ortiqcha olgan (avans).
     """
     debt_start = round_money(debt_start, currency)
     accrued = round_money(accrued, currency)
     paid = round_money(paid, currency)
-    loan_deduction = round_money(loan_deduction, currency)
-    return round_money(debt_start + accrued - paid - loan_deduction, currency)
+    return round_money(debt_start + accrued - paid, currency)
 
 
 def calculate_net_received(accrued, paid, loan_deduction, currency: str) -> Decimal:
     """
-    Xodim qo'liga oladigan summa: hisoblangan (yoki to'langan) minus oylik ushlab qolish.
-    To'lov kiritilmagan bo'lsa ham hisoblangandan ushlab qolish ayiriladi.
+    Xodim qo'liga oladigan summa: to'liq oylik (hisoblangan yoki to'langan)
+    minus avtomatik ushlab qolish.
     """
     base = max(round_money(accrued, currency), round_money(paid, currency))
     holdback = round_money(loan_deduction, currency)
@@ -844,7 +846,7 @@ def get_active_loan_remaining_total(employee: Employee, currency: str = 'UZS') -
 def aggregate_salary_currency_totals(stats) -> dict:
     """
     Jadval «Jami» qatori uchun valyuta bo'yicha yig'indilar.
-    debt_end har doim debt_start + accrued - paid formulasi bo'yicha hisoblanadi.
+    debt_end = debt_start + accrued - paid (ushlab qolish qarzdorlikka kirmaydi).
     """
     from collections import defaultdict
 

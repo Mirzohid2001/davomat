@@ -20,11 +20,14 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.i18n import set_language
+from blog.erp_sso import erp_sso_consume
 
 
 urlpatterns = [
     path('i18n/setlang/', set_language, name='set_language'),
     path('admin/', admin.site.urls),
+    # ERP Isomerix SSO (eski /login/ o‘zgarishsiz)
+    path('sso/erp/consume/', erp_sso_consume, name='erp_sso_consume'),
     path('', lambda request: redirect('dashboard'), name='home'),
     path('',include('blog.urls')),
     path('api/', include('api.urls')),

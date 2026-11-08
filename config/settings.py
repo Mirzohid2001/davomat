@@ -13,8 +13,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -135,6 +138,19 @@ USE_TZ = True
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/employees/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# ERP Portal SSO (erp-isomerix.uz → isomer-davomat.uz).
+# Bo‘sh secret = SSO o‘chiq; oddiy /login/ ishlayveradi.
+PORTAL_SSO_SECRET = os.environ.get('PORTAL_SSO_SECRET', '').strip()
+ERP_SSO_VERIFY_URL = os.environ.get(
+    'ERP_SSO_VERIFY_URL',
+    'https://erp-isomerix.uz/accounts/portal/sso/verify/',
+).strip()
+ERP_SSO_PROJECT_CODE = os.environ.get('ERP_SSO_PROJECT_CODE', 'davomat').strip() or 'davomat'
+ERP_SSO_TIMEOUT_SEC = int(os.environ.get('ERP_SSO_TIMEOUT_SEC', '10'))
+ERP_SSO_AUTO_CREATE_USER = os.environ.get(
+    'ERP_SSO_AUTO_CREATE_USER', 'false',
+).lower() in ('1', 'true', 'yes', 'on')
 
 
 # Static files (CSS, JavaScript, Images)

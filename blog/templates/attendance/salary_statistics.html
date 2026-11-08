@@ -517,7 +517,7 @@
   <aside class="salary-footnote">
     {% blocktrans %}<strong>*Ishchi kunlar:</strong> Faqat to'liq stavka xodimlar uchun hisobga olinadi (yakshanba va bayram kunlari chiqarilgan). 15 kunlik ishchilar har kuni ishlaydi, haftada 1 kun keladigan xodimlar uchun oyda 4 kun optimal, qorovullar uchun oyda 10 kun optimal. Ofis xodimlari esa davomatsiz to'liq oylik oladi.{% endblocktrans %}
     <br>
-    {% trans "Ushlab qolish — oylikdan har oy avtomatik ayiriladi (qarz tugaguncha). «Qo'lga oladi» = hisoblangan − ushlab qolish. Qolgan qarz — oldindan qarz qoldig'i." %}
+    {% trans "To'langan — to'liq hisoblangan oylik (ushlab qolishdan oldin). Ushlab qolish avtomatik ayiriladi; «Qo'lga oladi» = To'langan (yoki Hisoblangan) − ushlab qolish. Qarzdorlik = boshlang'ich + hisoblangan − to'langan (ushlash bu yerga kirmaydi). Qolgan qarz — oldindan qarz qoldig'i." %}
   </aside>
 
 </div><!-- .salary-page -->
@@ -597,6 +597,7 @@
                         <div class="salary-modal__field">
                             <label for="new_payment_amount_{{ stat.id }}" class="salary-modal__label">{% trans "Yangi to'lov summasi" %}</label>
                             <input type="number" name="new_payment_amount" step="any" min="0" class="form-control salary-modal__input" id="new_payment_amount_{{ stat.id }}" placeholder="{% trans 'Masalan: 2 000 000' %}">
+                            <small class="salary-modal__field-hint">{% trans "To'liq hisoblangan oylikni yozing. Ushlab qolish avtomatik ayiriladi — qo'lga oladigan summani emas." %}</small>
                         </div>
                         <div class="salary-modal__field">
                             <label for="new_payment_date_{{ stat.id }}" class="salary-modal__label">{% trans "To'lov sanasi" %}</label>
