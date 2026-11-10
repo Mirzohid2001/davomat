@@ -142,21 +142,6 @@
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="card border-0 shadow h-100">
                     <div class="card-body text-center">
-                        <div class="text-warning mb-2">
-                            <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Yakshanba" %}</p>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" style="width: {{ stats.sunday_percentage }}%"></div>
-                        </div>
-                        <small class="text-muted">{{ stats.sunday_percentage }}%</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
                         <div class="text-secondary mb-2">
                             <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
                         </div>
@@ -196,14 +181,14 @@
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="p-3 bg-light rounded">
-                                    <h5 class="text-warning">{{ stats.sunday }}</h5>
-                                    <p class="text-muted mb-0">Yakshanba</p>
+                                    <h5 class="text-info">{{ stats.dayoff }}</h5>
+                                    <p class="text-muted mb-0">{% trans "Yopiq kunlar" %}</p>
                                 </div>
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="p-3 bg-light rounded">
-                                    <h5 class="text-info">{{ stats.dayoff }}</h5>
-                                    <p class="text-muted mb-0">{% trans "Yopiq kunlar" %}</p>
+                                    <h5 class="text-secondary">{{ stats.unknown }}</h5>
+                                    <p class="text-muted mb-0">{% trans "Ma'lumot yo'q" %}</p>
                                 </div>
                             </div>
                         </div>
@@ -254,8 +239,7 @@
                                                     {% elif day_data.status == 'sick' %}bg-info
                                                     {% elif day_data.status == 'vacation' %}bg-primary
                                                     {% elif day_data.status == 'business' %}bg-success
-                                                    {% elif day_data.status == 'sunday' %}bg-warning
-                                                    {% elif day_data.status == 'dayoff' %}bg-secondary
+                                                    {% elif day_data.status == 'dayoff' or day_data.status == 'offday' %}bg-secondary
                                                     {% else %}bg-secondary{% endif %}">
                                                     {% if day_data.status == 'present' %}{% trans "Keldi" %}
                                                     {% elif day_data.status == 'absent' %}{% trans "Kelmadi" %}
@@ -263,12 +247,12 @@
                                                     {% elif day_data.status == 'sick' %}{% trans "Kasal" %}
                                                     {% elif day_data.status == 'vacation' %}{% trans "Ta'til" %}
                                                     {% elif day_data.status == 'business' %}{% trans "Ish safari" %}
-                                                    {% elif day_data.status == 'sunday' %}{% trans "Yakshanba" %}
                                                     {% elif day_data.status == 'dayoff' %}{% trans "Yopiq kun" %}
+                                                    {% elif day_data.status == 'offday' %}{% trans "Ish kuni emas" %}
                                                     {% else %}{% trans "Ma'lumot yo'q" %}{% endif %}
                                                 </span>
                                             </td>
-                                            <td>{{ day_data.comment|default:"-" }}</td>
+                                            <td>{% if day_data.comment and day_data.comment != 'None' %}{{ day_data.comment }}{% else %}-{% endif %}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>

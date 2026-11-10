@@ -9,3 +9,4 @@ pandas
 django-import-export          
 django-widget-tweaks          
 djangorestframework
+python-dotenv

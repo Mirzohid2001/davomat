@@ -873,15 +873,14 @@ class BulkAttendanceViewTests(TestCase):
         response = self.client.get(reverse("bulk_attendance_create"))
         self.assertEqual(response.status_code, 200)
 
-    def test_bulk_blocks_selected_sunday_when_no_nalivshik(self):
-        """Yakshanba: nalivshik bo'lmasa bloklanadi."""
+    def test_bulk_allows_sunday_for_regular_employees(self):
+        """Yakshanba endi cheklov emas — oddiy xodimlar ham davomat kirita oladi."""
         sunday = date(2026, 6, 7)
         response = self.client.get(
             reverse("bulk_attendance_create"),
             {"date": sunday.isoformat()},
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
 
     def test_bulk_allows_sunday_for_nalivshik(self):
         team = Team.objects.create(code=1, name="1-komanda")
@@ -1111,11 +1110,27 @@ class IndividualAttendanceViewTests(TestCase):
             team=self.team,
         )
 
-    def test_regular_employee_blocked_on_sunday(self):
+    def test_regular_employee_allowed_on_sunday(self):
         url = reverse("individual_attendance_create", args=[self.regular.id])
         response = self.client.get(url, {"date": self.sunday.isoformat()})
+        self.assertEqual(response.status_code, 200)
+
+    def test_regular_employee_can_save_on_sunday(self):
+        url = reverse("individual_attendance_create", args=[self.regular.id])
+        response = self.client.post(
+            url + f"?date={self.sunday.isoformat()}",
+            {
+                "status": "present",
+                "comment": "",
+                "date": self.sunday.isoformat(),
+            },
+        )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("dashboard"))
+        self.assertTrue(
+            Attendance.objects.filter(
+                employee=self.regular, date=self.sunday, status="present"
+            ).exists()
+        )
 
     def test_nalivshik_allowed_on_sunday(self):
         url = reverse("individual_attendance_create", args=[self.nalivshik.id])
@@ -1138,6 +1153,16 @@ class IndividualAttendanceViewTests(TestCase):
                 employee=self.nalivshik, date=self.sunday, status="present"
             ).exists()
         )
+
+    def test_regular_blocked_on_dayoff_not_sunday(self):
+        from blog.models import DayOff
+
+        closed = date(2026, 6, 8)
+        DayOff.objects.create(date=closed, reason="Bayram")
+        url = reverse("individual_attendance_create", args=[self.regular.id])
+        response = self.client.get(url, {"date": closed.isoformat()})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("dashboard"))
 
 
 class AttendanceSyncMonthlyStatsTests(TestCase):
@@ -1467,6 +1492,7 @@ class LogicIntegrationTests(TestCase):
 
     def test_restricted_day_helpers_consistent(self):
         from blog.services import employee_can_attend_on_date, is_restricted_attendance_date
+        from blog.models import DayOff
 
         sunday = date(2026, 6, 7)
         regular = Employee.objects.create(
@@ -1475,9 +1501,16 @@ class LogicIntegrationTests(TestCase):
         naliv = Employee.objects.create(
             first_name="N", last_name="Al", position="Nv", role="nalivshik"
         )
-        self.assertTrue(is_restricted_attendance_date(sunday))
-        self.assertFalse(employee_can_attend_on_date(regular, sunday))
+        # Yakshanba — ochiq
+        self.assertFalse(is_restricted_attendance_date(sunday))
+        self.assertTrue(employee_can_attend_on_date(regular, sunday))
         self.assertTrue(employee_can_attend_on_date(naliv, sunday))
+        # Yopiq kun — faqat nalivshik
+        closed = date(2026, 6, 8)
+        DayOff.objects.create(date=closed, reason="Bayram")
+        self.assertTrue(is_restricted_attendance_date(closed))
+        self.assertFalse(employee_can_attend_on_date(regular, closed))
+        self.assertTrue(employee_can_attend_on_date(naliv, closed))
 
     def test_bulk_formset_without_attachment_field(self):
         from django.forms import modelformset_factory
@@ -1489,6 +1522,127 @@ class LogicIntegrationTests(TestCase):
             fields=["employee", "date", "status", "comment"],
         )
         self.assertIsNotNone(FS)
+
+
+class SundayNotSpecialStatusTests(TestCase):
+    """Yakshanba maxsus status emas; oylik Du–Sha bazasi saqlanadi."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="sun_audit", password="pass12345")
+        self.client = Client()
+        self.client.login(username="sun_audit", password="pass12345")
+        self.emp = Employee.objects.create(
+            first_name="Zavod",
+            last_name="Ishchi",
+            position="Operator",
+            employee_type="full",
+        )
+        self.sunday = date(2026, 6, 7)  # Yakshanba
+        self.year, self.month = 2026, 6
+
+    def test_working_days_still_mon_sat_base(self):
+        from blog.services import calculate_working_days_in_month
+
+        # Iyun 2026: 30 kun, 4 yakshanba → 26 ishchi kun
+        wd, total = calculate_working_days_in_month(self.year, self.month)
+        self.assertEqual(total, 30)
+        self.assertEqual(wd, 26)
+
+    def test_full_salary_unchanged_without_sunday_attendance(self):
+        """Faqat Du–Sha kelgan — oylik eski formula bilan bir xil."""
+        from blog.services import calculate_monthly_stats, calculate_working_days_in_month
+        from calendar import monthrange
+
+        salary = Decimal("10000000")
+        MonthlyEmployeeStat.objects.create(
+            employee=self.emp,
+            year=self.year,
+            month=self.month,
+            salary=salary,
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+            days_in_month=30,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+        # Barcha Du–Sha kunlariga present
+        for day in range(1, monthrange(self.year, self.month)[1] + 1):
+            d = date(self.year, self.month, day)
+            if d.weekday() != 6:
+                Attendance.objects.create(employee=self.emp, date=d, status="present")
+
+        calculate_monthly_stats(self.year, self.month, employee=self.emp)
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.emp, year=self.year, month=self.month
+        )
+        wd, _ = calculate_working_days_in_month(self.year, self.month)
+        self.assertEqual(stat.worked_days, wd)
+        self.assertEqual(stat.accrued, salary)
+
+    def test_calendar_does_not_auto_mark_sunday(self):
+        url = reverse("employee_attendance_history", args=[self.emp.id])
+        response = self.client.get(url, {"year": self.year, "month": self.month})
+        self.assertEqual(response.status_code, 200)
+        calendar_days = response.context["calendar_days"]
+        sunday_cells = [
+            d for d in calendar_days
+            if d.get("date") and d["date"].weekday() == 6
+        ]
+        self.assertTrue(sunday_cells)
+        for cell in sunday_cells:
+            self.assertNotEqual(cell["status"], "sunday")
+            self.assertEqual(cell["status"], "unknown")
+            self.assertEqual(cell["status_class"], "unknown")
+
+        self.assertEqual(response.context["stats"]["sunday"], 0)
+
+    def test_get_data_allows_sunday_edit(self):
+        url = reverse("get_attendance_data_ajax", args=[self.emp.id])
+        response = self.client.get(url, {"date": self.sunday.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertFalse(data["is_sunday"])
+        self.assertFalse(data["is_dayoff"])
+
+    def test_sunday_present_does_not_inflate_above_full_salary(self):
+        """Yakshanba ham kelgan — oylik 100% dan oshmasin (cap)."""
+        from blog.services import calculate_monthly_stats
+        from calendar import monthrange
+
+        salary = Decimal("10000000")
+        MonthlyEmployeeStat.objects.create(
+            employee=self.emp,
+            year=self.year,
+            month=self.month,
+            salary=salary,
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+            days_in_month=30,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+        for day in range(1, monthrange(self.year, self.month)[1] + 1):
+            Attendance.objects.create(
+                employee=self.emp,
+                date=date(self.year, self.month, day),
+                status="present",
+            )
+        calculate_monthly_stats(self.year, self.month, employee=self.emp)
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.emp, year=self.year, month=self.month
+        )
+        self.assertEqual(stat.worked_days, 30)
+        self.assertEqual(stat.accrued, salary)
 
     def test_import_invalid_status_skipped(self):
         User = get_user_model()

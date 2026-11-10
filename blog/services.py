@@ -246,21 +246,17 @@ def calculate_net_received(accrued, paid, loan_deduction, currency: str) -> Deci
 
 
 def is_restricted_attendance_date(for_date: date) -> bool:
-    """Yakshanba yoki yopiq kun (nalivshiklar bundan mustasno ishlaydi)."""
-    if for_date.weekday() == 6:
-        return True
+    """Faqat rasmiy yopiq kun (DayOff). Yakshanba endi cheklov emas."""
     return DayOff.objects.filter(date=for_date).exists()
 
 
 def get_restricted_day_reason(for_date: date) -> str:
-    if for_date.weekday() == 6:
-        return str(_("Yakshanba"))
     dayoff = DayOff.objects.filter(date=for_date).first()
     return dayoff.reason if dayoff else str(_("Yopiq kun"))
 
 
 def employee_can_attend_on_date(employee, for_date: date) -> bool:
-    """Oddiy xodimlar yakshanba/yopiq kunda davomat kirita olmaydi."""
+    """Yopiq kunda faqat nalivshiklar davomat kiritadi. Yakshanba — hammaga ochiq."""
     if not is_restricted_attendance_date(for_date):
         return True
     return getattr(employee, "role", None) == "nalivshik"
@@ -269,7 +265,7 @@ def employee_can_attend_on_date(employee, for_date: date) -> bool:
 def get_bulk_attendance_employees(for_date: date):
     """
     Ommaviy davomat uchun xodimlar.
-    Yakshanba va yopiq kunlarda faqat nalivshiklar ishlaydi.
+    Yopiq kunlarda faqat nalivshiklar; yakshanba oddiy ish kuni kabi.
     Qaytadi: (queryset, restricted_day bool)
     """
     active = Employee.objects.filter(is_active=True)
@@ -280,22 +276,24 @@ def get_bulk_attendance_employees(for_date: date):
 
 
 def calculate_working_days_in_month(year, month):
-    """Oy ichidagi ишчи кунларни ҳисоблайди (якшанбаларни ва ёпиқ кунларни чиқариб)"""
+    """
+    To'liq stavka (full) oylik nominatori: Du–Sha minus yopiq kunlar.
+    Yakshanba bu yerda «dam olish statusi» emas — 6 kunlik grafik bazasi.
+    Shu sababli oylik hisob o'zgarmaydi.
+    """
     total_days = monthrange(year, month)[1]
-    start_date = date(year, month, 1)
-    
+
     working_days = 0
     dayoffs = set(DayOff.objects.filter(
-        date__year=year, 
+        date__year=year,
         date__month=month
     ).values_list('date', flat=True))
-    
+
     for day in range(1, total_days + 1):
         current_date = date(year, month, day)
-        # Якшанба = 6 (Python'да)
         if current_date.weekday() != 6 and current_date not in dayoffs:
             working_days += 1
-    
+
     return working_days, total_days
 
 

@@ -243,8 +243,7 @@ def dashboard(request):
     attendance_today = Attendance.objects.filter(date=today)
 
     is_dayoff = DayOff.objects.filter(date=today).exists()
-    is_sunday = today.weekday() == 6
-    is_restricted_day = is_dayoff or is_sunday
+    is_restricted_day = is_dayoff
 
     if is_restricted_day:
         employees_need_attendance = employees.filter(role='nalivshik')
@@ -838,12 +837,7 @@ def bulk_attendance_create(request):
     employees, restricted_day = get_bulk_attendance_employees(date_val)
     if restricted_day and not employees.exists():
         dayoff_reason = DayOff.objects.filter(date=date_val).first()
-        if date_val.weekday() == 6:
-            reason = str(_("Yakshanba"))
-        elif dayoff_reason:
-            reason = dayoff_reason.reason
-        else:
-            reason = str(_("Yopiq kun"))
+        reason = dayoff_reason.reason if dayoff_reason else str(_("Yopiq kun"))
         messages.error(
             request,
             _("%(date)s — %(reason)s. Aktiv nalivshik yo'q, davomat kiritib bo'lmaydi.") % {"date": date_val.strftime('%d.%m.%Y'), "reason": reason},
@@ -2715,8 +2709,6 @@ def individual_employee_statistics(request, employee_id):
     current_date = start_date
     
     while current_date <= end_date:
-        # Yakshanba tekshirish
-        is_sunday = current_date.weekday() == 6
         is_dayoff = current_date in dayoffs
         
         # Bu kun uchun davomat ma'lumoti
@@ -2724,23 +2716,21 @@ def individual_employee_statistics(request, employee_id):
         
         if attendance:
             status = attendance.status
-            comment = attendance.comment or ""
-        elif is_sunday:
-            status = "sunday"
-            comment = "Yakshanba"
+            comment = _calendar_note(attendance.comment)
         elif is_dayoff:
             status = "dayoff"
-            comment = "Yopiq kun"
+            comment = ""
         else:
             status = "unknown"
-            comment = "Ma'lumot yo'q"
+            comment = ""
         
         daily_data.append({
             'date': current_date,
             'status': status,
+            'status_text': get_status_text(status),
             'comment': comment,
-            'is_sunday': is_sunday,
-            'is_dayoff': is_dayoff,
+            'is_sunday': False,
+            'is_dayoff': is_dayoff or status == 'offday',
         })
         
         current_date += timedelta(days=1)
@@ -2753,19 +2743,19 @@ def individual_employee_statistics(request, employee_id):
     sick = len([d for d in daily_data if d['status'] == 'sick'])
     vacation = len([d for d in daily_data if d['status'] == 'vacation'])
     business = len([d for d in daily_data if d['status'] == 'business'])
-    sunday = len([d for d in daily_data if d['status'] == 'sunday'])
-    dayoff = len([d for d in daily_data if d['status'] == 'dayoff'])
+    sunday = 0
+    dayoff = len([d for d in daily_data if d['status'] in ('dayoff', 'offday')])
     unknown = len([d for d in daily_data if d['status'] == 'unknown'])
     
-    # Foiz hisoblash
-    working_days = total_days - sunday - dayoff
+    # Foiz hisoblash (yakshanba maxsus emas — faqat yopiq/offday ayiriladi)
+    working_days = total_days - dayoff
     present_percentage = (present / working_days * 100) if working_days > 0 else 0
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
     sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
-    sunday_percentage = (sunday / total_days * 100) if total_days > 0 else 0
+    sunday_percentage = 0
     unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
     
     # Oy navigatsiyasi
@@ -2774,12 +2764,7 @@ def individual_employee_statistics(request, employee_id):
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     
-    # Oy nomlari
-    months = [
-        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
-        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
-        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr')
-    ]
+    months = MONTH_NAME_CHOICES
     
     context = {
         'employee': employee,
@@ -2943,8 +2928,6 @@ def employee_attendance_history(request, employee_id):
     
     # Oy kunlari
     while current_date <= end_date:
-        # Yakshanba tekshirish
-        is_sunday = current_date.weekday() == 6
         is_dayoff = current_date in dayoffs
         
         # Bu kun uchun davomat ma'lumoti
@@ -2952,20 +2935,19 @@ def employee_attendance_history(request, employee_id):
         
         if attendance:
             status = attendance.status
-            comment = attendance.comment or ""
-        elif is_sunday:
-            status = "sunday"
-            comment = "Yakshanba"
+            comment = _calendar_note(attendance.comment)
         elif is_dayoff:
             status = "dayoff"
-            comment = "Yopiq kun"
+            comment = ""
         else:
             status = "unknown"
-            comment = "Ma'lumot yo'q"
+            comment = ""
         
-        # Status class va text
-        status_class = status
+        # Status class va text (offday = qo'lda belgilangan ish kuni emas)
+        status_class = 'dayoff' if status == 'offday' else status
         status_text = get_status_text(status)
+        if comment and comment == status_text:
+            comment = ""
         
         calendar_days.append({
             'day': current_date.day,
@@ -2999,19 +2981,19 @@ def employee_attendance_history(request, employee_id):
     sick = len([d for d in calendar_days if d['status'] == 'sick'])
     vacation = len([d for d in calendar_days if d['status'] == 'vacation'])
     business = len([d for d in calendar_days if d['status'] == 'business'])
-    sunday = len([d for d in calendar_days if d['status'] == 'sunday'])
-    dayoff = len([d for d in calendar_days if d['status'] == 'dayoff'])
+    sunday = 0
+    dayoff = len([d for d in calendar_days if d['status'] in ('dayoff', 'offday')])
     unknown = len([d for d in calendar_days if d['status'] == 'unknown'])
     
-    # Foiz hisoblash
-    working_days = total_days - sunday - dayoff
+    # Foiz hisoblash (yakshanba maxsus emas)
+    working_days = total_days - dayoff
     present_percentage = (present / working_days * 100) if working_days > 0 else 0
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
     sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
-    sunday_percentage = (sunday / total_days * 100) if total_days > 0 else 0
+    sunday_percentage = 0
     unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
     
     # Oy navigatsiyasi
@@ -3020,12 +3002,7 @@ def employee_attendance_history(request, employee_id):
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     
-    # Oy nomlari
-    months = [
-        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
-        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
-        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr')
-    ]
+    months = MONTH_NAME_CHOICES
     
     context = {
         'employee': employee,
@@ -3081,9 +3058,8 @@ def get_attendance_data_ajax(request, employee_id):
     # Davomat ma'lumotini olish
     attendance = Attendance.objects.filter(employee=employee, date=date_val).first()
     
-    # Yopiq kun yoki yakshanba tekshirish
+    # Faqat rasmiy yopiq kun tahrirni bloklaydi (nalivshikdan boshqa)
     is_dayoff = DayOff.objects.filter(date=date_val).exists()
-    is_sunday = date_val.weekday() == 6
     
     data = {
         'success': True,
@@ -3091,10 +3067,12 @@ def get_attendance_data_ajax(request, employee_id):
         'employee_name': employee.get_full_name(),
         'date': date_str,
         'status': attendance.status if attendance else '',
-        'comment': attendance.comment if attendance else '',
-        'is_dayoff': is_dayoff,
-        'is_sunday': is_sunday,
-        'dayoff_reason': DayOff.objects.filter(date=date_val).first().reason if is_dayoff else None
+        'comment': (attendance.comment or '') if attendance else '',
+        'is_dayoff': is_dayoff and not employee_can_attend_on_date(employee, date_val),
+        'is_sunday': False,
+        'dayoff_reason': (
+            DayOff.objects.filter(date=date_val).first().reason if is_dayoff else ''
+        ),
     }
     
     return JsonResponse(data)
@@ -3110,8 +3088,17 @@ def get_status_text(status):
         'business': _('Ish safari'),
         'sunday': _('Yakshanba'),
         'dayoff': _('Yopiq kun'),
+        'offday': _('Ish kuni emas'),
         'unknown': _("Ma'lumot yo'q"),
         'empty': '',
     }
     val = status_map.get(status, _('Noma\'lum'))
     return str(val) if val else ''
+
+
+def _calendar_note(raw) -> str:
+    """Faqat foydalanuvchi izohini qaytaradi; None / tizim matnlari emas."""
+    comment = (raw or "").strip()
+    if not comment or comment.lower() in {'none', 'null', 'undefined'}:
+        return ""
+    return comment

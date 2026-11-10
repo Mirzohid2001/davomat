@@ -9,7 +9,7 @@
 {% if dayoff %}
 <div class="alert alert-warning border-0 mb-3"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Yopiq kun" %}: <strong>{{ dayoff.reason }}</strong></div>
 {% elif restricted_day %}
-<div class="alert alert-info border-0 mb-3"><i class="bi bi-info-circle me-2"></i>{% trans "Yakshanba/yopiq kun — faqat nalivshiklar uchun davomat kiritiladi." %}</div>
+<div class="alert alert-info border-0 mb-3"><i class="bi bi-info-circle me-2"></i>{% trans "Yopiq kun — faqat nalivshiklar uchun davomat kiritiladi." %}</div>
 {% endif %}
 <form method="post" autocomplete="off">
     {% csrf_token %}
@@ -22,8 +22,8 @@
             <th class="text-center" style="width: 40px;">#</th>
             <th>{% trans "Ismi" %}</th>
             <th>{% trans "Familiyasi" %}</th>
-            <th style="width: 120px;">Status</th>
-            <th style="width: 220px;">Izoh</th>
+            <th style="width: 120px;">{% trans "Holat" %}</th>
+            <th style="width: 220px;">{% trans "Izoh" %}</th>
           </tr>
         </thead>
         <tbody>

@@ -1238,7 +1238,10 @@ msgstr "В командировке"
 
 #: blog/templates/attendance/employee_attendance_history.html:259
 msgid "Kunlik Davomat Kalendari"
-msgstr "История посещаемости"
+msgstr "Календарь посещаемости"
+
+msgid "Kunni bosing — davomatni o'zgartirish"
+msgstr "Нажмите на день, чтобы изменить посещаемость"
 
 #: blog/templates/attendance/employee_attendance_history.html:335
 msgid "Davomat Holatlari"

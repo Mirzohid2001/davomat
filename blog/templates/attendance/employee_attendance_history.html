@@ -4,6 +4,10 @@
 
 {% block title %}{{ employee.first_name }} {{ employee.last_name }} - {% trans "Davomat tarixi" %}{% endblock %}
 
+{% block extra_head %}
+<link href="{% static 'css/attendance-history.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 {% trans "Davomat tarixi" as page_title %}
 {% trans "Kunlik kalendar va tahrirlash" as hist_subtitle %}
@@ -121,7 +125,7 @@
                                                     <option value="late">{% trans "Kechikdi" %}</option>
                                                     <option value="sick">{% trans "Kasal" %}</option>
                                                     <option value="vacation">{% trans "Ta'til" %}</option>
-                                                    <option value="business">Ish safari</option>
+                                                    <option value="business">{% trans "Ish safari" %}</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
@@ -155,241 +159,111 @@
             </div>
         </div>
 
-        <!-- Statistikalar -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-success mb-2">
-                            <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-success">{{ stats.present }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Keldi" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-danger mb-2">
-                            <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Kelmadi" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-warning mb-2">
-                            <i class="bi bi-clock-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-warning">{{ stats.late }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Kechikdi" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-info mb-2">
-                            <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Kasal" %}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="att-hist">
+  <div class="att-hist__stats">
+    <div class="att-hist__stat att-hist__stat--present">
+      <div class="att-hist__stat-icon"><i class="bi bi-check-lg"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.present }}</p>
+        <p class="att-hist__stat-label">{% trans "Keldi" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--absent">
+      <div class="att-hist__stat-icon"><i class="bi bi-x-lg"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.absent }}</p>
+        <p class="att-hist__stat-label">{% trans "Kelmadi" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--late">
+      <div class="att-hist__stat-icon"><i class="bi bi-clock"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.late }}</p>
+        <p class="att-hist__stat-label">{% trans "Kechikdi" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--sick">
+      <div class="att-hist__stat-icon"><i class="bi bi-heart-pulse"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.sick }}</p>
+        <p class="att-hist__stat-label">{% trans "Kasal" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--vacation">
+      <div class="att-hist__stat-icon"><i class="bi bi-umbrella"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.vacation }}</p>
+        <p class="att-hist__stat-label">{% trans "Ta'til" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--business">
+      <div class="att-hist__stat-icon"><i class="bi bi-airplane"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.business }}</p>
+        <p class="att-hist__stat-label">{% trans "Ish safari" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__stat att-hist__stat--unknown">
+      <div class="att-hist__stat-icon"><i class="bi bi-question-lg"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.unknown }}</p>
+        <p class="att-hist__stat-label">{% trans "Ma'lumot yo'q" %}</p>
+      </div>
+    </div>
+  </div>
 
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-primary mb-2">
-                            <i class="bi bi-umbrella-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-primary">{{ stats.vacation }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Ta'til" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-success mb-2">
-                            <i class="bi bi-airplane-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-success">{{ stats.business }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Ish safari" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-warning mb-2">
-                            <i class="bi bi-calendar-week-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-warning">{{ stats.sunday }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Yakshanba" %}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-secondary mb-2">
-                            <i class="bi bi-question-circle-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-secondary">{{ stats.unknown }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Ma'lumot yo'q" %}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Kalendar -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="card-title mb-0 text-center">
-                            <i class="bi bi-calendar3"></i> {% trans "Kunlik Davomat Kalendari" %}
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Hafta kunlari -->
-                            <div class="col-12 mb-3">
-                                <div class="row g-1">
-                                    <div class="col text-center fw-bold text-muted">{% trans "Dushanba" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Seshanba" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Chorshanba" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Payshanba" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Juma" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Shanba" %}</div>
-                                    <div class="col text-center fw-bold text-muted">{% trans "Yakshanba" %}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Kalendar kunlari -->
-                            <div class="col-12">
-                                <div class="row g-1">
-                                    {% for day_data in calendar_days %}
-                                        {% if day_data.status == 'empty' %}
-                                            <div class="col p-2">
-                                                <div class="card h-100 border-0 bg-transparent">
-                                                    <div class="card-body text-center p-2">
-                                                        <h6 class="card-title mb-1 fw-bold text-muted"></h6>
-                                                        <span class="badge bg-transparent"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% else %}
-                                            <div class="col p-2">
-                                                <div class="card h-100 border-0 shadow-sm day-card" 
-                                                     data-day="{{ day_data.day }}" 
-                                                     data-status="{{ day_data.status }}"
-                                                     data-comment="{{ day_data.comment|default:'' }}"
-                                                     data-date="{{ day_data.date|date:'Y-m-d' }}"
-                                                     style="cursor: pointer; transition: all 0.3s ease;"
-                                                     onclick="openAttendanceModal('{{ employee.id }}', '{{ day_data.date|date:'Y-m-d' }}')">
-                                                    <div class="card-body text-center p-2">
-                                                        <h6 class="card-title mb-1 fw-bold">{{ day_data.day }}</h6>
-                                                        <span class="badge 
-                                                            {% if day_data.status_class == 'present' %}bg-success
-                                                            {% elif day_data.status_class == 'absent' %}bg-danger
-                                                            {% elif day_data.status_class == 'late' %}bg-warning
-                                                            {% elif day_data.status_class == 'sick' %}bg-info
-                                                            {% elif day_data.status_class == 'vacation' %}bg-primary
-                                                            {% elif day_data.status_class == 'business' %}bg-success
-                                                            {% elif day_data.status_class == 'sunday' %}bg-warning
-                                                            {% elif day_data.status_class == 'dayoff' %}bg-secondary
-                                                            {% else %}bg-secondary{% endif %}">
-                                                            {{ day_data.status_text }}
-                                                        </span>
-                                                        {% if day_data.comment %}
-                                                            <small class="text-muted d-block mt-1">{{ day_data.comment|truncatechars:10 }}</small>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-0 shadow">
-                    <div class="card-header bg-info text-white">
-                        <h4 class="card-title mb-0 text-center">
-                            <i class="bi bi-palette"></i> {% trans "Davomat Holatlari" %}
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Keldi" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-danger me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Kelmadi" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Kechikdi" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-info me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Kasal" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-primary me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Ta'til" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Ish safari" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Yakshanba" %}</span>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-4 col-sm-6">
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-secondary me-2" style="width: 20px; height: 20px;"></span>
-                                    <span>{% trans "Ma'lumot yo'q" %}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <section class="att-hist__calendar calendar-card" id="attendanceCalendar">
+    <div class="att-hist__calendar-head">
+      <div>
+        <h3 class="att-hist__calendar-title"><i class="bi bi-calendar3 me-2"></i>{% trans "Kunlik Davomat Kalendari" %}</h3>
+        <p class="att-hist__calendar-hint">{% trans "Kunni bosing — davomatni o'zgartirish" %}</p>
+      </div>
+    </div>
+    <div class="att-hist__calendar-body">
+      <div class="att-hist__weekdays">
+        <div class="att-hist__weekday">{% trans "Dushanba" %}</div>
+        <div class="att-hist__weekday">{% trans "Seshanba" %}</div>
+        <div class="att-hist__weekday">{% trans "Chorshanba" %}</div>
+        <div class="att-hist__weekday">{% trans "Payshanba" %}</div>
+        <div class="att-hist__weekday">{% trans "Juma" %}</div>
+        <div class="att-hist__weekday">{% trans "Shanba" %}</div>
+        <div class="att-hist__weekday att-hist__weekday--sun">{% trans "Yakshanba" %}</div>
+      </div>
+      <div class="att-hist__grid">
+        {% for day_data in calendar_days %}
+          {% if day_data.status == 'empty' %}
+            <div class="att-hist__cell att-hist__cell--empty" aria-hidden="true"></div>
+          {% else %}
+            <button type="button"
+                    class="att-hist__cell att-hist__cell--{{ day_data.status_class }} day-card"
+                    data-day="{{ day_data.day }}"
+                    data-status="{{ day_data.status }}"
+                    data-comment="{{ day_data.comment|default:'' }}"
+                    data-date="{{ day_data.date|date:'Y-m-d' }}"
+                    onclick="openAttendanceModal('{{ employee.id }}', '{{ day_data.date|date:'Y-m-d' }}')">
+              <span class="att-hist__daynum">{{ day_data.day }}</span>
+              <span class="att-hist__badge att-hist__badge--{{ day_data.status_class }}">{{ day_data.status_text }}</span>
+              {% if day_data.comment %}
+                <span class="att-hist__note" title="{{ day_data.comment }}">{{ day_data.comment|truncatechars:18 }}</span>
+              {% endif %}
+            </button>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div id="filter-results-slot"></div>
+    </div>
+    <div class="att-hist__legend">
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--present"></span>{% trans "Keldi" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--absent"></span>{% trans "Kelmadi" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--late"></span>{% trans "Kechikdi" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--sick"></span>{% trans "Kasal" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--vacation"></span>{% trans "Ta'til" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--business"></span>{% trans "Ish safari" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--dayoff"></span>{% trans "Ish kuni emas" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--unknown"></span>{% trans "Ma'lumot yo'q" %}</span>
+    </div>
+  </section>
+</div>
 
 {% endblock %}
 
@@ -473,9 +347,9 @@ function openAttendanceModal(employeeId, date) {
             modalLoading.style.display = 'none';
             
             if (data.success) {
-                // Yopiq kun yoki yakshanba tekshirish
-                if (data.is_dayoff || data.is_sunday) {
-                    modalAlert.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${data.is_dayoff ? data.dayoff_reason : '{% trans "Yakshanba" %}'} - {% trans "bu kunda davomat o'zgartirib bo'lmaydi!" %}`;
+                // Faqat rasmiy yopiq kun (xodimga ruxsat bo'lmasa) bloklanadi
+                if (data.is_dayoff) {
+                    modalAlert.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${data.dayoff_reason || '{% trans "Yopiq kun" %}'} — {% trans "bu kunda davomat o'zgartirib bo'lmaydi!" %}`;
                     modalAlert.style.display = 'block';
                     modalContent.style.display = 'none';
                     document.getElementById('saveAttendanceBtn').disabled = true;
@@ -588,36 +462,10 @@ document.addEventListener('DOMContentLoaded', function() {
         modalStatus.addEventListener('change', checkCommentRequired);
     }
     
-    // Kalendar kunlariga hover effekt
-    const dayCards = document.querySelectorAll('.day-card');
-    
-    dayCards.forEach(card => {
-        // Hover effekt
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-            this.style.transition = 'transform 0.3s ease';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Filtrlash funksiyalari
     const statusFilter = document.getElementById('statusFilter');
     const weekdayFilter = document.getElementById('weekdayFilter');
-    
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            filterCalendar();
-        });
-    }
-    
-    if (weekdayFilter) {
-        weekdayFilter.addEventListener('change', function() {
-            filterCalendar();
-        });
-    }
+    if (statusFilter) statusFilter.addEventListener('change', filterCalendar);
+    if (weekdayFilter) weekdayFilter.addEventListener('change', filterCalendar);
 });
 
 // Tezkor tanlov funksiyalari
@@ -640,87 +488,58 @@ function setPreviousMonth() {
     if (monthSelect) monthSelect.value = prevMonth.getMonth() + 1;
 }
 
-// Filtrlash funksiyasi
 function filterCalendar() {
     const statusFilter = document.getElementById('statusFilter');
     const weekdayFilter = document.getElementById('weekdayFilter');
     const dayCards = document.querySelectorAll('.day-card');
-    
     const selectedStatus = statusFilter ? statusFilter.value : '';
     const selectedWeekday = weekdayFilter ? weekdayFilter.value : '';
-    
+    let visible = 0;
+
     dayCards.forEach(card => {
         let show = true;
-        
-        // Status bo'yicha filtrlash
-        if (selectedStatus) {
-            const cardStatus = card.getAttribute('data-status');
-            if (cardStatus !== selectedStatus) {
-                show = false;
-            }
+        if (selectedStatus && card.getAttribute('data-status') !== selectedStatus) {
+            show = false;
         }
-        
-        // Hafta kuni bo'yicha filtrlash
         if (selectedWeekday && show) {
-            const day = parseInt(card.getAttribute('data-day'));
+            const day = parseInt(card.getAttribute('data-day'), 10);
             if (day) {
                 const date = new Date({{ year }}, {{ month|add:"-1" }}, day);
-                const weekday = date.getDay();
-                
-                if (weekday.toString() !== selectedWeekday) {
-                    show = false;
-                }
+                if (date.getDay().toString() !== selectedWeekday) show = false;
             }
         }
-        
-        // Ko'rsatish/yashirish
-        if (show) {
-            card.style.display = 'block';
-            card.style.opacity = '1';
-            card.style.transform = 'scale(1)';
-        } else {
-            card.style.display = 'none';
-            card.style.opacity = '0.3';
-            card.style.transform = 'scale(0.8)';
-        }
+        card.classList.toggle('is-filtered-out', !show);
+        if (show) visible += 1;
     });
-    
-    // Filtrlash natijalarini ko'rsatish
-    const visibleCards = document.querySelectorAll('.day-card[style*="display: block"]');
-    const totalCards = document.querySelectorAll('.day-card');
-    
+
     if (selectedStatus || selectedWeekday) {
-        showFilterResults(visibleCards.length, totalCards.length);
+        showFilterResults(visible, dayCards.length);
     } else {
         hideFilterResults();
     }
 }
 
-// Filtrlash natijalarini ko'rsatish
 function showFilterResults(visible, total) {
+    const slot = document.getElementById('filter-results-slot');
+    if (!slot) return;
     let resultsDiv = document.getElementById('filter-results');
     if (!resultsDiv) {
         resultsDiv = document.createElement('div');
         resultsDiv.id = 'filter-results';
-        resultsDiv.className = 'alert alert-info mt-3';
-        document.querySelector('.calendar-card .card-body').appendChild(resultsDiv);
+        resultsDiv.className = 'alert alert-info mt-3 mb-0';
+        slot.appendChild(resultsDiv);
     }
-    
     resultsDiv.innerHTML = `
-        <i class="bi bi-info-circle"></i> 
+        <i class="bi bi-info-circle"></i>
         {% trans "Filtrlash natijasi:" %} ${visible} {% trans "ta kun ko'rsatilmoqda (jami" %} ${total} {% trans "ta kundan)" %}
     `;
 }
 
-// Filtrlash natijalarini yashirish
 function hideFilterResults() {
     const resultsDiv = document.getElementById('filter-results');
-    if (resultsDiv) {
-        resultsDiv.remove();
-    }
+    if (resultsDiv) resultsDiv.remove();
 }
 
-// Filtrlarni tozalash
 function clearFilters() {
     const statusFilter = document.getElementById('statusFilter');
     const weekdayFilter = document.getElementById('weekdayFilter');
@@ -729,11 +548,8 @@ function clearFilters() {
     if (statusFilter) statusFilter.value = '';
     if (weekdayFilter) weekdayFilter.value = '';
     
-    // Barcha kunlarni ko'rsatish
-    dayCards.forEach(card => {
-        card.style.display = 'block';
-        card.style.opacity = '1';
-    });
+    dayCards.forEach(card => card.classList.remove('is-filtered-out'));
+    hideFilterResults();
 }
 
 
