@@ -2,8 +2,8 @@
  * Oylik statistika — refined premium UI
  */
 .salary-page {
-  --sal-grad: linear-gradient(135deg, #0369a1 0%, #4f46e5 48%, #3730a3 100%);
-  --sal-grad-soft: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.1));
+  --sal-grad: linear-gradient(135deg, #0b1f2a 0%, #0f766e 48%, #0d9488 100%);
+  --sal-grad-soft: linear-gradient(135deg, rgba(13, 148, 136, 0.12), rgba(13, 148, 136, 0.1));
   --sal-surface: rgba(255, 255, 255, 0.82);
   --sal-surface-solid: #ffffff;
   --sal-border: rgba(15, 23, 42, 0.07);
@@ -13,7 +13,7 @@
   --sal-radius: 20px;
   --sal-radius-sm: 12px;
   --sal-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 28px rgba(15, 23, 42, 0.07);
-  --sal-shadow-hover: 0 4px 6px rgba(15, 23, 42, 0.04), 0 16px 40px rgba(79, 70, 229, 0.12);
+  --sal-shadow-hover: 0 4px 6px rgba(15, 23, 42, 0.04), 0 16px 40px rgba(13, 148, 136, 0.14);
   --sal-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   max-width: 100%;
@@ -27,7 +27,7 @@
   transform: translateX(-50%);
   width: min(900px, 100%);
   height: 280px;
-  background: radial-gradient(ellipse 80% 70% at 50% 0%, rgba(99, 102, 241, 0.14), transparent 70%);
+  background: radial-gradient(ellipse 80% 70% at 50% 0%, rgba(13, 148, 136, 0.14), transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -39,7 +39,7 @@
 
 /* Bootstrap modal — viewport markazida (relative override bo'lmasin) */
 .salary-modal.modal {
-  --sal-grad: linear-gradient(135deg, #0369a1 0%, #4f46e5 48%, #3730a3 100%);
+  --sal-grad: linear-gradient(135deg, #0b1f2a 0%, #0f766e 48%, #0d9488 100%);
   --sal-border: rgba(15, 23, 42, 0.07);
   --sal-border-strong: rgba(15, 23, 42, 0.11);
   --sal-muted: #64748b;
@@ -254,7 +254,7 @@ body.salary-modal-open .modal-backdrop.show {
 .salary-kpi:hover {
   transform: translateY(-3px);
   box-shadow: var(--sal-shadow-hover);
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(13, 148, 136, 0.2);
 }
 
 .salary-kpi__icon {
@@ -266,9 +266,9 @@ body.salary-modal-open .modal-backdrop.show {
   justify-content: center;
   border-radius: 12px;
   font-size: 1.15rem;
-  color: #4f46e5;
-  background: linear-gradient(145deg, rgba(99, 102, 241, 0.14), rgba(14, 165, 233, 0.1));
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.12) inset;
+  color: #0f766e;
+  background: linear-gradient(145deg, rgba(13, 148, 136, 0.14), rgba(13, 148, 136, 0.1));
+  box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.12) inset;
 }
 
 .salary-kpi__icon--amber {
@@ -342,7 +342,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-filters__head-title i {
-  color: #6366f1;
+  color: #0d9488;
 }
 
 .salary-filters__body {
@@ -394,7 +394,7 @@ body.salary-modal-open .modal-backdrop.show {
 .salary-filters .form-control:focus,
 .salary-filters .form-select:focus {
   border-color: #818cf8;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
 }
 
 .salary-input-wrap {
@@ -501,13 +501,13 @@ body.salary-modal-open .modal-backdrop.show {
   background: var(--sal-grad);
   border: none;
   color: #fff;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.35);
 }
 
 .salary-btn-primary:hover {
   filter: brightness(1.05);
   color: #fff;
-  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.42);
+  box-shadow: 0 6px 22px rgba(13, 148, 136, 0.42);
 }
 
 /* ——— Jadval ——— */
@@ -538,7 +538,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-table-toolbar__hint i {
-  color: #6366f1;
+  color: #0d9488;
 }
 
 .salary-count-pill {
@@ -548,9 +548,9 @@ body.salary-modal-open .modal-backdrop.show {
   padding: 0.4rem 0.85rem;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #3730a3;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.08));
-  border: 1px solid rgba(99, 102, 241, 0.18);
+  color: #115e59;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.1), rgba(13, 148, 136, 0.08));
+  border: 1px solid rgba(13, 148, 136, 0.18);
   border-radius: 999px;
 }
 
@@ -568,7 +568,7 @@ body.salary-modal-open .modal-backdrop.show {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+  scrollbar-color: rgba(13, 148, 136, 0.35) transparent;
 }
 
 .salary-table-responsive::-webkit-scrollbar {
@@ -577,7 +577,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-table-responsive::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.35);
+  background: rgba(13, 148, 136, 0.35);
   border-radius: 999px;
 }
 
@@ -666,6 +666,38 @@ body.salary-modal-open .modal-backdrop.show {
   margin-left: 0.4rem;
 }
 
+.salary-table thead th:nth-child(1),
+.salary-table tbody td:nth-child(1),
+.salary-table tfoot td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 12;
+}
+
+.salary-table thead th:nth-child(2),
+.salary-table tbody td.salary-table__name,
+.salary-table tfoot td:nth-child(2) {
+  position: sticky;
+  left: 2.5rem;
+  z-index: 12;
+}
+
+.salary-table thead th:nth-child(1),
+.salary-table thead th:nth-child(2) {
+  z-index: 25;
+}
+
+.salary-table tbody td:nth-child(1),
+.salary-table tbody td.salary-table__name {
+  background: #fff;
+  box-shadow: 4px 0 12px rgba(15, 23, 42, 0.04);
+}
+
+.salary-table tbody tr:nth-child(even) td:nth-child(1),
+.salary-table tbody tr:nth-child(even) td.salary-table__name {
+  background: rgba(248, 250, 252, 0.98);
+}
+
 .salary-table__num {
   width: 2.5rem;
   color: #94a3b8;
@@ -733,19 +765,19 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-table tbody tr:hover td {
-  background: rgba(238, 242, 255, 0.95);
+  background: rgba(240, 253, 250, 0.95);
 }
 
 .salary-table tbody tr:hover {
-  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.08);
 }
 
 .salary-table tbody tr.office-row td {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.08), rgba(255, 255, 255, 0.95)) !important;
+  background: linear-gradient(90deg, rgba(13, 148, 136, 0.08), rgba(255, 255, 255, 0.95)) !important;
 }
 
 .salary-table tbody tr.office-row:hover td {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.12), rgba(238, 242, 255, 0.98)) !important;
+  background: linear-gradient(90deg, rgba(13, 148, 136, 0.12), rgba(240, 253, 250, 0.98)) !important;
 }
 
 .salary-table tbody tr.office-row td:first-child {
@@ -760,11 +792,11 @@ body.salary-modal-open .modal-backdrop.show {
   position: sticky;
   bottom: 0;
   z-index: 15;
-  background: linear-gradient(180deg, #f0f9ff 0%, #e0e7ff 100%);
+  background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%);
   font-weight: 700;
   font-size: 0.82rem;
   padding: 0.85rem 0.65rem;
-  border-top: 2px solid rgba(99, 102, 241, 0.35);
+  border-top: 2px solid rgba(13, 148, 136, 0.35);
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -806,22 +838,22 @@ body.salary-modal-open .modal-backdrop.show {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(13, 148, 136, 0.2);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.9);
-  color: #4f46e5;
+  color: #0f766e;
   transition: all 0.25s var(--sal-ease);
   vertical-align: middle;
   margin-left: 6px;
-  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.12);
 }
 
 .btn-edit-salary:hover {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: #0d9488;
+  border-color: #0d9488;
   color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
 }
 
 .salary-table td.table-success {
@@ -860,7 +892,7 @@ body.salary-modal-open .modal-backdrop.show {
   justify-content: center;
   border-radius: 16px;
   font-size: 1.5rem;
-  color: #6366f1;
+  color: #0d9488;
   background: var(--sal-grad-soft);
 }
 
@@ -899,9 +931,9 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-mobile-card.office-card {
-  border-color: rgba(14, 165, 233, 0.35);
+  border-color: rgba(13, 148, 136, 0.35);
   background: linear-gradient(145deg, #f0f9ff, #fff);
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.1);
+  box-shadow: 0 4px 20px rgba(13, 148, 136, 0.1);
 }
 
 .salary-mobile-card__head {
@@ -929,7 +961,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-mobile-card__position i {
-  color: #6366f1;
+  color: #0d9488;
 }
 
 .salary-mobile-card__row {
@@ -970,13 +1002,13 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-mobile-card--total {
-  background: linear-gradient(145deg, #eef2ff, #e0f2fe);
-  border: 1.5px solid rgba(99, 102, 241, 0.35);
-  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.12);
+  background: linear-gradient(145deg, #f0fdfa, #ecfeff);
+  border: 1.5px solid rgba(13, 148, 136, 0.35);
+  box-shadow: 0 8px 28px rgba(13, 148, 136, 0.12);
 }
 
 .salary-mobile-card--total .salary-mobile-card__head {
-  border-bottom-color: rgba(99, 102, 241, 0.2);
+  border-bottom-color: rgba(13, 148, 136, 0.2);
 }
 
 /* ——— Izoh ——— */
@@ -987,7 +1019,7 @@ body.salary-modal-open .modal-backdrop.show {
   backdrop-filter: blur(12px);
   border-radius: var(--sal-radius-sm);
   border: 1px solid var(--sal-border);
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid #0d9488;
   font-size: 0.81rem;
   color: var(--sal-muted);
   line-height: 1.6;
@@ -1006,7 +1038,7 @@ body.salary-modal-open .modal-backdrop.show {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.12) inset,
     0 32px 64px rgba(15, 23, 42, 0.28),
-    0 8px 24px rgba(79, 70, 229, 0.15);
+    0 8px 24px rgba(13, 148, 136, 0.15);
 }
 
 .salary-modal__header.modal-header {
@@ -1063,7 +1095,7 @@ body.salary-modal-open .modal-backdrop.show {
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #3730a3;
+  color: #115e59;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -1184,7 +1216,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .salary-modal__label i {
-  color: #6366f1;
+  color: #0d9488;
   font-size: 0.85rem;
 }
 
@@ -1200,7 +1232,7 @@ body.salary-modal-open .modal-backdrop.show {
 
 .salary-modal__input:focus {
   border-color: #818cf8;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
 }
 
 .salary-modal__hint {
@@ -1211,14 +1243,14 @@ body.salary-modal-open .modal-backdrop.show {
   padding: 0.65rem 0.75rem;
   font-size: 0.78rem;
   color: var(--sal-muted);
-  background: rgba(99, 102, 241, 0.06);
+  background: rgba(13, 148, 136, 0.06);
   border-radius: 10px;
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.1);
   line-height: 1.45;
 }
 
 .salary-modal__hint i {
-  color: #6366f1;
+  color: #0d9488;
   margin-top: 0.1rem;
   flex-shrink: 0;
 }
@@ -1390,8 +1422,8 @@ body.salary-modal-open .modal-backdrop.show {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
   font-size: 0.95rem;
 }
 
@@ -1683,13 +1715,13 @@ body.salary-modal-open .modal-backdrop.show {
   font-size: 0.78rem;
   line-height: 1.45;
   color: var(--sal-muted);
-  background: rgba(99, 102, 241, 0.06);
+  background: rgba(13, 148, 136, 0.06);
   border-radius: 10px;
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.1);
 }
 
 .prod-bonus-hint i {
-  color: #6366f1;
+  color: #0d9488;
   margin-top: 0.1rem;
   flex-shrink: 0;
 }
@@ -1785,8 +1817,8 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .prod-bonus-picker__count--active {
-  background: rgba(99, 102, 241, 0.12);
-  color: #4f46e5;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
 }
 
 .prod-bonus-modal--remove .prod-bonus-picker__count--active {
@@ -1865,8 +1897,8 @@ body.salary-modal-open .modal-backdrop.show {
 
 .prod-bonus-emp--selected {
   border-color: #818cf8;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), #fff);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.06), #fff);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
 }
 
 .prod-bonus-modal--remove .prod-bonus-emp--selected {
@@ -1885,8 +1917,8 @@ body.salary-modal-open .modal-backdrop.show {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: #4f46e5;
-  background: rgba(99, 102, 241, 0.1);
+  color: #0f766e;
+  background: rgba(13, 148, 136, 0.1);
   border-radius: 10px;
 }
 
@@ -1937,7 +1969,7 @@ body.salary-modal-open .modal-backdrop.show {
 }
 
 .prod-bonus-emp--selected .prod-bonus-emp__tick {
-  background: #6366f1;
+  background: #0d9488;
   color: #fff;
 }
 

@@ -1,41 +1,44 @@
 /**
- * ISOMER OIL Davomat — Premium Design System
+ * ISOMER OIL Davomat — Design System
+ * Industrial / energy: deep slate + teal + amber (no purple AI theme)
  */
 :root {
-  --pm-bg: #e9eef8;
+  --pm-bg: #eef2f4;
   --pm-bg-elevated: #ffffff;
-  --pm-surface: rgba(255, 255, 255, 0.72);
+  --pm-surface: rgba(255, 255, 255, 0.82);
   --pm-surface-solid: #ffffff;
-  --pm-border: rgba(15, 23, 42, 0.08);
-  --pm-border-strong: rgba(15, 23, 42, 0.12);
+  --pm-border: rgba(15, 36, 48, 0.09);
+  --pm-border-strong: rgba(15, 36, 48, 0.14);
 
-  --pm-text: #0c1222;
-  --pm-text-secondary: #5c6b82;
-  --pm-text-muted: #94a3b8;
+  --pm-text: #0f2430;
+  --pm-text-secondary: #5a6f7c;
+  --pm-text-muted: #8fa3b0;
 
-  --pm-brand: #0ea5e9;
-  --pm-brand-2: #6366f1;
-  --pm-brand-3: #4f46e5;
-  --pm-accent: #22d3ee;
-  --pm-gold: #d4a853;
+  --pm-brand: #0d9488;
+  --pm-brand-2: #0f766e;
+  --pm-brand-3: #115e59;
+  --pm-accent: #f59e0b;
+  --pm-gold: #d4a017;
+  --pm-navy: #0b1f2a;
+  --pm-steel: #1e3a4c;
 
-  --pm-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 48%, #4f46e5 100%);
-  --pm-gradient-dark: linear-gradient(160deg, #0b1220 0%, #151d33 45%, #1a1040 100%);
-  --pm-gradient-hero: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #312e81 100%);
+  --pm-gradient: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #14b8a6 100%);
+  --pm-gradient-dark: linear-gradient(160deg, #07151c 0%, #0b1f2a 50%, #123040 100%);
+  --pm-gradient-hero: linear-gradient(135deg, #0b1f2a 0%, #115e59 55%, #0d9488 100%);
   --pm-gradient-mesh:
-    radial-gradient(ellipse 90% 60% at 0% 0%, rgba(14, 165, 233, 0.35), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(99, 102, 241, 0.3), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(34, 211, 238, 0.15), transparent 55%);
+    radial-gradient(ellipse 85% 55% at 0% 0%, rgba(13, 148, 136, 0.22), transparent 55%),
+    radial-gradient(ellipse 65% 45% at 100% 0%, rgba(245, 158, 11, 0.12), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 50% 100%, rgba(30, 58, 76, 0.08), transparent 55%);
 
-  --pm-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.04);
-  --pm-shadow-md: 0 4px 6px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
-  --pm-shadow-lg: 0 8px 16px rgba(15, 23, 42, 0.06), 0 24px 48px rgba(67, 97, 238, 0.12);
-  --pm-shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.5) inset, 0 20px 50px rgba(14, 165, 233, 0.18);
+  --pm-shadow-sm: 0 1px 2px rgba(15, 36, 48, 0.04), 0 2px 8px rgba(15, 36, 48, 0.04);
+  --pm-shadow-md: 0 4px 6px rgba(15, 36, 48, 0.04), 0 12px 28px rgba(15, 36, 48, 0.07);
+  --pm-shadow-lg: 0 8px 16px rgba(15, 36, 48, 0.06), 0 22px 44px rgba(13, 148, 136, 0.12);
+  --pm-shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.4) inset, 0 18px 40px rgba(13, 148, 136, 0.16);
 
   --pm-radius-sm: 10px;
   --pm-radius-md: 14px;
-  --pm-radius-lg: 20px;
-  --pm-radius-xl: 24px;
+  --pm-radius-lg: 18px;
+  --pm-radius-xl: 22px;
 
   --pm-font: 'DM Sans', system-ui, sans-serif;
   --pm-font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -55,6 +58,12 @@
   --radius-xl: var(--pm-radius-xl);
   --shadow-md: var(--pm-shadow-md);
   --transition-base: 0.35s var(--pm-ease);
+
+  /* Bootstrap bridge — tugmalar / badge / link */
+  --bs-primary: #0f766e;
+  --bs-primary-rgb: 15, 118, 110;
+  --bs-link-color: #0f766e;
+  --bs-link-hover-color: #115e59;
 }
 
 /* ——— Base ——— */
@@ -116,7 +125,7 @@
   display: flex;
   flex-direction: column;
   line-height: 1.1;
-  background: linear-gradient(135deg, #fff 0%, #a5f3fc 50%, #c7d2fe 100%);
+  background: linear-gradient(135deg, #fff 0%, #99f6e4 55%, #fde68a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -151,10 +160,14 @@
   transform: none;
 }
 
+.navbar-premium .nav-primary {
+  gap: 0.15rem;
+}
+
 .navbar-premium .nav-link {
   color: rgba(255, 255, 255, 0.78) !important;
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.88rem;
   padding: 0.5rem 0.85rem !important;
   border-radius: var(--pm-radius-sm);
   margin: 0 2px;
@@ -169,8 +182,8 @@
 
 .navbar-premium .nav-link.active {
   color: #fff !important;
-  background: rgba(14, 165, 233, 0.25);
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+  background: rgba(13, 148, 136, 0.32);
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35);
 }
 
 .navbar-premium .nav-link.active::after {
@@ -213,7 +226,7 @@
 }
 
 .navbar-premium .dropdown-item:hover {
-  background: rgba(14, 165, 233, 0.1);
+  background: rgba(13, 148, 136, 0.1);
   color: var(--pm-brand-3);
 }
 
@@ -417,7 +430,7 @@
 }
 
 .app-table tbody tr:hover {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.06), rgba(99, 102, 241, 0.04));
+  background: linear-gradient(90deg, rgba(13, 148, 136, 0.07), rgba(245, 158, 11, 0.04));
 }
 
 /* ——— Stat cards ——— */
@@ -460,12 +473,12 @@
 .btn-premium {
   background: var(--pm-gradient);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.32);
 }
 
 .premium-ui .btn-primary:hover,
 .app-page .btn-primary:hover {
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.4);
   filter: brightness(1.05);
 }
 
@@ -508,7 +521,7 @@
 .app-form-panel .form-control:focus,
 .app-filter-card .form-control:focus {
   border-color: var(--pm-brand);
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
   outline: none;
   transform: none;
 }
@@ -536,7 +549,7 @@
   justify-content: center;
   font-size: 2rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.15));
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(245, 158, 11, 0.12));
   color: var(--pm-brand-2);
 }
 
@@ -642,8 +655,8 @@
 }
 
 .app-quick-links .list-group-item:hover {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.08), transparent);
-  border-color: rgba(14, 165, 233, 0.2);
+  background: linear-gradient(90deg, rgba(13, 148, 136, 0.08), transparent);
+  border-color: rgba(13, 148, 136, 0.2);
 }
 
 /* ——— Stats page ——— */
@@ -760,7 +773,7 @@
 .attendance-modal .form-control:focus,
 .attendance-modal .form-select:focus {
   border-color: var(--pm-brand);
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
   background: #ffffff !important;
   color: #0f172a !important;
 }
@@ -773,4 +786,112 @@
   .page-hero-title {
     font-size: 1.4rem;
   }
+}
+
+/* ——— Global design polish ——— */
+.premium-ui .alert {
+  border-radius: var(--pm-radius-md);
+  border-width: 1px;
+  font-size: 0.9rem;
+}
+
+.premium-ui .alert-info {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: #155e75;
+}
+
+.premium-ui .alert-success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.premium-ui .alert-warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.premium-ui .alert-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.premium-ui .btn-outline-info {
+  --bs-btn-color: #0f766e;
+  --bs-btn-border-color: #99f6e4;
+  --bs-btn-hover-bg: #0f766e;
+  --bs-btn-hover-border-color: #0f766e;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: #115e59;
+  --bs-btn-active-border-color: #115e59;
+}
+
+.premium-ui .btn-info {
+  --bs-btn-bg: #0d9488;
+  --bs-btn-border-color: #0d9488;
+  --bs-btn-hover-bg: #0f766e;
+  --bs-btn-hover-border-color: #0f766e;
+  --bs-btn-color: #fff;
+}
+
+.premium-ui .badge.bg-info {
+  background: #0d9488 !important;
+}
+
+.premium-ui .text-info {
+  color: #0f766e !important;
+}
+
+.premium-ui .table-info {
+  --bs-table-bg: #ecfdf5;
+  --bs-table-color: #115e59;
+}
+
+.premium-ui .form-control,
+.premium-ui .form-select {
+  min-height: 2.55rem;
+}
+
+.premium-ui .form-control::placeholder {
+  color: #94a3b8;
+}
+
+.site-footer.footer-premium {
+  background: rgba(255, 255, 255, 0.88);
+  border-top: 1px solid var(--pm-border);
+  padding: 0.85rem 0;
+}
+
+.navbar-premium .lang-switcher__btn {
+  transition: background 0.2s var(--pm-ease), color 0.2s var(--pm-ease), border-color 0.2s var(--pm-ease);
+}
+
+.page-hero--premium .page-hero-sub {
+  max-width: 42rem;
+  line-height: 1.45;
+}
+
+.app-filter-card,
+.app-panel {
+  transition: box-shadow 0.25s var(--pm-ease), border-color 0.25s var(--pm-ease);
+}
+
+.app-empty {
+  text-align: center;
+}
+
+.app-empty-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Bootstrap rounded-pill badges → softer industrial chips */
+.premium-ui .badge.rounded-pill {
+  border-radius: 8px !important;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  padding: 0.4em 0.7em;
 }

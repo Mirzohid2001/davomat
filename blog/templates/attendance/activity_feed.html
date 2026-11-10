@@ -1,0 +1,56 @@
+{% extends 'attendance/base.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Audit lentasi" %}{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/activity-feed.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="act">
+  <header class="act-head">
+    <div>
+      <p class="act-kicker">{% trans "Nazorat" %}</p>
+      <h1>{% trans "Audit lentasi" %}</h1>
+      <p class="act-sub">{% trans "Kim qachon davomat yoki oylikni o'zgartirdi" %}</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> {% trans "Dashboard" %}
+    </a>
+  </header>
+
+  {% if logs %}
+  <ol class="act-timeline">
+    {% for log in logs %}
+    <li class="act-item {% if 'salary' in log.action or 'loan' in log.action %}act-item--salary{% elif log.action == 'attendance_delete' %}act-item--delete{% endif %}">
+      <span class="act-dot" aria-hidden="true">
+        {% if 'salary' in log.action %}<i class="bi bi-wallet2"></i>
+        {% elif log.action == 'attendance_delete' %}<i class="bi bi-trash"></i>
+        {% elif log.action == 'attendance_create' %}<i class="bi bi-plus-lg"></i>
+        {% else %}<i class="bi bi-pencil"></i>{% endif %}
+      </span>
+      <article class="act-card">
+        <div class="act-card__top">
+          <strong>{{ log.summary }}</strong>
+          <time datetime="{{ log.created_at|date:'c' }}">{{ log.created_at|date:"d.m.Y H:i" }}</time>
+        </div>
+        <div class="act-card__meta">
+          {% if log.user %}{{ log.user.get_username }}{% else %}{% trans "Tizim" %}{% endif %}
+          · {{ log.get_action_display }}
+          {% if log.employee %} · {{ log.employee.get_full_name }}{% endif %}
+        </div>
+        {% if log.detail %}
+        <div class="act-card__detail">{{ log.detail }}</div>
+        {% endif %}
+      </article>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="act-empty">
+    <i class="bi bi-clock-history" style="font-size:1.75rem;opacity:.4"></i>
+    <p class="mt-2 mb-0">{% trans "Hali o'zgarish yozuvi yo'q. Davomat yoki oylik tahrirlanganda shu yerda ko'rinadi." %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

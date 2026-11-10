@@ -148,7 +148,6 @@ class Attendance(models.Model):
         ('absent', _("Kelmagan")),
         ('late', _("Kechikdi")),
         ('vacation', _("Ta'til")),
-        ('sick', _("Kasal")),
         ('business', _("Ish safarida")),
         ('offday', _("Ish kuni emas")),
     ]
@@ -335,3 +334,48 @@ class MonthlyProduction(models.Model):
 
     def __str__(self):
         return f"{self.year}-{self.month:02d}: {self.production_tons} t"
+
+
+class ActivityLog(models.Model):
+    """Davomat / oylik o'zgarishlari — audit lentasi."""
+
+    ACTION_CHOICES = [
+        ('attendance_create', _('Davomat yaratildi')),
+        ('attendance_update', _('Davomat yangilandi')),
+        ('attendance_delete', _('Davomat o‘chirildi')),
+        ('salary_update', _('Oylik yangilandi')),
+        ('salary_payment', _('Oylik to‘lovi')),
+        ('loan_create', _('Qarz yaratildi')),
+        ('loan_close', _('Qarz yopildi')),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_logs',
+        verbose_name=_("Foydalanuvchi"),
+    )
+    action = models.CharField(_("Amal"), max_length=32, choices=ACTION_CHOICES)
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activity_logs',
+        verbose_name=_("Xodim"),
+    )
+    entity_type = models.CharField(_("Obyekt turi"), max_length=32, blank=True, default='')
+    entity_id = models.PositiveIntegerField(_("Obyekt ID"), null=True, blank=True)
+    summary = models.CharField(_("Qisqa izoh"), max_length=255)
+    detail = models.TextField(_("Tafsilot"), blank=True, default='')
+    created_at = models.DateTimeField(_("Vaqt"), auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = _("Faoliyat yozuvi")
+        verbose_name_plural = _("Faoliyat yozuvlari")
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.created_at:%d.%m %H:%M} — {self.summary}"

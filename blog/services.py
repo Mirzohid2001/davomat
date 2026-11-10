@@ -6,11 +6,23 @@ from django.db.models import Min, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .models import Employee, Attendance, MonthlyEmployeeStat, DayOff, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment, EmployeeAdvanceLoan, LoanDeduction
+from .models import (
+    Employee,
+    Attendance,
+    MonthlyEmployeeStat,
+    DayOff,
+    Team,
+    NalivshikShiftOverride,
+    MonthlyProduction,
+    SalaryPayment,
+    EmployeeAdvanceLoan,
+    LoanDeduction,
+    ActivityLog,
+)
 
 
 # Oylik hisobda ishlangan kun sifatida qabul qilinadigan davomat holatlari
-WORKED_DAY_STATUSES = ('present', 'sick', 'late')
+WORKED_DAY_STATUSES = ('present', 'late')
 
 # Yillik ruxsat etilgan kelmagan kunlar (oylik hisob va kvota sahifasi)
 YEARLY_ABSENCE_FREE_LIMIT = 21
@@ -165,10 +177,65 @@ def normalize_attendance_status(raw_status) -> str:
     raise ValueError(f"Noto'g'ri status: {raw_status}. Qabul qilinadi: {allowed}")
 
 
+def is_absence_quota_day(employee, for_date: date, dayoffs: set | None = None) -> bool:
+    """
+    Kelmagan kun kvotasi faqat oylik nominatoriga kiradigan kunlarda hisoblanadi.
+
+    - Oddiy xodim: Du–Sha va DayOff bo'lmagan kunlar
+    - Nalivshik: o'z komandasi smenasiga to'g'ri keladigan kunlar
+    - Ofis: oylik davomatga bog'liq emas → kvotaga kirmaydi
+
+    Yakshanba yoki rejasiz kunga «kelmagan» qo'yib forgiven orqali
+    ish kunidagi yo'qotishni to'ldirishning oldini oladi.
+    """
+    if getattr(employee, "employee_type", None) == "office":
+        return False
+
+    if getattr(employee, "role", None) == "nalivshik":
+        team = getattr(employee, "team", None)
+        if not team:
+            # Jamoa yo'q — calculate_nalivshik_planned_days barcha kalendar kunlarini oladi
+            return True
+        day_team, night_team = get_nalivshik_teams_for_date(for_date)
+        return team.code in (day_team, night_team)
+
+    if for_date.weekday() == 6:
+        return False
+    if dayoffs is None:
+        return not DayOff.objects.filter(date=for_date).exists()
+    return for_date not in dayoffs
+
+
+def _count_quota_absences(employee, *, date_gte=None, date_lt=None, year=None, month=None) -> int:
+    """Absent yozuvlarini faqat kvota kunlari bo'yicha sanaydi."""
+    qs = Attendance.objects.filter(employee=employee, status="absent")
+    if year is not None and month is not None:
+        qs = qs.filter(date__year=year, date__month=month)
+    else:
+        qs = qs.filter(date__gte=date_gte, date__lt=date_lt)
+
+    absent_dates = list(qs.values_list("date", flat=True))
+    if not absent_dates:
+        return 0
+
+    dayoffs = set(
+        DayOff.objects.filter(
+            date__gte=min(absent_dates),
+            date__lte=max(absent_dates),
+        ).values_list("date", flat=True)
+    )
+    return sum(
+        1 for d in absent_dates if is_absence_quota_day(employee, d, dayoffs=dayoffs)
+    )
+
+
 def get_absence_quota_for_period(employee, year: int, month: int | None = None) -> dict:
     """
     Oylik hisobdagi 21 kun kvota formulasi bilan bir xil natija.
     month berilmasa: joriy yil uchun bugungi oy, o'tgan yillar uchun dekabr.
+
+    Faqat oylik nominatoriga kiradigan kunlardagi absentlar hisoblanadi
+    (yakshanba / DayOff / nalivshik rejasiz kunlar kirmaydi).
     """
     today = date.today()
     if month is None:
@@ -177,18 +244,10 @@ def get_absence_quota_for_period(employee, year: int, month: int | None = None) 
     year_start = date(year, 1, 1)
     month_start = date(year, month, 1)
 
-    absent_before = Attendance.objects.filter(
-        employee=employee,
-        date__gte=year_start,
-        date__lt=month_start,
-        status='absent',
-    ).count()
-    absent_this_month = Attendance.objects.filter(
-        employee=employee,
-        date__year=year,
-        date__month=month,
-        status='absent',
-    ).count()
+    absent_before = _count_quota_absences(
+        employee, date_gte=year_start, date_lt=month_start
+    )
+    absent_this_month = _count_quota_absences(employee, year=year, month=month)
     absent_ytd = absent_before + absent_this_month
     free_left = max(0, YEARLY_ABSENCE_FREE_LIMIT - absent_before)
     forgiven_in_month = min(free_left, absent_this_month)
@@ -295,6 +354,51 @@ def calculate_working_days_in_month(year, month):
             working_days += 1
 
     return working_days, total_days
+
+
+def count_personal_offdays_in_denominator(employee, year: int, month: int) -> int:
+    """
+    Shaxsiy «offday» (ish kuni emas) — oylik nominatoriga kiradigan kunlarda.
+
+    Bu kunlar ishlanmagan, lekin xodim uchun ish kuni ham emas —
+    nominatordan ayiriladi, aks holda oylik asossiz kamayadi.
+    """
+    offday_dates = list(
+        Attendance.objects.filter(
+            employee=employee,
+            date__year=year,
+            date__month=month,
+            status="offday",
+        ).values_list("date", flat=True)
+    )
+    if not offday_dates:
+        return 0
+
+    dayoffs = set(
+        DayOff.objects.filter(
+            date__year=year,
+            date__month=month,
+        ).values_list("date", flat=True)
+    )
+    return sum(
+        1 for d in offday_dates if is_absence_quota_day(employee, d, dayoffs=dayoffs)
+    )
+
+
+def employee_salary_denominator_days(employee, year: int, month: int, working_days_in_month: int | None = None) -> int:
+    """
+    Xodim uchun oylik nominatori (kun).
+    Nalivshik — smena rejasi; oddiy full — Du–Sha−DayOff; minus shaxsiy offday.
+    """
+    if working_days_in_month is None:
+        working_days_in_month, _ = calculate_working_days_in_month(year, month)
+
+    if getattr(employee, "role", None) == "nalivshik":
+        base = calculate_nalivshik_planned_days(year, month, employee)
+    else:
+        base = working_days_in_month
+
+    return max(0, base - count_personal_offdays_in_denominator(employee, year, month))
 
 
 def get_nalivshik_team_for_datetime(dt: datetime):
@@ -427,7 +531,7 @@ def generate_nalivshik_attendance_for_day(day: date):
             continue
 
         if emp.team == day_team or emp.team == night_team:
-            # Mavjud yozuvni (qo'lda absent/sick va h.k.) ustiga yozmaymiz
+            # Mavjud yozuvni (qo'lda absent/vacation va h.k.) ustiga yozmaymiz
             Attendance.objects.get_or_create(
                 employee=emp,
                 date=day,
@@ -1001,13 +1105,11 @@ def calculate_monthly_stats(year, month, employee=None, preserve_salary=False):
             accrued = accrued_salary + bonus - penalty
         else:
             # To'liq stavka xodimlar uchun (full)
-            # Oddiy xodimlar uchun ishchi kunlarga proporsional,
-            # nalivshiklar uchun esa o'z navbatchilik rejasi (komandaga to'g'ri keladigan kunlar)
-            # bo'yicha proporsional hisoblaymiz.
-            if employee.role == 'nalivshik':
-                denominator_days = calculate_nalivshik_planned_days(year, month, employee)
-            else:
-                denominator_days = working_days_in_month
+            # Oddiy xodimlar: Du–Sha−DayOff; nalivshik: smena rejasi.
+            # Shaxsiy offday nominatordan ayiriladi (aks holda oylik kamayadi).
+            denominator_days = employee_salary_denominator_days(
+                employee, year, month, working_days_in_month=working_days_in_month
+            )
 
             if denominator_days > 0:
                 salary_proportion = Decimal(str(effective_worked_days_for_full)) / Decimal(str(denominator_days))
@@ -1132,3 +1234,273 @@ def ensure_monthly_stats_for_month(year: int, month: int):
             issued.month,
             salary_fallback_through=(year, month),
         )
+
+
+def log_activity(
+    *,
+    user=None,
+    action: str,
+    summary: str,
+    employee=None,
+    entity_type: str = '',
+    entity_id=None,
+    detail: str = '',
+):
+    """Audit lentasiga yozuv qo'shadi."""
+    try:
+        ActivityLog.objects.create(
+            user=user if getattr(user, 'is_authenticated', False) else None,
+            action=action,
+            summary=(summary or '')[:255],
+            employee=employee,
+            entity_type=entity_type or '',
+            entity_id=entity_id,
+            detail=detail or '',
+        )
+    except Exception:
+        # Audit hech qachon asosiy amalni buzmasin
+        pass
+
+
+def count_consecutive_absences(
+    employee,
+    as_of: date | None = None,
+    lookback_days: int = 45,
+    *,
+    dayoffs: set | None = None,
+    status_by_date: dict | None = None,
+) -> int:
+    """
+    Oxiridan boshlab ketma-ket kelmagan ish kunlari soni.
+    Bugungi kiritilmagan kun hisobga olinmaydi.
+    """
+    as_of = as_of or date.today()
+    start = as_of - timedelta(days=lookback_days)
+    if dayoffs is None:
+        dayoffs = set(
+            DayOff.objects.filter(date__gte=start, date__lte=as_of).values_list('date', flat=True)
+        )
+    if status_by_date is None:
+        status_by_date = {
+            d: status
+            for d, status in Attendance.objects.filter(
+                employee=employee,
+                date__gte=start,
+                date__lte=as_of,
+            ).values_list('date', 'status')
+        }
+    streak = 0
+    day = as_of
+    while day >= start:
+        if not is_absence_quota_day(employee, day, dayoffs=dayoffs):
+            day -= timedelta(days=1)
+            continue
+        status = status_by_date.get(day)
+        if status is None:
+            # Bugun hali kiritilmagan — streakni to'xtatmaymiz, o'tkazib yuboramiz
+            if day == as_of:
+                day -= timedelta(days=1)
+                continue
+            break
+        if status == 'absent':
+            streak += 1
+            day -= timedelta(days=1)
+            continue
+        break
+    return streak
+
+
+def employee_elapsed_denominator_days(
+    employee,
+    year: int,
+    month: int,
+    as_of: date | None = None,
+    *,
+    dayoffs: set | None = None,
+) -> int:
+    """
+    Oy boshidan as_of gacha (shu oy ichida) nominator kunlari.
+    Dashboard «kelish %» uchun to'liq oy o'rniga shu qiymat ishlatiladi.
+    """
+    as_of = as_of or date.today()
+    month_start = date(year, month, 1)
+    month_end = date(year, month, monthrange(year, month)[1])
+    if as_of < month_start:
+        return 0
+    end = min(as_of, month_end)
+    if dayoffs is None:
+        dayoffs = set(
+            DayOff.objects.filter(date__gte=month_start, date__lte=end).values_list('date', flat=True)
+        )
+    count = 0
+    day = month_start
+    while day <= end:
+        if is_absence_quota_day(employee, day, dayoffs=dayoffs):
+            count += 1
+        day += timedelta(days=1)
+    personal_off = Attendance.objects.filter(
+        employee=employee,
+        date__gte=month_start,
+        date__lte=end,
+        status='offday',
+    ).values_list('date', flat=True)
+    offdays = sum(1 for d in personal_off if is_absence_quota_day(employee, d, dayoffs=dayoffs))
+    return max(0, count - offdays)
+
+
+def get_dashboard_signals(today: date | None = None, limit: int = 8) -> list[dict]:
+    """
+    Dashboard signallari: kechikish, 3+ ketma-ket kelmagan, kvota tugayotgan.
+    Qaytadi: [{kind, severity, employee, title, meta, href_hint}, ...]
+    """
+    today = today or date.today()
+    signals = []
+
+    late_qs = (
+        Attendance.objects.filter(date=today, status='late')
+        .select_related('employee')
+        .order_by('employee__last_name', 'employee__first_name')
+    )
+    for att in late_qs[:5]:
+        signals.append({
+            'kind': 'late',
+            'severity': 'warn',
+            'employee': att.employee,
+            'title': att.employee.get_full_name(),
+            'meta': str(_('Bugun kechikdi')),
+            'count': 1,
+        })
+
+    active = list(
+        Employee.objects.filter(is_active=True)
+        .exclude(employee_type='office')
+        .select_related('team')
+        .order_by('last_name', 'first_name')
+    )
+
+    lookback_start = today - timedelta(days=45)
+    dayoffs = set(
+        DayOff.objects.filter(date__gte=lookback_start, date__lte=today).values_list('date', flat=True)
+    )
+    att_rows = Attendance.objects.filter(
+        employee_id__in=[e.pk for e in active],
+        date__gte=lookback_start,
+        date__lte=today,
+    ).values_list('employee_id', 'date', 'status')
+    by_emp: dict[int, dict] = {}
+    for emp_id, d, status in att_rows:
+        by_emp.setdefault(emp_id, {})[d] = status
+
+    for emp in active:
+        streak = count_consecutive_absences(
+            emp,
+            as_of=today,
+            dayoffs=dayoffs,
+            status_by_date=by_emp.get(emp.pk, {}),
+        )
+        if streak >= 3:
+            signals.append({
+                'kind': 'streak',
+                'severity': 'danger',
+                'employee': emp,
+                'title': emp.get_full_name(),
+                'meta': str(_('%(n)s kun ketma-ket kelmagan') % {'n': streak}),
+                'count': streak,
+            })
+
+    for emp in active:
+        quota = get_absence_quota_for_period(emp, today.year, today.month)
+        if quota['left'] <= 3:
+            if quota['over'] > 0:
+                meta = str(_('Kvota oshib ketgan (+%(n)s)') % {'n': quota['over']})
+                severity = 'danger'
+            else:
+                meta = str(_('Kvota qoldi: %(n)s kun') % {'n': quota['left']})
+                severity = 'warn' if quota['left'] > 0 else 'danger'
+            signals.append({
+                'kind': 'quota',
+                'severity': severity,
+                'employee': emp,
+                'title': emp.get_full_name(),
+                'meta': meta,
+                'count': quota['left'],
+            })
+
+    # Prioritet: danger > warn, keyin streak/quota/late
+    rank = {'danger': 0, 'warn': 1, 'info': 2}
+    kind_rank = {'streak': 0, 'quota': 1, 'late': 2}
+    signals.sort(key=lambda s: (rank.get(s['severity'], 9), kind_rank.get(s['kind'], 9), s['title']))
+
+    # Bir xodim uchun faqat eng muhim signal
+    seen = set()
+    unique = []
+    for s in signals:
+        eid = s['employee'].pk
+        if eid in seen:
+            continue
+        seen.add(eid)
+        unique.append(s)
+        if len(unique) >= limit:
+            break
+    return unique
+
+
+def get_month_progress_rows(year: int | None = None, month: int | None = None, limit: int = 12) -> list[dict]:
+    """
+    Oy progressi: ishlangan / shu kungacha reja, kelish %, oylikka yaqinlik.
+    """
+    today = date.today()
+    year = year or today.year
+    month = month or today.month
+    as_of = today if (today.year == year and today.month == month) else date(year, month, monthrange(year, month)[1])
+    month_start = date(year, month, 1)
+    dayoffs = set(
+        DayOff.objects.filter(date__gte=month_start, date__lte=as_of).values_list('date', flat=True)
+    )
+
+    stats = (
+        MonthlyEmployeeStat.objects.filter(year=year, month=month, employee__is_active=True)
+        .exclude(employee__employee_type='office')
+        .select_related('employee', 'employee__team')
+        .order_by('employee__last_name', 'employee__first_name')
+    )
+
+    rows = []
+    for stat in stats:
+        emp = stat.employee
+        planned = employee_elapsed_denominator_days(
+            emp, year, month, as_of=as_of, dayoffs=dayoffs
+        )
+        worked = int(stat.worked_days or 0)
+        # worked to'liq oy bo'yicha; joriy oyda as_of dan keyin kun yo'q
+        attend_pct = int(round((worked / planned) * 100)) if planned else 0
+        salary = Decimal(str(stat.salary or 0))
+        accrued = Decimal(str(stat.accrued or 0))
+        if salary > 0:
+            pay_pct = int(round(float(accrued / salary) * 100))
+        else:
+            pay_pct = attend_pct
+        pay_pct = max(0, min(pay_pct, 150))
+
+        if attend_pct >= 90:
+            tone = 'good'
+        elif attend_pct >= 70:
+            tone = 'mid'
+        else:
+            tone = 'low'
+
+        rows.append({
+            'employee': emp,
+            'planned': planned,
+            'worked': min(worked, planned) if planned else worked,
+            'worked_raw': worked,
+            'attend_pct': min(attend_pct, 100),
+            'pay_pct': pay_pct,
+            'tone': tone,
+            'currency': stat.currency,
+            'accrued': accrued,
+            'salary': salary,
+        })
+
+    rows.sort(key=lambda r: (r['attend_pct'], r['pay_pct']))
+    return rows[:limit]

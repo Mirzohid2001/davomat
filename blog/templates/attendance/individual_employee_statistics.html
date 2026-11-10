@@ -90,21 +90,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body text-center">
-                        <div class="text-info mb-2">
-                            <i class="bi bi-heart-pulse-fill" style="font-size: 3rem;"></i>
-                        </div>
-                        <h3 class="display-4 fw-bold text-info">{{ stats.sick }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Kasal" %}</p>
-                        <div class="progress">
-                            <div class="progress-bar bg-info" style="width: {{ stats.sick_percentage }}%"></div>
-                        </div>
-                        <small class="text-muted">{{ stats.sick_percentage }}%</small>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Qo'shimcha statistikalar -->
@@ -236,7 +221,6 @@
                                                     {% if day_data.status == 'present' %}bg-success
                                                     {% elif day_data.status == 'absent' %}bg-danger
                                                     {% elif day_data.status == 'late' %}bg-warning
-                                                    {% elif day_data.status == 'sick' %}bg-info
                                                     {% elif day_data.status == 'vacation' %}bg-primary
                                                     {% elif day_data.status == 'business' %}bg-success
                                                     {% elif day_data.status == 'dayoff' or day_data.status == 'offday' %}bg-secondary
@@ -244,7 +228,6 @@
                                                     {% if day_data.status == 'present' %}{% trans "Keldi" %}
                                                     {% elif day_data.status == 'absent' %}{% trans "Kelmadi" %}
                                                     {% elif day_data.status == 'late' %}{% trans "Kechikdi" %}
-                                                    {% elif day_data.status == 'sick' %}{% trans "Kasal" %}
                                                     {% elif day_data.status == 'vacation' %}{% trans "Ta'til" %}
                                                     {% elif day_data.status == 'business' %}{% trans "Ish safari" %}
                                                     {% elif day_data.status == 'dayoff' %}{% trans "Yopiq kun" %}

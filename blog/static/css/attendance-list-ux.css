@@ -1,0 +1,302 @@
+/* Attendance list — date-first workspace */
+.attlist {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
+.attlist-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.85rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.attlist-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f766e;
+}
+
+.attlist-head h1 {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(1.55rem, 2.5vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f2430;
+}
+
+.attlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.attlist-datebar {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  gap: 0.5rem;
+  align-items: center;
+  background: linear-gradient(135deg, #0b1f2a 0%, #115e59 70%, #0f766e 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 0.65rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 10px 28px rgba(11, 31, 42, 0.22);
+}
+
+.attlist-datebar__nav {
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.attlist-datebar__nav:hover {
+  background: rgba(13, 148, 136, 0.45);
+  color: #fff;
+}
+
+.attlist-datebar__center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  text-align: center;
+}
+
+.attlist-datebar__input {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.4rem 0.55rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  color-scheme: dark;
+}
+
+.attlist-datebar__label {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
+.attlist-datebar__today {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fde68a;
+  text-decoration: none;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+}
+
+.attlist-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.attlist-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.attlist-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.1);
+  color: #0f2430;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.attlist-pill em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+}
+
+.attlist-pill.is-active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #fff;
+}
+
+.attlist-pill.is-active em { opacity: 0.9; }
+
+.attlist-search {
+  position: relative;
+  min-width: min(100%, 240px);
+}
+
+.attlist-search i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8fa3b0;
+}
+
+.attlist-search input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 36, 48, 0.12);
+  background: #fff;
+}
+
+.attlist-panel {
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.09);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(15, 36, 48, 0.045);
+}
+
+.attlist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attlist-table thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a6f7c;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.attlist-table tbody td {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.attlist-table tbody tr:hover {
+  background: #f0fdfa;
+}
+
+.attlist-avatar {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #ecfdf5;
+  color: #0f766e;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.attlist-name {
+  font-size: 0.92rem;
+  color: #0f2430;
+}
+
+.attlist-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+  color: #5a6f7c;
+}
+
+.attlist-status {
+  display: inline-flex;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.attlist-status--present { background: #dcfce7; color: #166534; }
+.attlist-status--absent { background: #fee2e2; color: #991b1b; }
+.attlist-status--late { background: #fef3c7; color: #92400e; }
+.attlist-status--vacation { background: #ccfbf1; color: #115e59; }
+.attlist-status--business { background: #e0f2fe; color: #075985; }
+.attlist-status--offday { background: #e2e8f0; color: #475569; }
+
+.attlist-comment {
+  font-size: 0.82rem;
+  color: #5a6f7c;
+  max-width: 16rem;
+}
+
+.attlist-row-actions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.attlist-row-actions a {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #0f2430;
+  text-decoration: none;
+}
+
+.attlist-row-actions a:hover { background: #ccfbf1; color: #0f766e; }
+.attlist-row-actions a.is-danger:hover { background: #fee2e2; color: #b91c1c; }
+
+.attlist-mcard {
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.09);
+  border-radius: 14px;
+  padding: 0.9rem;
+  margin-bottom: 0.65rem;
+}
+
+.attlist-mcard__top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.attlist-mcard__top strong { display: block; font-size: 0.92rem; }
+.attlist-mcard__top small { color: #5a6f7c; font-size: 0.75rem; }
+.attlist-mcard__note {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+  color: #5a6f7c;
+}
+.attlist-mcard__actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .attlist-datebar__label { font-size: 0.82rem; }
+}

@@ -42,7 +42,7 @@ class AttendanceForm(forms.ModelForm):
         elif att_date and DayOff.objects.filter(date=att_date).exists() and status != 'offday':
             raise forms.ValidationError("Bu sana yopiq kun. Faqat 'Ish kuni emas' holatini tanlang!")
 
-        if status in ['absent', 'sick', 'vacation']:
+        if status in ['absent', 'vacation']:
             if not cleaned_data.get('comment'):
                 raise forms.ValidationError("Sabab yoki izoh kiritilishi shart!")
         return cleaned_data

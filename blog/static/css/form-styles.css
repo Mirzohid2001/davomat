@@ -101,7 +101,7 @@
 .form-card input:focus,
 .form-card select:focus,
 .form-card textarea:focus {
-  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.25);
   border-color: var(--primary-color);
 }
 

@@ -1,10 +1,10 @@
 {% extends 'attendance/base.html' %}
-{% load i18n %}
+{% load i18n static humanize %}
 {% block content_wrapper_class %}flex-grow-1 salary-skip-app-shell container-fluid px-2 px-md-3 py-3 pb-4{% endblock %}
 
 {% block extra_head %}
-{% load static humanize %}
 <link rel="stylesheet" href="{% static 'css/salary-statistics.css' %}">
+<link rel="stylesheet" href="{% static 'css/activity-feed.css' %}">
 <style>.salary-skip-app-shell { display: block; max-width: 100%; }</style>
 {% endblock %}
 
@@ -66,8 +66,28 @@
     <div class="salary-filters__head">
       <h2 class="salary-filters__head-title"><i class="bi bi-funnel me-2"></i>{% trans "Filtrlash" %}</h2>
     </div>
+    <div class="salary-presets" aria-label="{% trans 'Saqlangan filtrlar' %}">
+      <a class="salary-preset" data-preset="current" data-preset-qs="{{ preset_current_month_qs }}" href="?{{ preset_current_month_qs }}">
+        <i class="bi bi-calendar3"></i> {% trans "Joriy oy" %}
+      </a>
+      <a class="salary-preset" data-preset="last" data-preset-qs="{{ preset_last_month_qs }}" href="?{{ preset_last_month_qs }}">
+        <i class="bi bi-calendar-minus"></i> {% trans "Oxirgi oy" %}
+      </a>
+      <a class="salary-preset {% if debtors_only %}is-active{% endif %}" data-preset="debtors" data-preset-qs="{{ preset_debtors_qs }}" href="?{{ preset_debtors_qs }}">
+        <i class="bi bi-exclamation-circle"></i> {% trans "Faqat qarzdorlar" %}
+      </a>
+      <a class="salary-preset" data-preset="my" href="#"
+         data-empty-msg="{% trans 'Avval joriy filterni «Saqlash» bilan yozib qo‘ying.' %}">
+        <i class="bi bi-bookmark-heart"></i> {% trans "Mening ko‘rinishim" %}
+      </a>
+      <button type="button" class="salary-preset salary-preset--save" data-preset-save
+              data-label="{% trans 'Saqlash' %}" data-saved-label="{% trans 'Saqlandi' %}">
+        <i class="bi bi-bookmark-plus"></i> {% trans "Saqlash" %}
+      </button>
+    </div>
     <div class="salary-filters__body">
         <form method="get" id="salaryFilterForm">
+            {% if debtors_only %}<input type="hidden" name="debtors" value="1">{% endif %}
             <div class="salary-filters__period">
                 <div class="salary-filters__field">
                     <label for="id_year" class="form-label">{{ form.year.label }}</label>
@@ -856,6 +876,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/salary-presets.js' %}" defer></script>
 {% trans "Kamida bitta xodim belgilang." as msg_pick_employee %}
 {% trans "Premiya uchun kamida" as msg_bonus_min_prefix %}
 {% trans "tonna kiriting." as msg_bonus_min_suffix %}

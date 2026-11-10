@@ -690,7 +690,7 @@ class NewEmployeeTests(TestCase):
         self.assertEqual(created, worked)
         self.assertEqual(
             Attendance.objects.filter(
-                employee=emp, date__year=2026, date__month=2, status__in=["present", "sick"]
+                employee=emp, date__year=2026, date__month=2, status__in=["present", "late"]
             ).count(),
             worked,
         )
@@ -948,10 +948,24 @@ class AbsenceQuotaTests(TestCase):
             status="absent",
         )
 
+    def _first_weekdays(self, month, count):
+        days = []
+        for day in range(1, 32):
+            try:
+                d = date(self.year, month, day)
+            except ValueError:
+                break
+            if d.weekday() != 6:
+                days.append(day)
+            if len(days) >= count:
+                break
+        return days
+
     def test_quota_matches_monthly_salary_formula(self):
-        for day in range(1, 16):
+        # Faqat Du–Sha — yakshanbalar kvotaga kirmasligi uchun
+        for day in self._first_weekdays(1, 15):
             self._absent(1, day)
-        for day in range(1, 11):
+        for day in self._first_weekdays(2, 10):
             self._absent(2, day)
 
         quota = get_absence_quota_for_period(self.emp, self.year, 2)
@@ -962,8 +976,145 @@ class AbsenceQuotaTests(TestCase):
         self.assertEqual(quota["used"], 21)
         self.assertEqual(quota["over"], 4)
 
+    def test_sunday_absent_does_not_count_toward_quota(self):
+        """Yakshanba absent — kvota yonmaydi va forgiven bermaydi."""
+        # 1 ta ish kuni absent + 3 ta yakshanba absent
+        self._absent(6, 1)  # Du 2026-06-01
+        for day in (7, 14, 21):  # yakshanbalar
+            self._absent(6, day)
+
+        quota = get_absence_quota_for_period(self.emp, self.year, 6)
+        self.assertEqual(quota["absent_this_month"], 1)
+        self.assertEqual(quota["forgiven_in_month"], 1)
+        self.assertEqual(quota["affects_salary"], 0)
+
+    def test_sunday_absent_cannot_inflate_full_salary(self):
+        """
+        23 ish kuni kelgan + 1 ish kuni absent.
+        Yakshanbaga «kelmagan» qo'yib forgiven ni shishirib
+        to'liq oylik olish mumkin bo'lmasin (eski bug: 23+4 → 100%).
+        """
+        from blog.services import calculate_working_days_in_month
+        from calendar import monthrange
+
+        salary = Decimal("10000000")
+        year, month = self.year, 6
+        MonthlyEmployeeStat.objects.create(
+            employee=self.emp,
+            year=year,
+            month=month,
+            salary=salary,
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+            days_in_month=30,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+        weekdays = [
+            date(year, month, day)
+            for day in range(1, monthrange(year, month)[1] + 1)
+            if date(year, month, day).weekday() != 6
+        ]
+        # 23 present, 1 absent (birinchi ish kuni), qolgan 2 ish kuni yozuvsiz
+        for d in weekdays[1:24]:
+            Attendance.objects.create(employee=self.emp, date=d, status="present")
+        Attendance.objects.create(employee=self.emp, date=weekdays[0], status="absent")
+        for day in (7, 14, 21, 28):
+            Attendance.objects.create(
+                employee=self.emp, date=date(year, month, day), status="absent"
+            )
+
+        calculate_monthly_stats(year, month, employee=self.emp)
+        stat = MonthlyEmployeeStat.objects.get(employee=self.emp, year=year, month=month)
+        quota = get_absence_quota_for_period(self.emp, year, month)
+        working_days, _ = calculate_working_days_in_month(year, month)
+
+        self.assertEqual(quota["absent_this_month"], 1)
+        self.assertEqual(quota["forgiven_in_month"], 1)
+        self.assertEqual(stat.worked_days, 23)
+        # 23 + 1 forgiven = 24 / 26 — to'liq emas
+        expected = (salary * Decimal("24") / Decimal(str(working_days))).quantize(
+            Decimal("1")
+        )
+        self.assertEqual(stat.accrued, expected)
+        self.assertLess(stat.accrued, salary)
+
+    def test_dayoff_absent_does_not_count_toward_quota(self):
+        from blog.models import DayOff
+
+        DayOff.objects.create(date=date(self.year, 6, 3), reason="Bayram")  # Chorshanba
+        self._absent(6, 3)
+        self._absent(6, 2)  # Seshanba — oddiy ish kuni
+
+        quota = get_absence_quota_for_period(self.emp, self.year, 6)
+        self.assertEqual(quota["absent_this_month"], 1)
+
     def test_yearly_free_limit_constant(self):
         self.assertEqual(YEARLY_ABSENCE_FREE_LIMIT, 21)
+
+
+class PersonalOffdayDenominatorTests(TestCase):
+    """Shaxsiy offday nominatordan ayiriladi — oylik asossiz kamaymasin."""
+
+    def setUp(self):
+        self.emp = Employee.objects.create(
+            first_name="Off",
+            last_name="Day",
+            position="Op",
+            employee_type="full",
+        )
+        self.year, self.month = 2026, 6
+        self.salary = Decimal("10000000")
+
+    def test_weekday_offday_does_not_reduce_full_salary(self):
+        from blog.services import calculate_working_days_in_month
+        from calendar import monthrange
+
+        MonthlyEmployeeStat.objects.create(
+            employee=self.emp,
+            year=self.year,
+            month=self.month,
+            salary=self.salary,
+            bonus=Decimal("0"),
+            penalty=Decimal("0"),
+            accrued=Decimal("0"),
+            paid=Decimal("0"),
+            currency="UZS",
+            days_in_month=30,
+            worked_days=0,
+            debt_start=Decimal("0"),
+            debt_end=Decimal("0"),
+        )
+        # Barcha Du–Sha present, bitta Chorshanba (3-kun) offday
+        for day in range(1, monthrange(self.year, self.month)[1] + 1):
+            d = date(self.year, self.month, day)
+            if d.weekday() == 6:
+                continue
+            status = "offday" if d == date(self.year, self.month, 3) else "present"
+            Attendance.objects.create(employee=self.emp, date=d, status=status)
+
+        calculate_monthly_stats(self.year, self.month, employee=self.emp)
+        stat = MonthlyEmployeeStat.objects.get(
+            employee=self.emp, year=self.year, month=self.month
+        )
+        wd, _ = calculate_working_days_in_month(self.year, self.month)
+
+        self.assertEqual(stat.worked_days, wd - 1)
+        self.assertEqual(stat.accrued, self.salary)
+
+    def test_sunday_offday_ignored_for_denominator(self):
+        from blog.services import count_personal_offdays_in_denominator
+
+        Attendance.objects.create(
+            employee=self.emp, date=date(2026, 6, 7), status="offday"
+        )
+        self.assertEqual(
+            count_personal_offdays_in_denominator(self.emp, 2026, 6), 0
+        )
 
 
 class PenaltyPreservationTests(TestCase):
@@ -1430,12 +1581,17 @@ class LogicIntegrationTests(TestCase):
             employee_type="full",
         )
         year, month = 2026, 2
-        for day in range(1, 16):
+        # Yanvarda 15 ta Du–Sha absent (yakshanbalarsiz)
+        jan_weekdays = [
+            d for d in range(1, 32)
+            if date(2026, 1, d).weekday() != 6
+        ][:15]
+        for day in jan_weekdays:
             Attendance.objects.create(
                 employee=emp, date=date(2026, 1, day), status="absent"
             )
         Attendance.objects.create(employee=emp, date=date(2026, 2, 3), status="present")
-        for day in (4, 5, 6, 7):
+        for day in (4, 5, 6, 7):  # Ch–Sha, hammasi ish kuni
             Attendance.objects.create(
                 employee=emp, date=date(2026, 2, day), status="absent"
             )

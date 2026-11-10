@@ -1,8 +1,8 @@
 /* List specific styles for the attendance system */
 :root {
   /* Using the same variables from improved-styles.css for consistency */
-  --primary-color: #4361ee;
-  --secondary-color: #3a0ca3;
+  --primary-color: #0f766e;
+  --secondary-color: #0b1f2a;
   --accent-color: #4cc9f0;
   --success-color: #2ecc71;
   --warning-color: #f39c12;
@@ -63,7 +63,7 @@
 .list-filter .form-control:focus,
 .list-filter .form-select:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.25);
 }
 
 .list-filter .btn-primary {
@@ -75,7 +75,7 @@
 
 .list-filter .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+  box-shadow: 0 5px 15px rgba(15, 118, 110, 0.3);
 }
 
 /* Table styling */
@@ -86,7 +86,7 @@
 }
 
 .list-table thead th {
-  background-color: rgba(67, 97, 238, 0.1);
+  background-color: rgba(15, 118, 110, 0.1);
   border-bottom: none;
   font-weight: 600;
   text-transform: uppercase;
@@ -188,7 +188,7 @@
 }
 
 .pagination .page-link:hover {
-  background-color: rgba(67, 97, 238, 0.1);
+  background-color: rgba(15, 118, 110, 0.1);
   color: var(--primary-color);
   transform: translateY(-1px);
 }

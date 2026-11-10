@@ -1,0 +1,97 @@
+{% extends 'attendance/base.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Zal davomati" %}{% endblock %}
+{% block body_class %}premium-ui d-flex flex-column min-vh-100 floor-body{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/quick-status.css' %}" rel="stylesheet">
+<link href="{% static 'css/attendance-floor.css' %}" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="floor">
+  <header class="floor-top">
+    <div class="floor-top__row">
+      <h1 class="floor-top__brand">
+        <small>ISOMER OIL</small>
+        {% trans "Zal davomati" %}
+      </h1>
+      <div class="floor-top__stat">
+        <strong data-floor-filled>{{ filled_count }}</strong>
+        <span data-floor-pending>{{ pending_count }} {% trans "qoldi" %} / {{ total_count }}</span>
+      </div>
+    </div>
+    <div class="floor-nav">
+      <a href="?date={{ prev_date|date:'Y-m-d' }}{% if q %}&q={{ q|urlencode }}{% endif %}" aria-label="{% trans 'Oldingi' %}"><i class="bi bi-chevron-left"></i></a>
+      <div class="floor-nav__date">{{ day|date:"l, d.m.Y" }}</div>
+      <a href="?date={{ next_date|date:'Y-m-d' }}{% if q %}&q={{ q|urlencode }}{% endif %}" aria-label="{% trans 'Keyingi' %}"><i class="bi bi-chevron-right"></i></a>
+    </div>
+    <form method="get" class="floor-search">
+      <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+      <i class="bi bi-search"></i>
+      <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Ism qidirish...' %}" autocomplete="off">
+    </form>
+  </header>
+
+  {% if is_restricted_day %}
+  <div class="floor-banner">
+    <i class="bi bi-moon-stars"></i>
+    <span>{% trans "Yopiq kun — faqat nalivshiklar" %}</span>
+  </div>
+  {% endif %}
+
+  <div class="floor-list">
+    {% for row in rows %}
+    <article class="floor-card {% if row.status %}is-done{% endif %}" data-floor-row data-status="{{ row.status }}">
+      <div class="floor-card__top">
+        <span class="floor-avatar">{{ row.employee.last_name|slice:":1" }}{{ row.employee.first_name|slice:":1" }}</span>
+        <div class="floor-card__who">
+          <strong>{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
+          <small>{% if row.employee.position %}{{ row.employee.position }}{% else %}{{ row.employee.get_role_display }}{% endif %}</small>
+        </div>
+      </div>
+      <div class="qs"
+           data-quick-status
+           data-url="{% url 'attendance_quick_status' %}"
+           data-employee-id="{{ row.employee.id }}"
+           data-attendance-id="{{ row.attendance_id }}"
+           data-date="{{ day|date:'Y-m-d' }}"
+           data-status="{{ row.status }}">
+        {% for value, label in quick_statuses %}
+        <button type="button" class="qs-btn {% if row.status == value %}is-active{% endif %}" data-status="{{ value }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="floor-empty">
+      <p>{% trans "Xodim topilmadi" %}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="floor-install">
+    <i class="bi bi-download"></i>
+    {% trans "Telefonda «Uy ekraniga qo'shish» — zalda PWA sifatida ochiladi." %}
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/quick-status.js' %}" defer></script>
+<script>
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.qs-btn')) return;
+    setTimeout(function () {
+      var pending = document.querySelectorAll('[data-floor-row]:not(.is-done)').length;
+      var total = document.querySelectorAll('[data-floor-row]').length;
+      var filled = document.querySelector('[data-floor-filled]');
+      var label = document.querySelector('[data-floor-pending]');
+      if (filled) filled.textContent = String(total - pending);
+      if (label) label.textContent = pending + ' {% trans "qoldi" %} / ' + total;
+    }, 600);
+  });
+</script>
+{% endblock %}

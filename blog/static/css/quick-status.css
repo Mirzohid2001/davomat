@@ -1,0 +1,85 @@
+/* Tezkor status tugmalari */
+
+.qs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem;
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 1px solid rgba(15, 36, 48, 0.08);
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.qs.is-flash {
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.28);
+  background: #ecfdf5;
+}
+
+.qs.is-busy {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.qs-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.4rem 0.55rem;
+  border-radius: 9px;
+  min-height: 2.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.qs-btn:hover {
+  background: #fff;
+  color: #0f2430;
+}
+
+.qs-btn:active { transform: scale(0.96); }
+
+.qs-btn.is-active {
+  background: #fff;
+  color: #0f2430;
+  box-shadow: 0 1px 4px rgba(15, 36, 48, 0.1);
+}
+
+.qs-btn[data-status="present"].is-active {
+  background: #0f766e;
+  color: #fff;
+  box-shadow: none;
+}
+.qs-btn[data-status="absent"].is-active {
+  background: #b91c1c;
+  color: #fff;
+  box-shadow: none;
+}
+.qs-btn[data-status="late"].is-active {
+  background: #b45309;
+  color: #fff;
+  box-shadow: none;
+}
+
+.qs--compact .qs-btn {
+  padding: 0.35rem 0.45rem;
+  font-size: 0.68rem;
+  min-height: 1.9rem;
+}
+
+@media (max-width: 767.98px) {
+  .qs {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .qs-btn {
+    flex: 1;
+    min-height: 2.5rem;
+    font-size: 0.78rem;
+  }
+}

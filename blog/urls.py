@@ -12,9 +12,14 @@ urlpatterns = [
     path('employees/<int:pk>/delete/', views.employee_delete, name='employee_delete'),
 
     path('attendance/', views.attendance_list, name='attendance_list'),
+    path('attendance/floor/', views.attendance_floor, name='attendance_floor'),
+    path('attendance/quick-status/', views.attendance_quick_status, name='attendance_quick_status'),
     path('attendance/bulk/', views.bulk_attendance_create, name='bulk_attendance_create'),
     path('attendance/<int:pk>/update/', views.attendance_update, name='attendance_update'),
     path('attendance/<int:pk>/delete/', views.attendance_delete, name='attendance_delete'),
+    path('activity/', views.activity_feed, name='activity_feed'),
+    path('manifest.webmanifest', views.web_manifest, name='web_manifest'),
+    path('sw.js', views.service_worker, name='service_worker'),
 
     path('attendance/import/', views.attendance_import, name='attendance_import'),
     path('attendance/export/', views.attendance_export, name='attendance_export'),

@@ -1,0 +1,308 @@
+/* Login UX — ISOMER OIL industrial split */
+.login-body {
+  background: #0b1f2a !important;
+  background-image: none !important;
+}
+
+.login-body .app-login-page {
+  max-width: none;
+  padding: 0;
+  background: transparent;
+}
+
+.login-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-aside {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #07151c 0%, #0b1f2a 42%, #0f766e 120%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+}
+
+.login-aside__glow {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse 50% 40% at 30% 30%, rgba(20, 184, 166, 0.35), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 80% 70%, rgba(245, 158, 11, 0.18), transparent 55%);
+  pointer-events: none;
+}
+
+.login-aside__pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 75%);
+  pointer-events: none;
+}
+
+.login-aside__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #fff;
+  max-width: 22rem;
+  animation: loginAsideIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.login-aside__logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 18px;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35));
+}
+
+.login-aside__brand {
+  margin: 0 0 0.5rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.login-aside__tag {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.45;
+}
+
+.login-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 1.5rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(13, 148, 136, 0.08), transparent 55%),
+    #eef2f4;
+}
+
+.login-lang {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.25rem;
+}
+
+.login-lang .lang-switcher__btn {
+  color: #5a6f7c;
+  border-color: rgba(15, 36, 48, 0.18);
+}
+
+.login-lang .lang-switcher__btn:hover {
+  color: #0f2430;
+  border-color: rgba(15, 36, 48, 0.35);
+}
+
+.login-lang .lang-switcher__btn--active {
+  color: #fff;
+  background: #0f766e;
+  border-color: #0f766e;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2.15rem 1.85rem 1.85rem;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 22px 56px rgba(15, 36, 48, 0.12);
+  animation: loginCardIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.login-brand--mobile {
+  display: none;
+  margin: 0 auto 1rem;
+}
+
+.login-card__title {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0f2430;
+}
+
+.login-card__sub {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  color: #5a6f7c;
+  font-size: 0.92rem;
+}
+
+.login-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 1.1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.login-field {
+  margin-bottom: 1rem;
+}
+
+.login-field label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a6f7c;
+}
+
+.login-input {
+  position: relative;
+}
+
+.login-input i {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8fa3b0;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.login-input input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.55rem;
+  border: 1.5px solid rgba(15, 36, 48, 0.14);
+  border-radius: 12px;
+  background: #f8fafc;
+  font-size: 0.95rem;
+  color: #0f2430;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.login-input input:focus {
+  outline: none;
+  background: #fff;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
+}
+
+.login-form.was-validated .login-input input:invalid {
+  border-color: #ef4444;
+}
+
+.login-form .invalid-feedback {
+  font-size: 0.8rem;
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.9rem 1.25rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0b1f2a 0%, #0f766e 100%);
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.login-submit:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(13, 148, 136, 0.34);
+}
+
+.login-submit:active {
+  transform: translateY(0);
+}
+
+.login-foot {
+  margin: 1.5rem 0 0;
+  font-size: 0.78rem;
+  color: #8fa3b0;
+}
+
+@keyframes loginAsideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loginCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 900px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-aside {
+    display: none;
+  }
+
+  .login-brand--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-main {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 90% 40% at 50% -10%, rgba(13, 148, 136, 0.16), transparent 55%),
+      linear-gradient(180deg, #0b1f2a 0%, #115e59 28%, #eef2f4 28%);
+  }
+
+  .login-lang .lang-switcher__btn {
+    color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .login-lang .lang-switcher__btn--active {
+    color: #0f172a;
+    background: #fff;
+    border-color: #fff;
+  }
+
+  .login-foot {
+    color: #5a6f7c;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-aside__content,
+  .login-card {
+    animation: none;
+  }
+}

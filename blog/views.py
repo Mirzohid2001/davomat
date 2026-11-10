@@ -10,7 +10,7 @@ from django.db.models import Q, Count, F, Max
 from django.utils import timezone
 from datetime import timedelta, date
 from urllib.parse import quote, urlencode
-from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment, EmployeeAdvanceLoan
+from .models import Employee, Attendance, DayOff, AttendanceImportLog, MonthlyEmployeeStat, Team, NalivshikShiftOverride, MonthlyProduction, SalaryPayment, EmployeeAdvanceLoan, ActivityLog
 from .forms import (
     EmployeeForm,
     EmployeeCreateForm,
@@ -27,7 +27,8 @@ from django.db import transaction
 
 import pandas as pd
 import openpyxl
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from .services import (
     calculate_monthly_stats,
     calculate_working_days_in_month,
@@ -58,6 +59,9 @@ from .services import (
     PRODUCTION_BONUS_HIGH_THRESHOLD_TONS,
     PRODUCTION_BONUS_UP_TO_THRESHOLD,
     PRODUCTION_BONUS_ABOVE_THRESHOLD,
+    log_activity,
+    get_dashboard_signals,
+    get_month_progress_rows,
 )
 from openpyxl.utils import get_column_letter
 
@@ -90,6 +94,7 @@ def _parse_salary_statistics_filters(request):
     month_param = request.GET.get('month', '').strip()
     year = int(year_param) if year_param.isdigit() else today.year
     month = int(month_param) if month_param.isdigit() else today.month
+    debtors = request.GET.get('debtors', '').strip() in ('1', 'true', 'yes')
     return {
         'year': year,
         'month': month,
@@ -99,6 +104,7 @@ def _parse_salary_statistics_filters(request):
         'currency': request.GET.get('currency', '').strip(),
         'location': request.GET.get('location', '').strip(),
         'position': request.GET.get('position', '').strip(),
+        'debtors': debtors,
     }
 
 
@@ -111,6 +117,8 @@ def _salary_statistics_query_string(filters, include_recalc=False):
     for key in ('q', 'employee_type', 'role', 'currency', 'location', 'position'):
         if filters.get(key):
             params[key] = filters[key]
+    if filters.get('debtors'):
+        params['debtors'] = '1'
     if include_recalc:
         params['recalc'] = '1'
     return urlencode(params)
@@ -136,6 +144,8 @@ def _filter_salary_statistics(stats, filters):
         stats = stats.filter(employee__location=filters['location'])
     if filters['position']:
         stats = stats.filter(employee__position=filters['position'])
+    if filters.get('debtors'):
+        stats = stats.filter(debt_end__gt=0)
     return stats
 
 
@@ -240,7 +250,7 @@ def logout_view(request):
 def dashboard(request):
     today = date.today()
     employees = Employee.objects.filter(is_active=True)
-    attendance_today = Attendance.objects.filter(date=today)
+    attendance_today = Attendance.objects.filter(date=today).select_related('employee')
 
     is_dayoff = DayOff.objects.filter(date=today).exists()
     is_restricted_day = is_dayoff
@@ -250,12 +260,16 @@ def dashboard(request):
     else:
         employees_need_attendance = employees.exclude(employee_type='office')
 
+    expected_count = employees_need_attendance.count()
     if is_restricted_day and not employees_need_attendance.exists():
         not_filled = Employee.objects.none()
     else:
         not_filled = employees_need_attendance.exclude(
             id__in=attendance_today.values_list('employee', flat=True)
-        )
+        ).order_by('last_name', 'first_name')
+
+    filled_count = max(expected_count - not_filled.count(), 0)
+    fill_pct = int(round((filled_count / expected_count) * 100)) if expected_count else 100
 
     stats_today = (
         Attendance.objects.filter(date=today)
@@ -281,18 +295,28 @@ def dashboard(request):
 
     status_labels = dict(Attendance.STATUS_CHOICES)
 
-    def _enrich_status_rows(rows):
-        return [
-            {
+    def _enrich_status_rows(rows, total):
+        enriched = []
+        for row in rows:
+            count = row['count']
+            enriched.append({
                 'status': row['status'],
                 'label': status_labels.get(row['status'], row['status']),
-                'count': row['count'],
-            }
-            for row in rows
-        ]
+                'count': count,
+                'pct': int(round((count / total) * 100)) if total else 0,
+            })
+        return enriched
 
-    stats_today_display = _enrich_status_rows(stats_today)
-    stats_week_display = _enrich_status_rows(stats_week)
+    today_total = attendance_today.count()
+    stats_today_display = _enrich_status_rows(stats_today, today_total)
+    stats_week_display = _enrich_status_rows(stats_week, week_total)
+
+    signals = get_dashboard_signals(today, limit=6)
+    month_progress = get_month_progress_rows(today.year, today.month, limit=10)
+    recent_activity = (
+        ActivityLog.objects.select_related('user', 'employee')
+        .order_by('-created_at')[:8]
+    )
 
     return render(request, 'attendance/dashboard.html', {
         'today': today,
@@ -300,12 +324,20 @@ def dashboard(request):
         'week_start': week_start,
         'week_total': week_total,
         'employees': employees,
-        'attendance_today': attendance_today,
+        'attendance_today': attendance_today.order_by('employee__last_name', 'employee__first_name')[:12],
+        'attendance_today_count': today_total,
+        'expected_count': expected_count,
+        'filled_count': filled_count,
+        'fill_pct': fill_pct,
         'not_filled': not_filled,
+        'not_filled_count': not_filled.count(),
         'stats_today': stats_today_display,
         'stats_week': stats_week_display,
         'is_restricted_day': is_restricted_day,
         'best_employees': best_employees,
+        'signals': signals,
+        'month_progress': month_progress,
+        'recent_activity': recent_activity,
     })
 
 
@@ -882,8 +914,19 @@ def bulk_attendance_create(request):
             initial=initial_data,
         )
         if formset.is_valid():
-            formset.save()
+            saved = formset.save()
             sync_monthly_stats_for_month(date_val.year, date_val.month)
+            log_activity(
+                user=request.user,
+                action='attendance_update',
+                summary=_('Jadvalda %(n)s ta davomat saqlandi (%(date)s)') % {
+                    'n': len(saved),
+                    'date': date_val.strftime('%d.%m.%Y'),
+                },
+                entity_type='attendance_bulk',
+                entity_id=None,
+                detail=f'bulk:{len(saved)}',
+            )
             messages.success(request, _("Davomat muvaffaqiyatli saqlandi!"))
             return redirect('attendance_list')
     else:
@@ -916,28 +959,184 @@ def attendance_list(request):
     else:
         day = date.today()
         filters['date'] = day
-    if request.GET.get('status'):
-        filters['status'] = request.GET['status']
+    selected_status = request.GET.get('status') or ''
+    if selected_status:
+        filters['status'] = selected_status
     if request.GET.get('department'):
         filters['employee__department'] = request.GET['department']
     if request.GET.get('position'):
         filters['employee__position'] = request.GET['position']
+    q = (request.GET.get('q') or '').strip()
     attendance = Attendance.objects.filter(**filters).select_related('employee')
+    if q:
+        attendance = attendance.filter(
+            Q(employee__first_name__icontains=q)
+            | Q(employee__last_name__icontains=q)
+            | Q(employee__department__icontains=q)
+            | Q(employee__position__icontains=q)
+        )
+    attendance = attendance.order_by('employee__last_name', 'employee__first_name')
+
+    day_status_counts = {
+        row['status']: row['count']
+        for row in (
+            Attendance.objects.filter(date=day)
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+    }
+    status_pills = [
+        {
+            'value': value,
+            'label': label,
+            'count': day_status_counts.get(value, 0),
+        }
+        for value, label in Attendance.STATUS_CHOICES
+    ]
+    quick_statuses = [
+        ('present', _('Keldi')),
+        ('absent', _('Kelmagan')),
+        ('late', _('Kechikdi')),
+    ]
     return render(request, 'attendance/attendance_list.html', {
         'attendance': attendance,
         'today': day,
+        'prev_date': day - timedelta(days=1),
+        'next_date': day + timedelta(days=1),
+        'is_today': day == date.today(),
         'employees': employees,
         'status_choices': Attendance.STATUS_CHOICES,
+        'status_pills': status_pills,
+        'selected_status': selected_status,
+        'day_total': sum(day_status_counts.values()),
+        'q': q,
+        'quick_statuses': quick_statuses,
     })
+
+
+@login_required
+@require_POST
+def attendance_quick_status(request):
+    """Ro'yxat / zal rejimida bitta bosishda status o'zgartirish (modal siz)."""
+    allowed = {'present', 'absent', 'late'}
+    status = (request.POST.get('status') or '').strip()
+    att_id = request.POST.get('attendance_id')
+    employee_id = request.POST.get('employee_id')
+    day_raw = (request.POST.get('date') or '').strip()
+
+    if status not in allowed:
+        return JsonResponse({'success': False, 'message': _('Noto‘g‘ri holat.')}, status=400)
+
+    try:
+        day = date.fromisoformat(day_raw) if day_raw else date.today()
+    except ValueError:
+        day = date.today()
+
+    record = None
+    created = False
+    old_status = None
+
+    if att_id and str(att_id).isdigit():
+        record = get_object_or_404(Attendance.objects.select_related('employee'), pk=int(att_id))
+        employee = record.employee
+        day = record.date
+        old_status = record.status
+    elif employee_id and str(employee_id).isdigit():
+        employee = get_object_or_404(Employee, pk=int(employee_id), is_active=True)
+        if not employee_can_attend_on_date(employee, day):
+            return JsonResponse({
+                'success': False,
+                'message': _('Bu kunda faqat nalivshiklar davomat kiritishi mumkin.'),
+            }, status=400)
+        record = Attendance.objects.filter(employee=employee, date=day).first()
+        if record:
+            old_status = record.status
+        else:
+            created = True
+    else:
+        return JsonResponse({'success': False, 'message': _('Xodim topilmadi.')}, status=400)
+
+    if not employee_can_attend_on_date(employee, day):
+        return JsonResponse({
+            'success': False,
+            'message': _('Bu kunda faqat nalivshiklar davomat kiritishi mumkin.'),
+        }, status=400)
+
+    def _quick_comment(existing: str, new_status: str) -> str:
+        text = (existing or '').strip()
+        if new_status == 'absent' and not text:
+            return str(_('Tezkor belgilash'))
+        return text
+
+    if record:
+        if record.status == status:
+            return JsonResponse({
+                'success': True,
+                'message': _('Allaqachon shu holat.'),
+                'status': status,
+                'status_label': dict(Attendance.STATUS_CHOICES).get(status, status),
+                'attendance_id': record.pk,
+                'unchanged': True,
+            })
+        record.status = status
+        record.comment = _quick_comment(record.comment, status)
+        record.save(update_fields=['status', 'comment', 'updated_at'])
+    else:
+        record = Attendance.objects.create(
+            employee=employee,
+            date=day,
+            status=status,
+            comment=_quick_comment('', status),
+        )
+        created = True
+
+    sync_monthly_stats_for_date(employee, day)
+    action = 'attendance_create' if created else 'attendance_update'
+    detail = f"{old_status or '—'} → {status}" if old_status else status
+    log_activity(
+        user=request.user,
+        action=action,
+        summary=_('%(name)s — %(status)s (%(date)s)') % {
+            'name': employee.get_full_name(),
+            'status': dict(Attendance.STATUS_CHOICES).get(status, status),
+            'date': day.strftime('%d.%m.%Y'),
+        },
+        employee=employee,
+        entity_type='attendance',
+        entity_id=record.pk,
+        detail=detail,
+    )
+    return JsonResponse({
+        'success': True,
+        'message': _('Saqlandi'),
+        'status': status,
+        'status_label': dict(Attendance.STATUS_CHOICES).get(status, status),
+        'attendance_id': record.pk,
+        'created': created,
+    })
+
 
 @login_required
 def attendance_update(request, pk):
     record = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':
+        old_status = record.status
         form = AttendanceForm(request.POST, request.FILES, instance=record, attendance_employee=record.employee)
         if form.is_valid():
             record = form.save()
             sync_monthly_stats_for_date(record.employee, record.date)
+            log_activity(
+                user=request.user,
+                action='attendance_update',
+                summary=_('%(name)s davomati yangilandi (%(date)s)') % {
+                    'name': record.employee.get_full_name(),
+                    'date': record.date.strftime('%d.%m.%Y'),
+                },
+                employee=record.employee,
+                entity_type='attendance',
+                entity_id=record.pk,
+                detail=f"{old_status} → {record.status}",
+            )
             messages.success(request, _("Davomat yangilandi!"))
             return redirect('attendance_list')
     else:
@@ -949,8 +1148,22 @@ def attendance_delete(request, pk):
     record = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':
         employee, att_date = record.employee, record.date
+        old_status = record.status
+        record_id = record.pk
         record.delete()
         sync_monthly_stats_for_date(employee, att_date)
+        log_activity(
+            user=request.user,
+            action='attendance_delete',
+            summary=_('%(name)s davomati o‘chirildi (%(date)s)') % {
+                'name': employee.get_full_name(),
+                'date': att_date.strftime('%d.%m.%Y'),
+            },
+            employee=employee,
+            entity_type='attendance',
+            entity_id=record_id,
+            detail=old_status,
+        )
         messages.success(request, _("Davomat o'chirildi!"))
         return redirect('attendance_list')
     return render(request, 'attendance/attendance_confirm_delete.html', {'record': record})
@@ -1212,8 +1425,8 @@ def individual_attendance_create(request, employee_id=None):
                 'dayoff': DayOff.objects.filter(date=date_val).first()
             })
         
-        # Agar status absent, sick yoki vacation bo'lsa, izoh majburiy
-        if status in ['absent', 'sick', 'vacation'] and not comment.strip():
+        # Agar status absent yoki vacation bo'lsa, izoh majburiy
+        if status in ['absent', 'vacation'] and not comment.strip():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': 'Izoh/sabab kiritish majburiy!'})
@@ -1238,10 +1451,22 @@ def individual_attendance_create(request, employee_id=None):
                 }
                 )
             sync_monthly_stats_for_date(employee, date_val)
+            log_activity(
+                user=request.user,
+                action='attendance_create' if created else 'attendance_update',
+                summary=_('%(name)s — %(status)s (%(date)s)') % {
+                    'name': employee.get_full_name(),
+                    'status': dict(Attendance.STATUS_CHOICES).get(status, status),
+                    'date': date_val.strftime('%d.%m.%Y'),
+                },
+                employee=employee,
+                entity_type='attendance',
+                entity_id=attendance.pk,
+                detail=status,
+            )
 
             # AJAX request uchun JSON response qaytarish
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
                     'message': f'{employee} uchun davomat saqlandi!'
@@ -1354,6 +1579,8 @@ def attendance_statistics(request):
 
     total_attendance = attendances.count()
     present_count = sum(item['count'] for item in stats_by_status if item['status'] == 'present')
+    absent_count = sum(item['count'] for item in stats_by_status if item['status'] == 'absent')
+    late_count = sum(item['count'] for item in stats_by_status if item['status'] == 'late')
     for item in stats_by_status:
         item['label'] = status_labels_map.get(item['status'], item['status'])
         item['percentage'] = (item['count'] / total_attendance * 100) if total_attendance else 0
@@ -1365,7 +1592,6 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
-        sick=Count('id', filter=Q(status='sick')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present', 'employee__last_name')
 
@@ -1377,7 +1603,6 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
-        sick=Count('id', filter=Q(status='sick')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present')
     
@@ -1390,7 +1615,6 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
-        sick=Count('id', filter=Q(status='sick')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present')
 
@@ -1410,7 +1634,7 @@ def attendance_statistics(request):
             'date': date_item['date'],
             'statuses': {}
         }
-        for status in ['present', 'absent', 'late', 'vacation', 'sick', 'business']:
+        for status in ['present', 'absent', 'late', 'vacation', 'business']:
             count = attendances.filter(date=date_item['date'], status=status).count()
             date_stats['statuses'][status] = count
         stats_by_date.append(date_stats)
@@ -1435,7 +1659,7 @@ def attendance_statistics(request):
     # Trend data for line chart
     trend_dates = sorted(set(item['date'].strftime('%Y-%m-%d') for item in trend_list))
     trend_data = {}
-    for status in ['present', 'absent', 'late', 'vacation', 'sick', 'business']:
+    for status in ['present', 'absent', 'late', 'vacation', 'business']:
         trend_data[status] = []
         for date_str in trend_dates:
             date_obj = date.fromisoformat(date_str)
@@ -1464,6 +1688,8 @@ def attendance_statistics(request):
         'has_data': total_attendance > 0,
         'total_attendance': total_attendance,
         'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
         'attendance_rate': round(present_count / total_attendance * 100, 1) if total_attendance else 0,
         'active_employees': active_employees,
         'days_in_range': days_in_range,
@@ -1495,8 +1721,16 @@ def salary_statistics_view(request):
     currency = filters['currency']
     location = filters['location']
     position = filters['position']
+    debtors_only = filters.get('debtors', False)
     filter_query = _salary_statistics_query_string(filters)
     recalc_query = _salary_statistics_query_string(filters, include_recalc=True)
+
+    # Saqlangan filtr presetlari (URL)
+    _today = date.today()
+    _prev = date(year, month, 1) - timedelta(days=1)
+    last_month_qs = urlencode({'year': _prev.year, 'month': _prev.month})
+    debtors_qs = urlencode({'year': year, 'month': month, 'debtors': '1'})
+    current_month_qs = urlencode({'year': _today.year, 'month': _today.month})
 
     if request.method == 'POST' and request.POST.get('form_type') == 'production_bonus_remove':
         year = int(request.POST.get('year', year))
@@ -1558,16 +1792,11 @@ def salary_statistics_view(request):
         .order_by('position')
     )
     
-    # Ишчи кунларни ҳисоблаш
+    # Ishchi kunlar — nalivshik smena + shaxsiy offday hisobga olinadi
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
-    
-    # Ҳар бир stat объектига "rejadagi ish kunlari" ni qo'shamiz:
-    # - oddiy xodimlar uchun ishchi kunlar (yakshanbasiz)
-    # - nalivshiklar uchun esa o'z komandasi bo'yicha navbatchilik kunlari soni.
-    from .services import calculate_nalivshik_planned_days
+    from .services import employee_salary_denominator_days
 
     stats = list(stats)
-    nalivshik_planned_cache = {}
 
     monthly_production = (
         MonthlyProduction.objects.filter(year=year, month=month)
@@ -1577,12 +1806,13 @@ def salary_statistics_view(request):
     production_bonus_eligible_ids = get_production_bonus_eligible_ids(year, month)
 
     for stat in stats:
-        if stat.employee.role == 'nalivshik':
-            if stat.employee_id not in nalivshik_planned_cache:
-                nalivshik_planned_cache[stat.employee_id] = calculate_nalivshik_planned_days(
-                    year, month, stat.employee
-                )
-            stat.working_days_in_month = nalivshik_planned_cache[stat.employee_id]
+        if (
+            stat.employee.employee_type == 'full'
+            or stat.employee.role == 'nalivshik'
+        ):
+            stat.working_days_in_month = employee_salary_denominator_days(
+                stat.employee, year, month, working_days_in_month=working_days_in_month
+            )
         else:
             stat.working_days_in_month = working_days_in_month
 
@@ -1669,6 +1899,10 @@ def salary_statistics_view(request):
         'selected_currency': currency,
         'selected_location': location,
         'selected_position': position,
+        'debtors_only': debtors_only,
+        'preset_last_month_qs': last_month_qs,
+        'preset_debtors_qs': debtors_qs,
+        'preset_current_month_qs': current_month_qs,
         'position_choices': position_choices,
         'employee_type_choices': Employee.EMPLOYEE_TYPE_CHOICES,
         'role_choices': Employee.ROLE_CHOICES,
@@ -1721,12 +1955,20 @@ def export_salary_statistics_excel(request):
     # Excel faylini yaratish
     wb = Workbook()
     
-    # Ishchi kunlarni hisoblash
+    # Ishchi kunlar — Excelda ham shaxsiy offday / nalivshik smena bilan
     working_days_in_month, total_days_in_month = calculate_working_days_in_month(year, month)
-    
-    # Ishchi kunlar har bir stat obyektiga biriktiriladi
+    from .services import employee_salary_denominator_days
+
     for stat in stats:
-        stat.working_days_in_month = working_days_in_month
+        if (
+            stat.employee.employee_type == 'full'
+            or stat.employee.role == 'nalivshik'
+        ):
+            stat.working_days_in_month = employee_salary_denominator_days(
+                stat.employee, year, month, working_days_in_month=working_days_in_month
+            )
+        else:
+            stat.working_days_in_month = working_days_in_month
 
     # Xodimlarni turlariga qarab guruhlash
     half_stats = [s for s in stats if s.employee.employee_type == 'half']
@@ -2583,8 +2825,22 @@ def edit_salary_stat(request, stat_id):
             )
             stat.refresh_from_db()
 
+            log_action = 'salary_payment' if (delete_ids or new_amount is not None) else 'salary_update'
+            log_activity(
+                user=request.user,
+                action=log_action,
+                summary=_('%(name)s oyligi yangilandi (%(month)s/%(year)s)') % {
+                    'name': stat.employee.get_full_name(),
+                    'month': stat.month,
+                    'year': stat.year,
+                },
+                employee=stat.employee,
+                entity_type='salary',
+                entity_id=stat.pk,
+                detail=', '.join(form.changed_data) if form.changed_data else log_action,
+            )
+
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
                     'message': "Ma'lumotlar saqlandi.",
@@ -2593,7 +2849,6 @@ def edit_salary_stat(request, stat_id):
 
             return redirect(f"{request.GET.get('next', '/statistics/salary/')}")
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            from django.http import JsonResponse
             errors = '; '.join(
                 f"{field}: {', '.join(errs)}"
                 for field, errs in form.errors.items()
@@ -2740,7 +2995,6 @@ def individual_employee_statistics(request, employee_id):
     present = len([d for d in daily_data if d['status'] == 'present'])
     absent = len([d for d in daily_data if d['status'] == 'absent'])
     late = len([d for d in daily_data if d['status'] == 'late'])
-    sick = len([d for d in daily_data if d['status'] == 'sick'])
     vacation = len([d for d in daily_data if d['status'] == 'vacation'])
     business = len([d for d in daily_data if d['status'] == 'business'])
     sunday = 0
@@ -2752,7 +3006,6 @@ def individual_employee_statistics(request, employee_id):
     present_percentage = (present / working_days * 100) if working_days > 0 else 0
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
-    sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
     sunday_percentage = 0
@@ -2780,7 +3033,6 @@ def individual_employee_statistics(request, employee_id):
             'present': present,
             'absent': absent,
             'late': late,
-            'sick': sick,
             'vacation': vacation,
             'business': business,
             'sunday': sunday,
@@ -2791,7 +3043,6 @@ def individual_employee_statistics(request, employee_id):
             'present_percentage': round(present_percentage, 1),
             'absent_percentage': round(absent_percentage, 1),
             'late_percentage': round(late_percentage, 1),
-            'sick_percentage': round(sick_percentage, 1),
             'vacation_percentage': round(vacation_percentage, 1),
             'business_percentage': round(business_percentage, 1),
             'sunday_percentage': round(sunday_percentage, 1),
@@ -2978,7 +3229,6 @@ def employee_attendance_history(request, employee_id):
     present = len([d for d in calendar_days if d['status'] == 'present'])
     absent = len([d for d in calendar_days if d['status'] == 'absent'])
     late = len([d for d in calendar_days if d['status'] == 'late'])
-    sick = len([d for d in calendar_days if d['status'] == 'sick'])
     vacation = len([d for d in calendar_days if d['status'] == 'vacation'])
     business = len([d for d in calendar_days if d['status'] == 'business'])
     sunday = 0
@@ -2990,7 +3240,6 @@ def employee_attendance_history(request, employee_id):
     present_percentage = (present / working_days * 100) if working_days > 0 else 0
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
-    sick_percentage = (sick / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
     sunday_percentage = 0
@@ -3018,7 +3267,6 @@ def employee_attendance_history(request, employee_id):
             'present': present,
             'absent': absent,
             'late': late,
-            'sick': sick,
             'vacation': vacation,
             'business': business,
             'sunday': sunday,
@@ -3029,7 +3277,6 @@ def employee_attendance_history(request, employee_id):
             'present_percentage': round(present_percentage, 1),
             'absent_percentage': round(absent_percentage, 1),
             'late_percentage': round(late_percentage, 1),
-            'sick_percentage': round(sick_percentage, 1),
             'vacation_percentage': round(vacation_percentage, 1),
             'business_percentage': round(business_percentage, 1),
             'sunday_percentage': round(sunday_percentage, 1),
@@ -3083,7 +3330,6 @@ def get_status_text(status):
         'present': _('Keldi'),
         'absent': _('Kelmadi'),
         'late': _('Kechikdi'),
-        'sick': _('Kasal'),
         'vacation': _("Ta'til"),
         'business': _('Ish safari'),
         'sunday': _('Yakshanba'),
@@ -3102,3 +3348,153 @@ def _calendar_note(raw) -> str:
     if not comment or comment.lower() in {'none', 'null', 'undefined'}:
         return ""
     return comment
+
+
+@login_required
+def attendance_floor(request):
+    """Zal uchun mobile-first tezkor davomat (PWA)."""
+    today = date.today()
+    day_raw = (request.GET.get('date') or '').strip()
+    try:
+        day = date.fromisoformat(day_raw) if day_raw else today
+    except ValueError:
+        day = today
+
+    q = (request.GET.get('q') or '').strip()
+    employees, restricted = get_bulk_attendance_employees(day)
+    employees = employees.exclude(employee_type='office').order_by('last_name', 'first_name')
+    if q:
+        employees = employees.filter(
+            Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(position__icontains=q)
+            | Q(department__icontains=q)
+        )
+
+    att_map = {
+        a.employee_id: a
+        for a in Attendance.objects.filter(date=day, employee_id__in=employees.values_list('id', flat=True))
+    }
+
+    rows = []
+    for emp in employees:
+        att = att_map.get(emp.id)
+        rows.append({
+            'employee': emp,
+            'attendance': att,
+            'status': att.status if att else '',
+            'attendance_id': att.pk if att else '',
+        })
+
+    pending = sum(1 for r in rows if not r['status'])
+    total = len(rows)
+    return render(request, 'attendance/attendance_floor.html', {
+        'day': day,
+        'is_today': day == today,
+        'prev_date': day - timedelta(days=1),
+        'next_date': day + timedelta(days=1),
+        'rows': rows,
+        'pending_count': pending,
+        'filled_count': total - pending,
+        'total_count': total,
+        'q': q,
+        'is_restricted_day': restricted,
+        'quick_statuses': [
+            ('present', _('Keldi')),
+            ('absent', _('Kelmagan')),
+            ('late', _('Kechikdi')),
+        ],
+    })
+
+
+@login_required
+def activity_feed(request):
+    """Audit lentasi — kim nima o‘zgartirdi."""
+    logs = (
+        ActivityLog.objects.select_related('user', 'employee')
+        .order_by('-created_at')[:200]
+    )
+    return render(request, 'attendance/activity_feed.html', {
+        'logs': logs,
+    })
+
+
+def web_manifest(request):
+    """PWA manifest."""
+    from django.templatetags.static import static
+    icon = request.build_absolute_uri(static('img/isomer-oil-logo.png'))
+    payload = {
+        'name': 'ISOMER OIL Davomat',
+        'short_name': 'Davomat',
+        'description': 'ISOMER OIL — zal davomati va oylik',
+        'start_url': '/attendance/floor/',
+        'scope': '/',
+        'display': 'standalone',
+        'orientation': 'portrait-primary',
+        'background_color': '#0b1f2a',
+        'theme_color': '#0f766e',
+        'lang': 'uz',
+        'icons': [
+            {
+                'src': icon,
+                'sizes': '192x192',
+                'type': 'image/png',
+                'purpose': 'any maskable',
+            },
+            {
+                'src': icon,
+                'sizes': '512x512',
+                'type': 'image/png',
+                'purpose': 'any maskable',
+            },
+        ],
+    }
+    return JsonResponse(payload, content_type='application/manifest+json')
+
+
+def service_worker(request):
+    """Minimal offline shell service worker."""
+    js = """
+const CACHE = 'davomat-shell-v2';
+const PRECACHE = ['/attendance/floor/', '/manifest.webmanifest'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin/')) return;
+  // Auth sahifalarini keshga yozmaymiz
+  if (url.pathname.startsWith('/login') || url.pathname.startsWith('/sso/')) return;
+
+  event.respondWith(
+    fetch(req).then((res) => {
+      if (
+        res.ok &&
+        req.method === 'GET' &&
+        (url.pathname.startsWith('/static/') || url.pathname.match(/\\.(css|js|png|jpg|webp|svg|webmanifest)$/))
+      ) {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+      }
+      return res;
+    }).catch(() => caches.match(req).then((hit) => hit || caches.match('/attendance/floor/')))
+  );
+});
+""".strip()
+    response = HttpResponse(js, content_type='application/javascript; charset=utf-8')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache'
+    return response

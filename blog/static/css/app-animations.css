@@ -39,7 +39,7 @@
 }
 
 @keyframes appPulseSoft {
-  0%, 100% { box-shadow: 0 12px 32px rgba(67, 97, 238, 0.22); }
+  0%, 100% { box-shadow: 0 12px 32px rgba(15, 118, 110, 0.22); }
   50% { box-shadow: 0 16px 40px rgba(76, 201, 240, 0.35); }
 }
 
@@ -193,7 +193,7 @@
 
 .app-stat-card:hover {
   transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 16px 40px rgba(67, 97, 238, 0.15);
+  box-shadow: 0 16px 40px rgba(15, 118, 110, 0.15);
 }
 
 .app-stat-number {
@@ -214,7 +214,7 @@
 
 .app-page .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(67, 97, 238, 0.2);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.2);
 }
 
 .app-page .btn:active:not(:disabled) {

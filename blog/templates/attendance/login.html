@@ -1,32 +1,74 @@
 {% extends 'attendance/base.html' %}
 {% load static i18n %}
-{% block title %}{% trans "Tizimga kirish" %}{% endblock %}
-{% block content_wrapper_class %}flex-grow-1 app-login-page px-2 d-flex flex-column{% endblock %}
+{% block title %}{% trans "Tizimga kirish" %} · ISOMER OIL{% endblock %}
+{% block body_class %}premium-ui login-body d-flex flex-column min-vh-100{% endblock %}
+{% block show_nav %}{% endblock %}
+{% block show_footer %}{% endblock %}
+{% block content_wrapper_class %}flex-grow-1 app-login-page d-flex flex-column p-0{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/login-ux.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<div class="app-login-wrap">
-  <div class="app-login-card">
-    <div class="login-brand">
-      <img src="{% static 'img/isomer-oil-logo.png' %}" alt="ISOMER OIL" class="login-brand-logo" width="72" height="72">
+<div class="login-shell">
+  <aside class="login-aside" aria-hidden="true">
+    <div class="login-aside__glow"></div>
+    <div class="login-aside__pattern"></div>
+    <div class="login-aside__content">
+      <img src="{% static 'img/isomer-oil-logo.png' %}" alt="" class="login-aside__logo" width="88" height="88">
+      <p class="login-aside__brand">ISOMER OIL</p>
+      <p class="login-aside__tag">{% trans "Davomat va oylik hisob-kitob" %}</p>
     </div>
-    <h3 class="text-center fw-bold mb-1">ISOMER OIL</h3>
-    <p class="text-center text-muted mb-4">{% trans "Davomat tizimiga kirish" %}</p>
-    <form method="post" autocomplete="off" class="needs-validation" novalidate>
-      {% csrf_token %}
-      <div class="mb-3">
-        <label for="id_username" class="form-label">{% trans "Login" %}</label>
-        <input type="text" name="username" class="form-control form-control-lg" required id="id_username" autofocus placeholder="{% trans 'Foydalanuvchi nomi' %}">
-        <div class="invalid-feedback">{% trans "Login kiriting." %}</div>
+  </aside>
+
+  <div class="login-main">
+    <div class="login-lang">
+      {% include 'attendance/partials/language_switcher.html' %}
+    </div>
+
+    <div class="app-login-card login-card">
+      <div class="login-brand login-brand--mobile">
+        <img src="{% static 'img/isomer-oil-logo.png' %}" alt="ISOMER OIL" class="login-brand-logo" width="64" height="64">
       </div>
-      <div class="mb-4">
-        <label for="id_password" class="form-label">{% trans "Parol" %}</label>
-        <input type="password" name="password" class="form-control form-control-lg" required id="id_password" placeholder="••••••••">
-        <div class="invalid-feedback">{% trans "Parol kiriting." %}</div>
+      <h1 class="login-card__title">ISOMER OIL</h1>
+      <p class="login-card__sub">{% trans "Davomat tizimiga kirish" %}</p>
+
+      {% if form.errors %}
+      <div class="login-alert" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>{% trans "Login yoki parol noto'g'ri." %}</span>
       </div>
-      <button class="btn btn-primary w-100 py-2" type="submit">
-        <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Kirish" %}
-      </button>
-    </form>
+      {% endif %}
+
+      <form method="post" autocomplete="off" class="needs-validation login-form" novalidate>
+        {% csrf_token %}
+        <div class="login-field">
+          <label for="id_username">{% trans "Login" %}</label>
+          <div class="login-input">
+            <i class="bi bi-person"></i>
+            <input type="text" name="username" required id="id_username" autofocus
+                   placeholder="{% trans 'Foydalanuvchi nomi' %}"
+                   value="{{ form.username.value|default:'' }}">
+          </div>
+          <div class="invalid-feedback">{% trans "Login kiriting." %}</div>
+        </div>
+        <div class="login-field">
+          <label for="id_password">{% trans "Parol" %}</label>
+          <div class="login-input">
+            <i class="bi bi-lock"></i>
+            <input type="password" name="password" required id="id_password" placeholder="••••••••">
+          </div>
+          <div class="invalid-feedback">{% trans "Parol kiriting." %}</div>
+        </div>
+        <button class="login-submit" type="submit">
+          <span>{% trans "Kirish" %}</span>
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+
+    <p class="login-foot">© {% now "Y" %} ISOMER OIL</p>
   </div>
 </div>
 {% endblock %}

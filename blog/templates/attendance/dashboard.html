@@ -1,153 +1,289 @@
 {% extends 'attendance/base.html' %}
-{% load i18n %}
-{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Bugungi ish" %}{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'css/dashboard-ux.css' %}" rel="stylesheet">
+<link href="{% static 'css/ops-insights.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-{% trans "Dashboard" as page_title %}
-{% trans "Davomat tizimi boshqaruv paneli" as dashboard_subtitle %}
-{% trans "Bugun" as today_label %}
-{% include 'attendance/partials/page_hero.html' with title=page_title subtitle=dashboard_subtitle icon="bi-speedometer2" meta=today_date|date:"d.m.Y" meta_label=today_label %}
-
-<div class="app-toolbar mb-4">
-  <a href="{% url 'select_employee_attendance' %}" class="btn btn-light border">
-    <i class="bi bi-person-plus-fill me-2"></i>{% trans "Individual davomat" %}
-  </a>
-  <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary">
-    <i class="bi bi-journal-check me-1"></i>{% trans "Davomat ro'yxati" %}
-  </a>
-</div>
-
-{% if is_restricted_day %}
-<div class="alert alert-info border-0 mb-3 py-2 small">
-  <i class="bi bi-info-circle me-2"></i>{% blocktrans %}Bugun yakshanba yoki yopiq kun — faqat <strong>nalivshiklar</strong> uchun davomat kuzatiladi.{% endblocktrans %}
-</div>
-{% endif %}
-
-<div class="row g-4 mb-4 app-stagger">
-  <div class="col-lg-4 col-md-6">
-    <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-calendar-check me-2"></i>{% trans "Bugungi davomat" %}</div>
-      <div class="app-stat-card-body text-center">
-        <div class="app-stat-number">{{ attendance_today.count }}</div>
-        <p class="text-muted small mb-3">{% trans "Jami yozuvlar" %}</p>
-        <div class="d-flex flex-wrap justify-content-center gap-1">
-          {% for item in stats_today %}
-          <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-            {{ item.label }}: {{ item.count }}
-          </span>
-          {% empty %}
-          <p class="text-muted small mb-0 w-100">{% trans "Bugun uchun yozuv yo'q" %}</p>
-          {% endfor %}
-        </div>
+<div class="ops">
+  <header class="ops-head">
+    <div class="ops-head__left">
+      <p class="ops-kicker">{% trans "ISOMER OIL · Davomat" %}</p>
+      <h1 class="ops-title">{% trans "Bugungi ish" %}</h1>
+      <p class="ops-date">{{ today_date|date:"l, d.m.Y" }}</p>
+    </div>
+    <div class="ops-progress" aria-label="{% trans "Kunlik to'ldirish" %}">
+      <div class="ops-progress__ring" style="--pct: {{ fill_pct }}">
+        <span>{{ fill_pct }}%</span>
+      </div>
+      <div class="ops-progress__meta">
+        <strong>{{ filled_count }}/{{ expected_count }}</strong>
+        <span>{% trans "davomat kiritilgan" %}</span>
+        {% if not_filled_count %}
+        <em class="ops-progress__warn">{{ not_filled_count }} {% trans "ta qoldi" %}</em>
+        {% else %}
+        <em class="ops-progress__ok">{% trans "Kun to'liq" %}</em>
+        {% endif %}
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="col-lg-4 col-md-6">
-    <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-calendar-week me-2"></i>{% trans "Haftalik davomat" %}</div>
-      <div class="app-stat-card-body text-center">
-        <div class="app-stat-number">{{ week_total }}</div>
-        <p class="text-muted small mb-3">{{ week_start|date:"d.m" }} — {{ today_date|date:"d.m.Y" }}</p>
-        <div class="d-flex flex-wrap justify-content-center gap-1">
-          {% for item in stats_week %}
-          <span class="badge rounded-pill {% if item.status == 'present' %}bg-success{% elif item.status == 'absent' %}bg-danger{% elif item.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-            {{ item.label }}: {{ item.count }}
-          </span>
-          {% empty %}
-          <p class="text-muted small mb-0 w-100">{% trans "Bu hafta yozuv yo'q" %}</p>
-          {% endfor %}
-        </div>
+  {% if is_restricted_day %}
+  <div class="ops-banner">
+    <i class="bi bi-moon-stars"></i>
+    <span>{% blocktrans %}Yopiq kun - faqat <strong>nalivshiklar</strong> uchun davomat.{% endblocktrans %}</span>
+  </div>
+  {% endif %}
+
+  <nav class="ops-cta" aria-label="{% trans 'Asosiy amallar' %}">
+    <a href="{% url 'attendance_floor' %}" class="ops-cta__btn ops-cta__btn--main">
+      <i class="bi bi-phone"></i>
+      <span>
+        <strong>{% trans "Zal rejimi" %}</strong>
+        <small>{% trans "Telefon bilan tezkor davomat" %}</small>
+      </span>
+    </a>
+    <a href="{% url 'bulk_attendance_create' %}" class="ops-cta__btn">
+      <i class="bi bi-lightning-charge-fill"></i>
+      <span>
+        <strong>{% trans "Jadvalda kiritish" %}</strong>
+        <small>{% trans "Ko'p xodim birga" %}</small>
+      </span>
+    </a>
+    <a href="{% url 'attendance_list' %}" class="ops-cta__btn">
+      <i class="bi bi-list-check"></i>
+      <span>
+        <strong>{% trans "Bugungi ro'yxat" %}</strong>
+        <small>{{ attendance_today_count }} {% trans "yozuv" %}</small>
+      </span>
+    </a>
+    <a href="{% url 'salary_statistics' %}" class="ops-cta__btn">
+      <i class="bi bi-wallet2"></i>
+      <span>
+        <strong>{% trans "Oylik" %}</strong>
+        <small>{% trans "Hisob va to'lov" %}</small>
+      </span>
+    </a>
+  </nav>
+
+  <div class="ops-insights">
+    <section class="ops-insight ops-insight--signals">
+      <div class="ops-insight__head">
+        <h2>{% trans "Bugungi signallar" %}</h2>
+        <a href="{% url 'attendance_list' %}">{% trans "Ro'yxat" %} →</a>
       </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-md-12">
-    <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-person-x me-2"></i>{% trans "Kiritilmaganlar" %}</div>
-      <div class="app-stat-card-body">
-        <div class="text-center mb-3">
-          <div class="app-stat-number text-danger">{{ not_filled|length }}</div>
-          <p class="text-muted small">{% trans "Davomat kiritilmagan" %}</p>
-        </div>
-        {% for emp in not_filled %}
-        <div class="d-flex align-items-center gap-2 mb-2 small">
-          <i class="bi bi-dash-circle text-danger"></i>
-          <span class="badge bg-danger-subtle text-danger w-100 text-start py-2">{{ emp }}</span>
-        </div>
-        {% empty %}
-        <div class="alert alert-success border-0 mb-0 py-2 small">
-          <i class="bi bi-check-circle-fill me-2"></i>{% trans "Hamma uchun kiritilgan" %}
-        </div>
+      {% if signals %}
+      <ul class="ops-signals">
+        {% for s in signals %}
+        <li>
+          <a class="ops-signal ops-signal--{{ s.kind }} ops-signal--{{ s.severity }}"
+             href="{% url 'employee_attendance_history' s.employee.id %}">
+            <span class="ops-signal__icon" aria-hidden="true">
+              {% if s.kind == 'late' %}<i class="bi bi-clock-history"></i>
+              {% elif s.kind == 'streak' %}<i class="bi bi-exclamation-triangle"></i>
+              {% else %}<i class="bi bi-calendar-minus"></i>{% endif %}
+            </span>
+            <span class="ops-signal__body">
+              <strong>{{ s.title }}</strong>
+              <small>{{ s.meta }}</small>
+            </span>
+            <span class="ops-signal__tag">
+              {% if s.kind == 'late' %}{% trans "Kechikish" %}
+              {% elif s.kind == 'streak' %}{% trans "Ketma-ket" %}
+              {% else %}{% trans "Kvota" %}{% endif %}
+            </span>
+          </a>
+        </li>
         {% endfor %}
-      </div>
-    </div>
-  </div>
-</div>
+      </ul>
+      {% else %}
+      <p class="ops-empty-mini"><i class="bi bi-check2-circle"></i> {% trans "Hozircha ogohlantirish yo'q" %}</p>
+      {% endif %}
+    </section>
 
-<div class="row g-4 mb-4">
-  <div class="col-lg-12">
-    <div class="app-stat-card">
-      <div class="app-stat-card-head"><i class="bi bi-trophy me-2"></i>{% trans "Top xodimlar (30 kun)" %}</div>
-      <div class="app-stat-card-body">
-        <ol class="list-unstyled mb-0">
+    <section class="ops-insight">
+      <div class="ops-insight__head">
+        <h2>{% trans "Oy progressi" %}</h2>
+        <a href="{% url 'salary_statistics' %}">{% trans "Oylik" %} →</a>
+      </div>
+      {% if month_progress %}
+      <ul class="ops-progress-list">
+        {% for row in month_progress %}
+        <li class="ops-prow ops-prow--{{ row.tone }}">
+          <div class="ops-prow__who">
+            <strong>{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
+            <small>{{ row.worked }}/{{ row.planned }} {% trans "kun" %}</small>
+          </div>
+          <div class="ops-prow__meters">
+            <div class="ops-meter">
+              <span>{% trans "Kelish" %}</span>
+              <div class="ops-meter__track"><i style="width: {{ row.attend_pct }}%"></i></div>
+              <em>{{ row.attend_pct }}%</em>
+            </div>
+            <div class="ops-meter ops-meter--pay">
+              <span>{% trans "Oylik" %}</span>
+              <div class="ops-meter__track"><i style="width: {% if row.pay_pct > 100 %}100{% else %}{{ row.pay_pct }}{% endif %}%"></i></div>
+              <em>{{ row.pay_pct }}%</em>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="ops-empty-mini">{% trans "Oy bo'yicha ma'lumot hali yo'q" %}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="ops-layout">
+    <section class="ops-queue">
+      <div class="ops-section-head">
+        <h2>{% trans "Kiritish navbati" %}</h2>
+        {% if not_filled_count %}
+        <span class="ops-badge ops-badge--warn">{{ not_filled_count }}</span>
+        {% else %}
+        <span class="ops-badge ops-badge--ok">{% trans "tayyor" %}</span>
+        {% endif %}
+      </div>
+
+      {% if not_filled %}
+      <ul class="ops-queue__list">
+        {% for emp in not_filled %}
+        <li>
+          <div class="ops-person">
+            <span class="ops-avatar">{{ emp.last_name|slice:":1" }}{{ emp.first_name|slice:":1" }}</span>
+            <div>
+              <strong>{{ emp.last_name }} {{ emp.first_name }}</strong>
+              <small>{% if emp.position %}{{ emp.position }}{% else %}{{ emp.get_employee_type_display }}{% endif %}</small>
+            </div>
+          </div>
+          <a class="ops-queue__go" href="{% url 'individual_attendance_create' emp.id %}">
+            {% trans "Kiritish" %} <i class="bi bi-arrow-right"></i>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      <a class="ops-queue__bulk" href="{% url 'bulk_attendance_create' %}">
+        <i class="bi bi-table"></i> {% trans "Hammasini jadvalda to'ldirish" %}
+      </a>
+      {% else %}
+      <div class="ops-queue__done">
+        <i class="bi bi-check2-circle"></i>
+        <p>{% trans "Bugun kerakli barcha davomat kiritilgan." %}</p>
+        <a href="{% url 'attendance_list' %}">{% trans "Ro'yxatni ko'rish" %}</a>
+      </div>
+      {% endif %}
+    </section>
+
+    <aside class="ops-side">
+      <section class="ops-panel">
+        <h2>{% trans "Bugungi holat" %}</h2>
+        <div class="ops-bars">
+          {% for item in stats_today %}
+          <div class="ops-bar">
+            <div class="ops-bar__top">
+              <span class="ops-dot ops-dot--{{ item.status }}"></span>
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+            <div class="ops-bar__track"><i style="width: {{ item.pct }}%"></i></div>
+          </div>
+          {% empty %}
+          <p class="ops-muted">{% trans "Hali yozuv yo'q" %}</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="ops-panel">
+        <h2>{% trans "Shu hafta" %}</h2>
+        <p class="ops-week-total">{{ week_total }} <small>{% trans "yozuv" %} · {{ week_start|date:"d.m" }}–{{ today_date|date:"d.m" }}</small></p>
+        <div class="ops-bars ops-bars--compact">
+          {% for item in stats_week %}
+          <div class="ops-bar">
+            <div class="ops-bar__top">
+              <span class="ops-dot ops-dot--{{ item.status }}"></span>
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+            <div class="ops-bar__track"><i style="width: {{ item.pct }}%"></i></div>
+          </div>
+          {% empty %}
+          <p class="ops-muted">{% trans "Ma'lumot yo'q" %}</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="ops-panel">
+        <h2>{% trans "Top 5 · 30 kun" %}</h2>
+        <ol class="ops-rank">
           {% for emp in best_employees %}
-          <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-            <span>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
-            <span class="badge bg-success rounded-pill">{% blocktrans with days=emp.present_count %}{{ days }} kun{% endblocktrans %}</span>
+          <li>
+            <span>{{ forloop.counter }}</span>
+            <strong>{{ emp.employee__last_name }} {{ emp.employee__first_name }}</strong>
+            <em>{{ emp.present_count }}</em>
           </li>
           {% empty %}
-          <p class="text-muted small mb-0">{% trans "Ma'lumot yo'q" %}</p>
+          <li class="ops-muted">{% trans "Ma'lumot yo'q" %}</li>
           {% endfor %}
         </ol>
-      </div>
-    </div>
+      </section>
+    </aside>
   </div>
-</div>
 
-<div class="app-panel app-reveal-on-scroll">
-  <div class="app-panel-header"><i class="bi bi-lightning-charge me-2"></i>{% trans "Tezkor havolalar" %}</div>
-  <div class="app-panel-body">
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="app-quick-links list-group list-group-flush">
-          <a href="{% url 'attendance_list' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-journal-check me-2"></i>{% trans "Davomat ro'yxati" %} <i class="bi bi-chevron-right float-end"></i>
-          </a>
-          <a href="{% url 'attendance_statistics' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-bar-chart-line me-2"></i>{% trans "Statistika" %} <i class="bi bi-chevron-right float-end"></i>
-          </a>
-          <a href="{% url 'employee_list' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-people me-2"></i>{% trans "Xodimlar" %} <i class="bi bi-chevron-right float-end"></i>
-          </a>
-          <a href="{% url 'salary_statistics' %}" class="list-group-item list-group-item-action">
-            <i class="bi bi-cash-coin me-2"></i>{% trans "Oylik statistika" %} <i class="bi bi-chevron-right float-end"></i>
-          </a>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="row text-center g-3">
-          <div class="col-4">
-            <div class="p-3 rounded-3 bg-light">
-              <div class="fs-3 fw-bold text-primary">{{ today_date|date:"d" }}</div>
-              <small class="text-muted">{% trans "Kun" %}</small>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="p-3 rounded-3 bg-light">
-              <div class="fs-3 fw-bold text-success">{{ attendance_today.count }}</div>
-              <small class="text-muted">{% trans "Bugun" %}</small>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="p-3 rounded-3 bg-light">
-              <div class="fs-3 fw-bold text-danger">{{ not_filled|length }}</div>
-              <small class="text-muted">{% trans "Qolgan" %}</small>
-            </div>
-          </div>
-        </div>
-      </div>
+  {% if attendance_today %}
+  <section class="ops-recent">
+    <div class="ops-section-head">
+      <h2>{% trans "Bugun kiritilganlar" %}</h2>
+      <a href="{% url 'attendance_list' %}">{% trans "Hammasi" %} →</a>
     </div>
-  </div>
+    <div class="ops-recent__grid">
+      {% for att in attendance_today %}
+      <a class="ops-recent__item" href="{% url 'attendance_update' att.id %}">
+        <span class="ops-dot ops-dot--{{ att.status }}"></span>
+        <strong>{{ att.employee.last_name }} {{ att.employee.first_name }}</strong>
+        <small>{{ att.get_status_display }}</small>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if recent_activity %}
+  <section class="ops-audit">
+    <div class="ops-audit__head">
+      <h2>{% trans "So'nggi o'zgarishlar" %}</h2>
+      <a href="{% url 'activity_feed' %}">{% trans "To'liq lenta" %} →</a>
+    </div>
+    <ul class="ops-audit__list">
+      {% for log in recent_activity %}
+      <li class="ops-audit__item {% if 'salary' in log.action %}ops-audit__item--salary{% elif log.action == 'attendance_delete' %}ops-audit__item--delete{% endif %}">
+        <span class="ops-audit__dot" aria-hidden="true"></span>
+        <div class="ops-audit__body">
+          <strong>{{ log.summary }}</strong>
+          <small>
+            {% if log.user %}{{ log.user.get_username }}{% else %}{% trans "Tizim" %}{% endif %}
+            · {{ log.get_action_display }}
+          </small>
+        </div>
+        <time class="ops-audit__time" datetime="{{ log.created_at|date:'c' }}">{{ log.created_at|date:"d.m H:i" }}</time>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <nav class="ops-more">
+    <a href="{% url 'attendance_floor' %}"><i class="bi bi-phone"></i>{% trans "Zal" %}</a>
+    <a href="{% url 'activity_feed' %}"><i class="bi bi-clock-history"></i>{% trans "Audit" %}</a>
+    <a href="{% url 'attendance_statistics' %}"><i class="bi bi-bar-chart"></i>{% trans "Statistika" %}</a>
+    <a href="{% url 'employee_list' %}"><i class="bi bi-people"></i>{% trans "Xodimlar" %}</a>
+    <a href="{% url 'nalivshik_schedule' %}"><i class="bi bi-diagram-3"></i>{% trans "Nalivshik" %}</a>
+    <a href="{% url 'dayoff_list' %}"><i class="bi bi-calendar-x"></i>{% trans "Yopiq kunlar" %}</a>
+    <a href="{% url 'absence_quota' %}"><i class="bi bi-calendar-minus"></i>{% trans "Kvota" %}</a>
+    <a href="{% url 'salary_payment_history' %}"><i class="bi bi-receipt"></i>{% trans "To'lovlar" %}</a>
+  </nav>
 </div>
 {% endblock %}

@@ -1,0 +1,222 @@
+/* Zal PWA — mobile-first tezkor davomat */
+
+.floor {
+  --floor-ink: #0b1f2a;
+  --floor-teal: #0f766e;
+  --floor-muted: #5a6f7c;
+  max-width: 520px;
+  margin: 0 auto;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+.floor-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(180deg, #0b1f2a 0%, #0f2f3a 100%);
+  color: #fff;
+  margin: -0.75rem -0.75rem 0.85rem;
+  padding: 0.85rem 0.9rem 1rem;
+  border-radius: 0 0 22px 22px;
+  box-shadow: 0 12px 32px rgba(11, 31, 42, 0.28);
+}
+
+@media (min-width: 768px) {
+  .floor-top {
+    margin: 0 0 1rem;
+    border-radius: 20px;
+  }
+}
+
+.floor-top__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.floor-top__brand {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.floor-top__brand small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5eead4;
+  opacity: 0.9;
+}
+
+.floor-top__stat {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.floor-top__stat strong {
+  display: block;
+  font-size: 1.25rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.floor-top__stat span {
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
+.floor-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.floor-nav a {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  text-decoration: none;
+}
+
+.floor-nav__date {
+  flex: 1;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.floor-search {
+  margin-top: 0.75rem;
+  position: relative;
+}
+
+.floor-search i {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.45);
+}
+
+.floor-search input {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 0.75rem 0.85rem 0.75rem 2.4rem;
+  font-size: 16px;
+  outline: none;
+}
+
+.floor-search input::placeholder { color: rgba(255,255,255,0.4); }
+
+.floor-banner {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.82rem;
+  margin-bottom: 0.75rem;
+}
+
+.floor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.floor-card {
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.08);
+  border-radius: 16px;
+  padding: 0.85rem;
+  box-shadow: 0 4px 16px rgba(15, 36, 48, 0.04);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.floor-card.is-done {
+  border-color: rgba(15, 118, 110, 0.25);
+}
+
+.floor-card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.7rem;
+}
+
+.floor-avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0f766e, #134e4a);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.floor-card__who {
+  min-width: 0;
+  flex: 1;
+}
+
+.floor-card__who strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--floor-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.floor-card__who small {
+  color: var(--floor-muted);
+  font-size: 0.75rem;
+}
+
+.floor-card .qs {
+  width: 100%;
+  background: #f8fafc;
+  padding: 0.25rem;
+}
+
+.floor-card .qs-btn {
+  flex: 1;
+  min-height: 2.75rem;
+  font-size: 0.82rem;
+  border-radius: 11px;
+}
+
+.floor-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--floor-muted);
+}
+
+.floor-install {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 14px;
+  background: #ecfdf5;
+  color: #134e4a;
+  font-size: 0.8rem;
+  text-align: center;
+}

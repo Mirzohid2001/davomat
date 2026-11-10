@@ -2,7 +2,7 @@
 
 /* Улучшенные переменные */
 :root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --primary-gradient: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
   --success-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   --danger-gradient: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
   --warning-gradient: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);

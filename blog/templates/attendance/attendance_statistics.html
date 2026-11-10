@@ -1,313 +1,197 @@
 {% extends 'attendance/base.html' %}
-{% load i18n %}
-{% load static %}
-{% block title %}{% trans 'Statistika va tahlil' %}{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Statistika" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/statistics-styles.css' %}">
 {% endblock %}
 
 {% block content %}
-{% trans "Statistika va tahlil" as page_title %}
-{% trans "Davomat ko'rsatkichlari, trend va xodimlar reytingi" as stats_subtitle %}
-<div class="stats-page container-fluid px-2 px-md-3 pb-4">
-
-  {% include 'attendance/partials/page_hero.html' with title=page_title subtitle=stats_subtitle icon="bi-bar-chart-line-fill" %}
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <span class="badge rounded-pill px-3 py-2 border bg-white text-dark">{{ date_from|date:'d.m.Y' }} — {{ date_to|date:'d.m.Y' }}</span>
-    <span class="badge rounded-pill px-3 py-2 bg-primary">{{ days_in_range }} {% trans "kun" %}</span>
-  </div>
-
-  <!-- Filtrlash -->
-  <div class="stats-filter-card mb-4">
-    <div class="stats-filter-head">
-      <i class="bi bi-funnel-fill"></i>
-      <span>{% trans "Filtrlash" %}</span>
+<div class="stx">
+  <div class="stx-toolbar">
+    <div class="stx-toolbar__title">
+      <p class="stx-kicker">{% trans "ISOMER OIL · Davomat" %}</p>
+      <h1>{% trans "Statistika" %}</h1>
+      <p class="stx-toolbar__meta">{{ date_from|date:"d.m.Y" }} — {{ date_to|date:"d.m.Y" }} · {{ days_in_range }} {% trans "kun" %}</p>
     </div>
-    <form method="get" id="statsFilterForm" class="row g-3 align-items-end">
-      <div class="col-6 col-md-4 col-lg-2">
-        <label class="form-label" for="id_period">{% trans "Davr" %}</label>
-        <select name="period" id="id_period" class="form-select">
-          <option value="day" {% if period == "day" %}selected{% endif %}>{% trans "Kunlik" %}</option>
-          <option value="week" {% if period == "week" %}selected{% endif %}>{% trans "Haftalik" %}</option>
-          <option value="month" {% if period == "month" %}selected{% endif %}>{% trans "Oylik" %}</option>
-          <option value="quarter" {% if period == "quarter" %}selected{% endif %}>{% trans "3 oylik" %}</option>
-          <option value="year" {% if period == "year" %}selected{% endif %}>{% trans "Yillik" %}</option>
-          <option value="custom" {% if period == "custom" %}selected{% endif %}>{% trans "Boshqa oralik" %}</option>
-        </select>
-      </div>
-      <div class="col-6 col-md-4 col-lg-2">
-        <label class="form-label" for="id_date_from">{% trans "Dan" %}</label>
-        <input type="date" name="date_from" id="id_date_from" class="form-control"
-               value="{{ date_from|date:'Y-m-d' }}">
-      </div>
-      <div class="col-6 col-md-4 col-lg-2">
-        <label class="form-label" for="id_date_to">{% trans "Gacha" %}</label>
-        <input type="date" name="date_to" id="id_date_to" class="form-control"
-               value="{{ date_to|date:'Y-m-d' }}">
-      </div>
-      <div class="col-12 col-md-6 col-lg-3">
-        <label class="form-label" for="id_employee">{% trans "Xodim" %}</label>
-        <select name="employee" id="id_employee" class="form-select">
-          <option value="">{% trans "Barcha xodimlar" %}</option>
-          {% for emp in employees %}
-          <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
-            {{ emp.last_name }} {{ emp.first_name }}
-          </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-12 col-lg-3">
-        <div class="d-flex flex-wrap gap-2">
-          <button type="submit" class="btn btn-stats-primary flex-grow-1">
-            <i class="bi bi-search me-1"></i>{% trans "Ko'rish" %}
-          </button>
-          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary" title="{% trans 'Davomat jadvali' %}">
-            <i class="bi bi-calendar3"></i>
-          </a>
-          <a href="{% url 'edit_attendance_history' %}" class="btn btn-outline-warning" title="{% trans 'Davomat tarixini tahrirlash' %}">
-            <i class="bi bi-pencil-square"></i>
-          </a>
-          <a href="{% url 'salary_statistics' %}" class="btn btn-outline-info" title="{% trans 'Oylik statistika' %}">
-            <i class="bi bi-cash-coin"></i>
-          </a>
-        </div>
-      </div>
-    </form>
+    <nav class="stx-periods" aria-label="{% trans 'Davr' %}">
+      <a href="?period=day{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'day' %}is-on{% endif %}">{% trans "Kun" %}</a>
+      <a href="?period=week{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'week' %}is-on{% endif %}">{% trans "Hafta" %}</a>
+      <a href="?period=month{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'month' %}is-on{% endif %}">{% trans "Oy" %}</a>
+      <a href="?period=quarter{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'quarter' %}is-on{% endif %}">{% trans "3 oy" %}</a>
+      <a href="?period=year{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'year' %}is-on{% endif %}">{% trans "Yil" %}</a>
+      <a href="?period=custom&date_from={{ date_from|date:'Y-m-d' }}&date_to={{ date_to|date:'Y-m-d' }}{% if selected_employee %}&employee={{ selected_employee }}{% endif %}" class="{% if period == 'custom' %}is-on{% endif %}">{% trans "Boshqa" %}</a>
+    </nav>
   </div>
+
+  <form method="get" class="stx-refine" id="statsFilterForm">
+    <input type="hidden" name="period" value="{{ period }}">
+    {% if period == 'custom' %}
+    <div>
+      <label for="id_date_from">{% trans "Dan" %}</label>
+      <input type="date" name="date_from" id="id_date_from" class="form-control" value="{{ date_from|date:'Y-m-d' }}">
+    </div>
+    <div>
+      <label for="id_date_to">{% trans "Gacha" %}</label>
+      <input type="date" name="date_to" id="id_date_to" class="form-control" value="{{ date_to|date:'Y-m-d' }}">
+    </div>
+    {% else %}
+    <input type="hidden" name="date_from" id="id_date_from" value="{{ date_from|date:'Y-m-d' }}">
+    <input type="hidden" name="date_to" id="id_date_to" value="{{ date_to|date:'Y-m-d' }}">
+    {% endif %}
+    <div>
+      <label for="id_employee">{% trans "Xodim" %}</label>
+      <select name="employee" id="id_employee" class="form-select" onchange="this.form.submit()">
+        <option value="">{% trans "Barcha xodimlar" %}</option>
+        {% for emp in employees %}
+        <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+          {{ emp.last_name }} {{ emp.first_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if period == 'custom' %}
+    <button type="submit" class="stx-refine__go"><i class="bi bi-search me-1"></i>{% trans "Ko'rish" %}</button>
+    {% endif %}
+    <div class="stx-refine__links">
+      <a href="{% url 'attendance_list' %}" title="{% trans 'Davomat' %}"><i class="bi bi-journal-check"></i></a>
+      <a href="{% url 'salary_statistics' %}" title="{% trans 'Oylik' %}"><i class="bi bi-wallet2"></i></a>
+      <a href="{% url 'edit_attendance_history' %}" title="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil-square"></i></a>
+    </div>
+  </form>
 
   {% if has_data %}
 
-  <!-- Umumiy ko‘rsatkichlar -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-      <div class="stats-summary-card">
-        <div class="stats-summary-icon bg-primary-subtle text-primary"><i class="bi bi-journal-check"></i></div>
-        <div>
-          <div class="stats-summary-value">{{ total_attendance }}</div>
-          <div class="stats-summary-label">{% trans "Jami yozuvlar" %}</div>
-        </div>
+  <section class="stx-hero">
+    <div class="stx-hero__ring" style="--pct: {{ attendance_rate|floatformat:0 }}">
+      <span>{{ attendance_rate }}%</span>
+    </div>
+    <div class="stx-hero__copy">
+      <h2>{% trans "Kelish foizi" %}</h2>
+      <p>{% blocktrans with n=active_employees %}Tanlangan davrda {{ n }} ta xodim qatnashgan.{% endblocktrans %}</p>
+      <div class="stx-hero__chips">
+        <div class="stx-chip"><strong>{{ total_attendance }}</strong><small>{% trans "Yozuv" %}</small></div>
+        <div class="stx-chip"><strong>{{ present_count }}</strong><small>{% trans "Kelgan" %}</small></div>
+        <div class="stx-chip"><strong>{{ absent_count }}</strong><small>{% trans "Kelmagan" %}</small></div>
+        <div class="stx-chip"><strong>{{ late_count }}</strong><small>{% trans "Kechikdi" %}</small></div>
       </div>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="stats-summary-card">
-        <div class="stats-summary-icon bg-success-subtle text-success"><i class="bi bi-person-check"></i></div>
-        <div>
-          <div class="stats-summary-value">{{ present_count }}</div>
-          <div class="stats-summary-label">{% trans "Kelganlar" %}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="stats-summary-card">
-        <div class="stats-summary-icon bg-info-subtle text-info"><i class="bi bi-percent"></i></div>
-        <div>
-          <div class="stats-summary-value">{{ attendance_rate }}%</div>
-          <div class="stats-summary-label">{% trans "Kelish foizi" %}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="stats-summary-card">
-        <div class="stats-summary-icon bg-secondary-subtle text-secondary"><i class="bi bi-people"></i></div>
-        <div>
-          <div class="stats-summary-value">{{ active_employees }}</div>
-          <div class="stats-summary-label">{% trans "Faol xodimlar" %}</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  <!-- Holatlar bo‘yicha kartalar -->
-  <div class="row g-3 mb-4">
-    {% for item in stats_by_status %}
-    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-      <div class="kpi-card kpi-{{ item.status }}">
-        <div class="kpi-card-top">
-          <span class="kpi-count">{{ item.count }}</span>
-          <span class="kpi-icon" aria-hidden="true">
-            {% if item.status == 'present' %}<i class="bi bi-check-circle-fill"></i>
-            {% elif item.status == 'absent' %}<i class="bi bi-x-circle-fill"></i>
-            {% elif item.status == 'late' %}<i class="bi bi-clock-fill"></i>
-            {% elif item.status == 'vacation' %}<i class="bi bi-sun-fill"></i>
-            {% elif item.status == 'sick' %}<i class="bi bi-heart-pulse-fill"></i>
-            {% elif item.status == 'business' %}<i class="bi bi-briefcase-fill"></i>
-            {% else %}<i class="bi bi-calendar-x"></i>{% endif %}
+  <section class="stx-board">
+    <div class="stx-panel">
+      <div class="stx-panel__head">
+        <h2>{% trans "Holatlar bo'yicha" %}</h2>
+        <span>{% trans "Ulush" %}</span>
+      </div>
+      <div class="stx-bars">
+        {% for item in stats_by_status %}
+        <div class="stx-bar__row">
+          <div class="stx-bar__label">
+            <span class="stx-bar__dot stx-bar__dot--{{ item.status }}"></span>
+            <span>{{ item.label }}</span>
+          </div>
+          <div class="stx-bar__track">
+            <div class="stx-bar__fill stx-bar__fill--{{ item.status }}" style="width: {{ item.percentage|floatformat:0 }}%"></div>
+          </div>
+          <div class="stx-bar__val">
+            {{ item.count }}
+            <small>{{ item.percentage|floatformat:1 }}%</small>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="stx-panel">
+      <div class="stx-panel__head">
+        <h2>{% trans "Taqsimot" %}</h2>
+      </div>
+      <div class="stx-canvas"><canvas id="pieChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="stx-panel stx-trend">
+    <div class="stx-panel__head">
+      <h2>{% trans "Kunlik trend" %}</h2>
+      <span>{{ date_from|date:"d.m" }} — {{ date_to|date:"d.m.Y" }}</span>
+    </div>
+    <div class="stx-canvas stx-canvas--lg"><canvas id="trendChart"></canvas></div>
+  </section>
+
+  <section class="stx-bottom">
+    <div class="stx-panel">
+      <div class="stx-panel__head">
+        <h2>{% trans "Top xodimlar" %}</h2>
+        <span>{% trans "Kelgan kunlar" %}</span>
+      </div>
+      <ol class="stx-rank">
+        {% for emp in stats_by_employee|slice:":8" %}
+        <li>
+          <span class="stx-rank__n">{{ forloop.counter }}</span>
+          <span class="stx-rank__name">{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
+          <span class="stx-rank__present">{{ emp.present }}</span>
+          <span class="stx-rank__pct">
+            {% if emp.total > 0 %}{% widthratio emp.present emp.total 100 %}%{% else %}—{% endif %}
           </span>
-        </div>
-        <div class="kpi-label">{{ item.label }}</div>
-        <div class="kpi-progress-wrap">
-          <div class="kpi-progress-bar" style="width: {{ item.percentage|floatformat:0 }}%"></div>
-        </div>
-        <small class="kpi-pct">{{ item.percentage|floatformat:1 }}%</small>
-      </div>
+        </li>
+        {% empty %}
+        <li class="text-muted">{% trans "Ma'lumot yo'q" %}</li>
+        {% endfor %}
+      </ol>
     </div>
-    {% endfor %}
-  </div>
 
-  <!-- Grafikalar -->
-  <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-      <div class="stats-chart-card">
-        <h3 class="stats-chart-title"><i class="bi bi-pie-chart me-2"></i>{% trans "Holatlar taqsimoti" %}</h3>
-        <div class="stats-chart-canvas-wrap">
-          <canvas id="pieChart"></canvas>
-        </div>
+    <div class="stx-panel">
+      <div class="stx-panel__head">
+        <h2>{% trans "Bo'limlar" %}</h2>
+        <span>{% trans "Kelgan / kelmagan" %}</span>
+      </div>
+      <div class="stx-dept">
+        {% for dept in stats_by_department %}
+          {% if dept.employee__department %}
+          <div class="stx-dept__item">
+            <div class="stx-dept__top">
+              <strong>{{ dept.employee__department }}</strong>
+              <span>{{ dept.present }} / {{ dept.absent }}</span>
+            </div>
+            <div class="stx-dept__track" title="{% trans 'Yashil: kelgan' %}">
+              {% if dept.total %}
+              <div class="stx-dept__present" style="width: {% widthratio dept.present dept.total 100 %}%"></div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        {% empty %}
+        <p class="text-muted mb-0">{% trans "Bo'lim ma'lumoti yo'q" %}</p>
+        {% endfor %}
       </div>
     </div>
-    <div class="col-lg-6">
-      <div class="stats-chart-card">
-        <h3 class="stats-chart-title"><i class="bi bi-bar-chart me-2"></i>{% trans "Holatlar soni" %}</h3>
-        <div class="stats-chart-canvas-wrap">
-          <canvas id="barChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <div class="col-lg-8">
-      <div class="stats-chart-card">
-        <h3 class="stats-chart-title"><i class="bi bi-graph-up me-2"></i>{% trans "Kunlik trend" %}</h3>
-        <div class="stats-chart-canvas-wrap stats-chart-canvas-wrap--tall">
-          <canvas id="trendChart"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4">
-      <div class="stats-chart-card h-100">
-        <h3 class="stats-chart-title"><i class="bi bi-trophy me-2"></i>{% trans "Top xodimlar" %}</h3>
-        <div class="table-responsive">
-          <table class="table table-sm table-hover stats-top-table mb-0">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>{% trans "Xodim" %}</th>
-                <th class="text-end">{% trans "Kelgan" %}</th>
-                <th class="text-end">%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for emp in stats_by_employee|slice:":8" %}
-              <tr>
-                <td class="text-muted">{{ forloop.counter }}</td>
-                <td>
-                  <span class="fw-medium">{{ emp.employee__last_name }} {{ emp.employee__first_name }}</span>
-                </td>
-                <td class="text-end text-success fw-semibold">{{ emp.present }}</td>
-                <td class="text-end">
-                  {% if emp.total > 0 %}{% widthratio emp.present emp.total 100 %}%{% else %}—{% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {% if stats_by_department %}
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="stats-chart-card">
-        <h3 class="stats-chart-title"><i class="bi bi-building me-2"></i>{% trans "Bo'limlar bo'yicha" %}</h3>
-        <div class="stats-chart-canvas-wrap">
-          <canvas id="deptChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
+  </section>
 
   {% else %}
 
-  <!-- Bo‘sh holat -->
-  <div class="stats-empty-state">
-    <div class="stats-empty-icon">
-      <i class="bi bi-inbox"></i>
-    </div>
-    <h2 class="stats-empty-title">{% trans "Tanlangan davrda ma'lumot yo'q" %}</h2>
-    <p class="stats-empty-text">
-      {% blocktrans with df=date_from|date:'d.m.Y' dt=date_to|date:'d.m.Y' %}{{ df }} — {{ dt }} oralig'ida davomat yozuvlari topilmadi.{% endblocktrans %}
-      {% if selected_employee %} {% trans "Tanlangan xodim uchun ham tekshiring." %}{% endif %}
+  <div class="stx-empty">
+    <i class="bi bi-inbox"></i>
+    <h2>{% trans "Ma'lumot yo'q" %}</h2>
+    <p>
+      {% blocktrans with df=date_from|date:'d.m.Y' dt=date_to|date:'d.m.Y' %}{{ df }} — {{ dt }} oralig'ida yozuv topilmadi.{% endblocktrans %}
     </p>
-    <ul class="stats-empty-hints">
-      <li><i class="bi bi-check2"></i> {% trans "Boshqa oy yoki kengroq davr tanlang" %}</li>
-      <li><i class="bi bi-check2"></i> {% trans "«Barcha xodimlar» filtri bilan qayta ko'ring" %}</li>
-      <li><i class="bi bi-check2"></i> <a href="{% url 'attendance_list' %}">{% trans "Davomat" %}</a> {% trans "bo'limida yozuvlar borligini tekshiring" %}</li>
-    </ul>
-    <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
-      <a href="{% url 'attendance_statistics' %}?period=month" class="btn btn-stats-primary">{% trans "Joriy oy" %}</a>
-      <a href="{% url 'attendance_list' %}" class="btn btn-outline-primary">{% trans "Davomatga o'tish" %}</a>
-    </div>
+    <a href="?period=month" class="stx-refine__go" style="display:inline-flex;align-items:center;text-decoration:none">{% trans "Joriy oy" %}</a>
   </div>
 
   {% endif %}
-
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const periodSelect = document.getElementById('id_period');
-  const dateFromInput = document.getElementById('id_date_from');
-  const dateToInput = document.getElementById('id_date_to');
-  const filterForm = document.getElementById('statsFilterForm');
-
-  function pad(n) { return String(n).padStart(2, '0'); }
-  function toISO(d) {
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  }
-
-  function applyPeriodDates(period) {
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
-    let from = new Date(today);
-    let to = new Date(today);
-
-    if (period === 'day') {
-      /* today */
-    } else if (period === 'week') {
-      const dow = today.getDay();
-      const diff = dow === 0 ? 6 : dow - 1;
-      from.setDate(today.getDate() - diff);
-      to = new Date(from);
-      to.setDate(from.getDate() + 6);
-    } else if (period === 'month') {
-      from = new Date(today.getFullYear(), today.getMonth(), 1);
-      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    } else if (period === 'quarter') {
-      const qMonth = Math.floor(today.getMonth() / 3) * 3;
-      from = new Date(today.getFullYear(), qMonth, 1);
-      to = new Date(today.getFullYear(), qMonth + 3, 0);
-    } else if (period === 'year') {
-      from = new Date(today.getFullYear(), 0, 1);
-      to = new Date(today.getFullYear(), 11, 31);
-    } else {
-      return;
-    }
-    dateFromInput.value = toISO(from);
-    dateToInput.value = toISO(to);
-  }
-
-  if (periodSelect) {
-    periodSelect.addEventListener('change', function () {
-      if (this.value !== 'custom') {
-        applyPeriodDates(this.value);
-      }
-    });
-  }
-
   const chartColors = {
-    present: '#22c55e',
-    absent: '#ef4444',
-    late: '#f59e0b',
-    vacation: '#06b6d4',
-    sick: '#f97316',
-    business: '#8b5cf6',
-    offday: '#94a3b8',
+    present: '#16a34a',
+    absent: '#dc2626',
+    late: '#d97706',
+    vacation: '#0d9488',
+    business: '#0284c7',
+    offday: '#64748b',
   };
 
   const statusKeys = {{ status_keys|default:'[]'|safe }};
@@ -315,89 +199,44 @@ document.addEventListener('DOMContentLoaded', function () {
   const statusCounts = {{ status_counts|default:'[]'|safe }};
   const trendDates = {{ trend_dates|default:'[]'|safe }};
   const trendData = {{ trend_data|default:'{}'|safe }};
-  const departmentLabels = {{ department_labels|default:'[]'|safe }};
-  const departmentPresent = {{ department_present|default:'[]'|safe }};
-  const departmentAbsent = {{ department_absent|default:'[]'|safe }};
 
   const statusLabelUz = {
     present: '{% trans "Keldi" %}',
     absent: '{% trans "Kelmagan" %}',
     late: '{% trans "Kechikdi" %}',
     vacation: "{% filter escapejs %}{% trans "Ta'til" %}{% endfilter %}",
-    sick: '{% trans "Kasal" %}',
     business: '{% trans "Ish safarida" %}',
     offday: '{% trans "Ish kuni emas" %}',
   };
 
-  function colorsForKeys(keys) {
-    return keys.map(k => chartColors[k] || '#6c757d');
-  }
+  const font = { family: "'DM Sans', system-ui, sans-serif" };
 
-  const chartDefaults = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { font: { family: 'system-ui' }, padding: 14 } },
-    },
-  };
-
-  if (statusLabels.length > 0) {
-    const pieColors = colorsForKeys(statusKeys);
-
+  if (statusLabels.length > 0 && document.getElementById('pieChart')) {
+    const colors = statusKeys.map(k => chartColors[k] || '#64748b');
     new Chart(document.getElementById('pieChart'), {
       type: 'doughnut',
       data: {
         labels: statusLabels,
         datasets: [{
           data: statusCounts,
-          backgroundColor: pieColors,
-          borderWidth: 2,
+          backgroundColor: colors,
+          borderWidth: 3,
           borderColor: '#fff',
         }],
       },
       options: {
-        ...chartDefaults,
-        cutout: '55%',
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '64%',
         plugins: {
-          legend: { position: 'bottom' },
-          tooltip: {
-            callbacks: {
-              label(ctx) {
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
-                return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
-              },
-            },
-          },
-        },
-      },
-    });
-
-    new Chart(document.getElementById('barChart'), {
-      type: 'bar',
-      data: {
-        labels: statusLabels,
-        datasets: [{
-          label: 'Soni',
-          data: statusCounts,
-          backgroundColor: pieColors.map(c => c + 'cc'),
-          borderColor: pieColors,
-          borderWidth: 1,
-          borderRadius: 8,
-        }],
-      },
-      options: {
-        ...chartDefaults,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+          legend: { position: 'bottom', labels: { font, color: '#5a6f7c', padding: 12 } },
         },
       },
     });
   }
 
   if (trendDates.length > 0 && document.getElementById('trendChart')) {
-    const statuses = ['present', 'absent', 'late', 'vacation', 'sick', 'business'];
+    const statuses = ['present', 'absent', 'late', 'vacation', 'business'];
     const datasets = statuses
       .filter(s => trendData[s] && trendData[s].some(v => v > 0))
       .map(s => ({
@@ -408,48 +247,20 @@ document.addEventListener('DOMContentLoaded', function () {
         tension: 0.35,
         fill: false,
         pointRadius: 2,
+        borderWidth: 2.5,
       }));
 
     new Chart(document.getElementById('trendChart'), {
       type: 'line',
       data: { labels: trendDates, datasets },
       options: {
-        ...chartDefaults,
+        responsive: true,
+        maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
-        scales: { y: { beginAtZero: true } },
-      },
-    });
-  }
-
-  if (departmentLabels.length > 0 && document.getElementById('deptChart')) {
-    new Chart(document.getElementById('deptChart'), {
-      type: 'bar',
-      data: {
-        labels: departmentLabels,
-        datasets: [
-          {
-            label: '{% trans "Kelgan" %}',
-            data: departmentPresent,
-            backgroundColor: chartColors.present + 'cc',
-            borderColor: chartColors.present,
-            borderWidth: 1,
-            borderRadius: 6,
-          },
-          {
-            label: '{% trans "Kelmagan" %}',
-            data: departmentAbsent,
-            backgroundColor: chartColors.absent + 'cc',
-            borderColor: chartColors.absent,
-            borderWidth: 1,
-            borderRadius: 6,
-          },
-        ],
-      },
-      options: {
-        ...chartDefaults,
+        plugins: { legend: { labels: { font, color: '#5a6f7c' } } },
         scales: {
-          x: { stacked: false },
-          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+          x: { ticks: { font, color: '#5a6f7c' }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { font, color: '#5a6f7c' }, grid: { color: '#eef2f4' } },
         },
       },
     });
