@@ -2367,3 +2367,133 @@ def json_bytes(data):
 
     return json.dumps(data).encode("utf-8")
 
+
+class AttendanceQuickStatusTests(TestCase):
+    """Tezkor holat, qolganlarga Keldi, kunlik ro'yxat."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="att_quick", password="pass")
+        self.client = Client()
+        self.client.force_login(self.user)
+        self.today = date.today()
+        self.emp_a = Employee.objects.create(
+            first_name="Ali",
+            last_name="Valiyev",
+            position="Ishchi",
+            employee_type="full",
+            is_active=True,
+        )
+        self.emp_b = Employee.objects.create(
+            first_name="Bek",
+            last_name="Karimov",
+            position="Ishchi",
+            employee_type="full",
+            is_active=True,
+        )
+        self.office = Employee.objects.create(
+            first_name="Ofis",
+            last_name="Xodim",
+            position="Ofis",
+            employee_type="office",
+            is_active=True,
+        )
+
+    def test_list_shows_pending_and_quick_controls(self):
+        resp = self.client.get(reverse("attendance_list"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "data-quick-status")
+        self.assertContains(resp, "qs-more")
+        body = resp.content.decode()
+        self.assertIn(f'data-employee-id="{self.emp_a.id}"', body)
+        self.assertIn(f'data-employee-id="{self.emp_b.id}"', body)
+        self.assertNotIn(f'data-employee-id="{self.office.id}"', body)
+        self.assertEqual(resp.context["pending_count"], 2)
+        self.assertEqual(resp.context["expected_count"], 2)
+
+    def test_pending_filter_only_unfilled(self):
+        Attendance.objects.create(
+            employee=self.emp_a, date=self.today, status="present"
+        )
+        resp = self.client.get(reverse("attendance_list"), {"status": "pending"})
+        self.assertEqual(resp.status_code, 200)
+        rows = resp.context["rows"]
+        self.assertTrue(all(r["is_pending"] for r in rows))
+        ids = {r["employee"].id for r in rows}
+        self.assertIn(self.emp_b.id, ids)
+        self.assertNotIn(self.emp_a.id, ids)
+
+    def test_quick_status_create_and_update(self):
+        url = reverse("attendance_quick_status")
+        r1 = self.client.post(url, {
+            "employee_id": self.emp_a.id,
+            "date": self.today.isoformat(),
+            "status": "late",
+        })
+        self.assertEqual(r1.status_code, 200)
+        data1 = r1.json()
+        self.assertTrue(data1["success"])
+        self.assertEqual(data1["status"], "late")
+        att = Attendance.objects.get(employee=self.emp_a, date=self.today)
+        self.assertEqual(att.status, "late")
+
+        r2 = self.client.post(url, {
+            "attendance_id": att.id,
+            "status": "vacation",
+        })
+        self.assertEqual(r2.status_code, 200)
+        self.assertTrue(r2.json()["success"])
+        att.refresh_from_db()
+        self.assertEqual(att.status, "vacation")
+        self.assertTrue((att.comment or "").strip())
+
+    def test_quick_status_rejects_invalid(self):
+        r = self.client.post(reverse("attendance_quick_status"), {
+            "employee_id": self.emp_a.id,
+            "date": self.today.isoformat(),
+            "status": "not_a_status",
+        })
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.json()["success"])
+
+    def test_mark_remaining_present(self):
+        Attendance.objects.create(
+            employee=self.emp_a, date=self.today, status="late"
+        )
+        r = self.client.post(
+            reverse("attendance_mark_remaining_present"),
+            {"date": self.today.isoformat()},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(r.status_code, 200)
+        payload = r.json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["created"], 1)
+        self.assertTrue(
+            Attendance.objects.filter(
+                employee=self.emp_b, date=self.today, status="present"
+            ).exists()
+        )
+        # emp_a o'zgarmagan
+        self.assertEqual(
+            Attendance.objects.get(employee=self.emp_a, date=self.today).status,
+            "late",
+        )
+        # office ga yozilmagan
+        self.assertFalse(
+            Attendance.objects.filter(employee=self.office, date=self.today).exists()
+        )
+
+        # ikkinchi marta — 0
+        r2 = self.client.post(
+            reverse("attendance_mark_remaining_present"),
+            {"date": self.today.isoformat()},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(r2.json()["created"], 0)
+
+    def test_floor_page_loads(self):
+        resp = self.client.get(reverse("attendance_floor"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "data-quick-status")
+

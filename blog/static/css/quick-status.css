@@ -1,4 +1,4 @@
-/* Tezkor status tugmalari */
+/* Tezkor status tugmalari + Yana dropdown */
 
 .qs {
   display: inline-flex;
@@ -9,6 +9,7 @@
   background: #f1f5f9;
   border: 1px solid rgba(15, 36, 48, 0.08);
   transition: box-shadow 0.25s ease, background 0.25s ease;
+  position: relative;
 }
 
 .qs.is-flash {
@@ -35,6 +36,7 @@
   line-height: 1;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  white-space: nowrap;
 }
 
 .qs-btn:hover {
@@ -65,6 +67,13 @@
   color: #fff;
   box-shadow: none;
 }
+.qs-btn[data-status="vacation"].is-active,
+.qs-btn[data-status="business"].is-active,
+.qs-btn[data-status="offday"].is-active {
+  background: #334155;
+  color: #fff;
+  box-shadow: none;
+}
 
 .qs--compact .qs-btn {
   padding: 0.35rem 0.45rem;
@@ -72,14 +81,106 @@
   min-height: 1.9rem;
 }
 
+/* —— Yana / boshqa holatlar —— */
+.qs-more {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.qs-more__toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.35rem 0.5rem;
+  border-radius: 9px;
+  min-height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  cursor: pointer;
+}
+
+.qs-more__toggle:hover {
+  background: #fff;
+  color: #0f2430;
+}
+
+.qs-more.is-open .qs-more__toggle,
+.qs-more.is-active-more .qs-more__toggle {
+  background: #334155;
+  color: #fff;
+}
+
+.qs-more__toggle i {
+  font-size: 0.65rem;
+  transition: transform 0.15s ease;
+}
+
+.qs-more.is-open .qs-more__toggle i {
+  transform: rotate(180deg);
+}
+
+.qs-more__menu {
+  position: absolute;
+  right: 0;
+  z-index: 80;
+  min-width: 10.5rem;
+  padding: 0.35rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 36, 48, 0.1);
+  box-shadow: 0 12px 28px rgba(15, 36, 48, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  /* Jadval pastida kesilmasin — yuqoriga ochiladi */
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+}
+
+.qs-more__menu[hidden] {
+  display: none !important;
+}
+
+.qs-more__menu.is-drop-down {
+  top: calc(100% + 0.35rem);
+  bottom: auto;
+}
+
+.qs-btn--more {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  min-height: 2.25rem;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.65rem;
+}
+
 @media (max-width: 767.98px) {
   .qs {
     width: 100%;
+    flex-wrap: wrap;
     justify-content: stretch;
   }
-  .qs-btn {
-    flex: 1;
+  .qs-btn:not(.qs-btn--more) {
+    flex: 1 1 auto;
     min-height: 2.5rem;
     font-size: 0.78rem;
+  }
+  .qs-more {
+    flex: 1 1 100%;
+  }
+  .qs-more__toggle {
+    width: 100%;
+    justify-content: center;
+    min-height: 2.4rem;
+  }
+  .qs-more__menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
   }
 }

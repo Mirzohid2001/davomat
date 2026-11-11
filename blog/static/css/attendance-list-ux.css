@@ -32,6 +32,64 @@
   color: #0f2430;
 }
 
+.attlist-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: #5a6f7c;
+}
+
+.attlist-banner {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.attlist-table tbody tr.is-pending {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), transparent 55%);
+}
+
+.attlist-pending-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b45309;
+  background: #ffedd5;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.attlist-pill--pending.is-active {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.attlist-mcard.is-pending {
+  border-color: rgba(180, 83, 9, 0.35);
+  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.12);
+}
+
+.attlist-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #5a6f7c;
+}
+
+.attlist-empty i {
+  font-size: 1.75rem;
+  color: #0d9488;
+  opacity: 0.7;
+}
+
 .attlist-actions {
   display: flex;
   flex-wrap: wrap;
@@ -169,13 +227,23 @@
   background: #fff;
   border: 1px solid rgba(15, 36, 48, 0.09);
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible; /* qs-more dropdown kesilmasin */
   box-shadow: 0 4px 18px rgba(15, 36, 48, 0.045);
 }
 
 .attlist-table {
   width: 100%;
   border-collapse: collapse;
+  overflow: visible;
+}
+
+.attlist-table tbody tr {
+  position: relative;
+  z-index: 1;
+}
+
+.attlist-table tbody tr:has(.qs-more.is-open) {
+  z-index: 20;
 }
 
 .attlist-table thead th {

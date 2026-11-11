@@ -133,6 +133,22 @@
   margin-bottom: 0.75rem;
 }
 
+.floor-markall {
+  margin-bottom: 0.75rem;
+}
+
+.floor-markall button {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: #0f766e;
+  color: #fff;
+  min-height: 3rem;
+}
+
 .floor-list {
   display: flex;
   flex-direction: column;

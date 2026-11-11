@@ -43,6 +43,17 @@
   </div>
   {% endif %}
 
+  {% if pending_count %}
+  <form method="post" action="{% url 'attendance_mark_remaining_present' %}" class="floor-markall">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+    <input type="hidden" name="next" value="{% url 'attendance_floor' %}?date={{ day|date:'Y-m-d' }}">
+    <button type="submit" onclick="return confirm('{% trans "Qolgan barchaga Keldi qo‘yilsinmi?" %}');">
+      <i class="bi bi-check2-all"></i> {% trans "Qolganlarga Keldi" %} ({{ pending_count }})
+    </button>
+  </form>
+  {% endif %}
+
   <div class="floor-list">
     {% for row in rows %}
     <article class="floor-card {% if row.status %}is-done{% endif %}" data-floor-row data-status="{{ row.status }}">

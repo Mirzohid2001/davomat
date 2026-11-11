@@ -946,46 +946,72 @@ def bulk_attendance_create(request):
 
 @login_required
 def attendance_list(request):
-    day = request.GET.get('date')
-    employees = Employee.objects.filter(is_active=True)
-    filters = {}
-    if day:
-        try:
-            day = date.fromisoformat(day)
-            filters['date'] = day
-        except Exception:
-            day = date.today()
-            filters['date'] = day
-    else:
+    """Kunlik ish stoli: kiritilgan + kiritilmaganlar, tezkor status."""
+    day_raw = request.GET.get('date')
+    try:
+        day = date.fromisoformat(day_raw) if day_raw else date.today()
+    except Exception:
         day = date.today()
-        filters['date'] = day
-    selected_status = request.GET.get('status') or ''
-    if selected_status:
-        filters['status'] = selected_status
-    if request.GET.get('department'):
-        filters['employee__department'] = request.GET['department']
-    if request.GET.get('position'):
-        filters['employee__position'] = request.GET['position']
+
+    selected_status = (request.GET.get('status') or '').strip()
     q = (request.GET.get('q') or '').strip()
-    attendance = Attendance.objects.filter(**filters).select_related('employee')
+
+    need_base, restricted_day = get_bulk_attendance_employees(day)
+    need_base = need_base.exclude(employee_type='office')
+    all_need_ids = list(need_base.values_list('id', flat=True))
+    need_qs = need_base.order_by('last_name', 'first_name')
     if q:
-        attendance = attendance.filter(
-            Q(employee__first_name__icontains=q)
-            | Q(employee__last_name__icontains=q)
-            | Q(employee__department__icontains=q)
-            | Q(employee__position__icontains=q)
+        need_qs = need_qs.filter(
+            Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(department__icontains=q)
+            | Q(position__icontains=q)
         )
-    attendance = attendance.order_by('employee__last_name', 'employee__first_name')
+
+    att_map = {
+        a.employee_id: a
+        for a in Attendance.objects.filter(date=day, employee_id__in=all_need_ids).select_related('employee')
+    }
+
+    rows = []
+    for emp in need_qs:
+        att = att_map.get(emp.id)
+        status = att.status if att else ''
+        if selected_status == 'pending':
+            if status:
+                continue
+        elif selected_status:
+            if status != selected_status:
+                continue
+        rows.append({
+            'employee': emp,
+            'attendance': att,
+            'attendance_id': att.pk if att else '',
+            'status': status,
+            'comment': (att.comment if att else '') or '',
+            'status_label': att.get_status_display() if att else '',
+            'is_pending': not status,
+        })
+
+    # Pendinglar yuqorida — tezroq to'ldirish
+    rows.sort(key=lambda r: (0 if r['is_pending'] else 1, r['employee'].last_name, r['employee'].first_name))
 
     day_status_counts = {
         row['status']: row['count']
         for row in (
-            Attendance.objects.filter(date=day)
+            Attendance.objects.filter(date=day, employee_id__in=all_need_ids)
             .values('status')
             .annotate(count=Count('id'))
         )
     }
+    expected_count = len(all_need_ids)
+    filled_for_need = sum(day_status_counts.values())
+    pending_all = max(expected_count - filled_for_need, 0)
+    filled_total = filled_for_need
+
     status_pills = [
+        {'value': 'pending', 'label': _('Kiritilmagan'), 'count': pending_all},
+    ] + [
         {
             'value': value,
             'label': label,
@@ -998,27 +1024,90 @@ def attendance_list(request):
         ('absent', _('Kelmagan')),
         ('late', _('Kechikdi')),
     ]
+    more_statuses = [
+        (value, label)
+        for value, label in Attendance.STATUS_CHOICES
+        if value not in ('present', 'absent', 'late')
+    ]
+
     return render(request, 'attendance/attendance_list.html', {
-        'attendance': attendance,
+        'rows': rows,
         'today': day,
         'prev_date': day - timedelta(days=1),
         'next_date': day + timedelta(days=1),
         'is_today': day == date.today(),
-        'employees': employees,
         'status_choices': Attendance.STATUS_CHOICES,
         'status_pills': status_pills,
         'selected_status': selected_status,
-        'day_total': sum(day_status_counts.values()),
+        'day_total': filled_total,
+        'pending_count': pending_all,
+        'expected_count': expected_count,
+        'filled_count': max(expected_count - pending_all, 0),
         'q': q,
         'quick_statuses': quick_statuses,
+        'more_statuses': more_statuses,
+        'is_restricted_day': restricted_day,
     })
+
+
+@login_required
+@require_POST
+def attendance_mark_remaining_present(request):
+    """Qolgan (kiritilmagan) xodimlarga bir bosishda «Keldi»."""
+    day_raw = (request.POST.get('date') or '').strip()
+    try:
+        day = date.fromisoformat(day_raw) if day_raw else date.today()
+    except ValueError:
+        day = date.today()
+
+    need_qs, _restricted = get_bulk_attendance_employees(day)
+    need_qs = need_qs.exclude(employee_type='office')
+    existing_ids = set(
+        Attendance.objects.filter(date=day).values_list('employee_id', flat=True)
+    )
+    to_create = [emp for emp in need_qs if emp.id not in existing_ids]
+    created = Attendance.objects.bulk_create([
+        Attendance(employee=emp, date=day, status='present', comment='')
+        for emp in to_create
+    ])
+    if created:
+        # Faqat yangi yozuvlar — to'liq oy mass sync og'ir
+        for emp in to_create:
+            sync_monthly_stats_for_date(emp, day)
+        log_activity(
+            user=request.user,
+            action='attendance_create',
+            summary=_('Qolgan %(n)s ta xodimga «Keldi» qo‘yildi (%(date)s)') % {
+                'n': len(created),
+                'date': day.strftime('%d.%m.%Y'),
+            },
+            entity_type='attendance_bulk',
+            detail=f'mark_remaining_present:{len(created)}',
+        )
+
+    wants_json = (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or 'application/json' in (request.headers.get('Accept') or '')
+    )
+    if wants_json:
+        return JsonResponse({
+            'success': True,
+            'created': len(created),
+            'message': _('%(n)s ta davomat qo‘yildi') % {'n': len(created)},
+        })
+    if created:
+        messages.success(request, _('%(n)s ta xodimga «Keldi» qo‘yildi.') % {'n': len(created)})
+    else:
+        messages.info(request, _('Kiritilmagan xodim qolmadi.'))
+    next_url = request.POST.get('next') or reverse('attendance_list') + f'?date={day.isoformat()}'
+    return redirect(next_url)
 
 
 @login_required
 @require_POST
 def attendance_quick_status(request):
     """Ro'yxat / zal rejimida bitta bosishda status o'zgartirish (modal siz)."""
-    allowed = {'present', 'absent', 'late'}
+    allowed = {value for value, _label in Attendance.STATUS_CHOICES}
     status = (request.POST.get('status') or '').strip()
     att_id = request.POST.get('attendance_id')
     employee_id = request.POST.get('employee_id')
@@ -1064,7 +1153,7 @@ def attendance_quick_status(request):
 
     def _quick_comment(existing: str, new_status: str) -> str:
         text = (existing or '').strip()
-        if new_status == 'absent' and not text:
+        if new_status in ('absent', 'vacation') and not text:
             return str(_('Tezkor belgilash'))
         return text
 

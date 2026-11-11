@@ -1,6 +1,6 @@
 {% extends 'attendance/base.html' %}
 {% load i18n static %}
-{% block title %}{% trans "Davomatlar" %}{% endblock %}
+{% block title %}{% trans "Bugungi davomat" %}{% endblock %}
 
 {% block extra_head %}
 <link href="{% static 'css/attendance-list-ux.css' %}" rel="stylesheet">
@@ -13,17 +13,29 @@
   <header class="attlist-head">
     <div>
       <p class="attlist-kicker">{% trans "Davomat" %}</p>
-      <h1>{% trans "Kunlik ro'yxat" %}</h1>
+      <h1>{% if is_today %}{% trans "Bugungi davomat" %}{% else %}{% trans "Kunlik davomat" %}{% endif %}</h1>
+      <p class="attlist-sub">
+        {{ filled_count }}/{{ expected_count }} {% trans "kiritilgan" %}
+        {% if pending_count %} · <strong class="text-warning">{{ pending_count }} {% trans "qoldi" %}</strong>{% endif %}
+      </p>
     </div>
     <div class="attlist-actions">
-      <a href="{% url 'attendance_floor' %}?date={{ today|date:'Y-m-d' }}" class="btn btn-outline-success">
+      {% if pending_count %}
+      <form method="post" action="{% url 'attendance_mark_remaining_present' %}" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
+        <input type="hidden" name="next" value="{% url 'attendance_list' %}?date={{ today|date:'Y-m-d' }}">
+        <button type="submit" class="btn btn-success"
+                onclick="return confirm('{% trans "Qolgan barcha xodimlarga Keldi qo‘yilsinmi?" %}');">
+          <i class="bi bi-check2-all me-1"></i>{% trans "Qolganlarga Keldi" %}
+        </button>
+      </form>
+      {% endif %}
+      <a href="{% url 'attendance_floor' %}?date={{ today|date:'Y-m-d' }}" class="btn btn-outline-success d-md-none">
         <i class="bi bi-phone me-1"></i>{% trans "Zal" %}
       </a>
-      <a href="{% url 'bulk_attendance_create' %}" class="btn btn-primary">
-        <i class="bi bi-table me-1"></i>{% trans "Jadvalda" %}
-      </a>
-      <a href="{% url 'select_employee_attendance' %}" class="btn btn-outline-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% trans "Yangi" %}
+      <a href="{% url 'bulk_attendance_create' %}?date={{ today|date:'Y-m-d' }}" class="btn btn-outline-secondary">
+        <i class="bi bi-table me-1"></i>{% trans "Jadval" %}
       </a>
     </div>
   </header>
@@ -48,11 +60,18 @@
     </a>
   </div>
 
+  {% if is_restricted_day %}
+  <div class="attlist-banner">
+    <i class="bi bi-moon-stars"></i>
+    <span>{% trans "Yopiq kun — faqat nalivshiklar" %}</span>
+  </div>
+  {% endif %}
+
   <div class="attlist-filters">
     <div class="attlist-pills" role="tablist" aria-label="{% trans 'Holat filtri' %}">
       <a class="attlist-pill {% if not selected_status %}is-active{% endif %}"
          href="?date={{ today|date:'Y-m-d' }}{% if q %}&q={{ q|urlencode }}{% endif %}">
-        {% trans "Hammasi" %} <em>{{ day_total }}</em>
+        {% trans "Hammasi" %} <em>{{ expected_count }}</em>
       </a>
       {% for pill in status_pills %}
       <a class="attlist-pill attlist-pill--{{ pill.value }} {% if selected_status == pill.value %}is-active{% endif %}"
@@ -76,52 +95,41 @@
           <th></th>
           <th>{% trans "Xodim" %}</th>
           <th>{% trans "Bo'lim / lavozim" %}</th>
-          <th>{% trans "Tezkor" %}</th>
-          <th>{% trans "Izoh" %}</th>
+          <th>{% trans "Holat — bitta bosish" %}</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        {% for att in attendance %}
-        <tr>
+        {% for row in rows %}
+        <tr class="{% if row.is_pending %}is-pending{% endif %}" data-floor-row data-status="{{ row.status }}">
           <td>
-            <span class="attlist-avatar">{{ att.employee.last_name|slice:":1" }}{{ att.employee.first_name|slice:":1" }}</span>
+            <span class="attlist-avatar">{{ row.employee.last_name|slice:":1" }}{{ row.employee.first_name|slice:":1" }}</span>
           </td>
           <td>
-            <strong class="attlist-name">{{ att.employee.last_name }} {{ att.employee.first_name }}</strong>
+            <strong class="attlist-name">{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
+            {% if row.is_pending %}<span class="attlist-pending-tag">{% trans "kutilmoqda" %}</span>{% endif %}
           </td>
           <td class="attlist-meta">
-            {% if att.employee.department %}<span>{{ att.employee.department }}</span>{% endif %}
-            {% if att.employee.position %}<span>{{ att.employee.position }}</span>{% endif %}
-            {% if not att.employee.department and not att.employee.position %}—{% endif %}
+            {% if row.employee.department %}<span>{{ row.employee.department }}</span>{% endif %}
+            {% if row.employee.position %}<span>{{ row.employee.position }}</span>{% endif %}
+            {% if not row.employee.department and not row.employee.position %}—{% endif %}
           </td>
           <td>
-            <div class="qs qs--compact"
-                 data-quick-status
-                 data-url="{% url 'attendance_quick_status' %}"
-                 data-attendance-id="{{ att.id }}"
-                 data-employee-id="{{ att.employee.id }}"
-                 data-date="{{ today|date:'Y-m-d' }}"
-                 data-status="{{ att.status }}">
-              {% for value, label in quick_statuses %}
-              <button type="button" class="qs-btn {% if att.status == value %}is-active{% endif %}" data-status="{{ value }}">{{ label }}</button>
-              {% endfor %}
-            </div>
+            {% include 'attendance/partials/quick_status.html' with row=row day=today compact=True %}
           </td>
-          <td class="attlist-comment">{{ att.comment|default:"—" }}</td>
           <td class="attlist-row-actions">
-            <a href="{% url 'attendance_update' att.id %}" title="{% trans 'Tahrirlash' %}"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'attendance_delete' att.id %}" class="is-danger" title="{% trans "O'chirish" %}"><i class="bi bi-trash"></i></a>
+            {% if row.attendance_id %}
+            <a href="{% url 'attendance_update' row.attendance_id %}" title="{% trans 'Izoh / batafsil' %}"><i class="bi bi-chat-left-text"></i></a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" class="border-0">
-            {% url 'select_employee_attendance' as sel_url %}
-            {% trans "Davomat topilmadi" as empty_title %}
-            {% trans "Boshqa sana yoki filtrni tanlang." as empty_text %}
-            {% trans "Yangi davomat" as empty_action %}
-            {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text action_url=sel_url action_label=empty_action %}
+          <td colspan="5" class="border-0">
+            <div class="attlist-empty">
+              <i class="bi bi-check2-circle"></i>
+              <p>{% if selected_status == 'pending' %}{% trans "Hammasi kiritilgan." %}{% else %}{% trans "Xodim topilmadi." %}{% endif %}</p>
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -130,39 +138,27 @@
   </div>
 
   <div class="app-mobile-cards attlist-mobile">
-    {% for att in attendance %}
-    <div class="attlist-mcard">
+    {% for row in rows %}
+    <div class="attlist-mcard {% if row.is_pending %}is-pending{% endif %}" data-floor-row data-status="{{ row.status }}">
       <div class="attlist-mcard__top">
-        <span class="attlist-avatar">{{ att.employee.last_name|slice:":1" }}{{ att.employee.first_name|slice:":1" }}</span>
+        <span class="attlist-avatar">{{ row.employee.last_name|slice:":1" }}{{ row.employee.first_name|slice:":1" }}</span>
         <div>
-          <strong>{{ att.employee.last_name }} {{ att.employee.first_name }}</strong>
-          <small>{% if att.employee.position %}{{ att.employee.position }}{% elif att.employee.department %}{{ att.employee.department }}{% endif %}</small>
+          <strong>{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
+          <small>{% if row.employee.position %}{{ row.employee.position }}{% elif row.employee.department %}{{ row.employee.department }}{% endif %}</small>
         </div>
-        <span class="attlist-status attlist-status--{{ att.status }}" data-qs-label>{{ att.get_status_display }}</span>
+        {% if row.is_pending %}
+        <span class="attlist-pending-tag">{% trans "kutilmoqda" %}</span>
+        <span class="attlist-status attlist-status--present" data-qs-label hidden></span>
+        {% else %}
+        <span class="attlist-status attlist-status--{{ row.status }}" data-qs-label>{{ row.status_label }}</span>
+        {% endif %}
       </div>
-      {% if att.comment %}<p class="attlist-mcard__note">{{ att.comment }}</p>{% endif %}
-      <div class="qs"
-           data-quick-status
-           data-url="{% url 'attendance_quick_status' %}"
-           data-attendance-id="{{ att.id }}"
-           data-employee-id="{{ att.employee.id }}"
-           data-date="{{ today|date:'Y-m-d' }}"
-           data-status="{{ att.status }}">
-        {% for value, label in quick_statuses %}
-        <button type="button" class="qs-btn {% if att.status == value %}is-active{% endif %}" data-status="{{ value }}">{{ label }}</button>
-        {% endfor %}
-      </div>
-      <div class="attlist-mcard__actions mt-2">
-        <a href="{% url 'attendance_update' att.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> {% trans "Batafsil" %}</a>
-        <a href="{% url 'attendance_delete' att.id %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
-      </div>
+      {% include 'attendance/partials/quick_status.html' with row=row day=today compact=False %}
     </div>
     {% empty %}
-    {% url 'select_employee_attendance' as sel_url %}
-    {% trans "Davomat topilmadi" as empty_title %}
-    {% trans "Boshqa sana yoki filtrni tanlang." as empty_text %}
-    {% trans "Yangi davomat" as empty_action %}
-    {% include 'attendance/partials/empty_state.html' with title=empty_title text=empty_text action_url=sel_url action_label=empty_action %}
+    <div class="attlist-empty">
+      <p>{% if selected_status == 'pending' %}{% trans "Hammasi kiritilgan." %}{% else %}{% trans "Xodim topilmadi." %}{% endif %}</p>
+    </div>
     {% endfor %}
   </div>
 </div>
@@ -170,4 +166,18 @@
 
 {% block extra_scripts %}
 <script src="{% static 'js/quick-status.js' %}" defer></script>
+<script>
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.qs-btn');
+    if (!btn) return;
+    setTimeout(function () {
+      var root = btn.closest('[data-quick-status]');
+      var row = btn.closest('[data-floor-row]');
+      if (row && root && root.dataset.status) {
+        row.classList.toggle('is-pending', !root.dataset.status);
+        row.dataset.status = root.dataset.status;
+      }
+    }, 500);
+  });
+</script>
 {% endblock %}

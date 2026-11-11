@@ -5,6 +5,7 @@
 {% block extra_head %}
 <link href="{% static 'css/dashboard-ux.css' %}" rel="stylesheet">
 <link href="{% static 'css/ops-insights.css' %}" rel="stylesheet">
+<link href="{% static 'css/quick-status.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -39,25 +40,18 @@
   {% endif %}
 
   <nav class="ops-cta" aria-label="{% trans 'Asosiy amallar' %}">
-    <a href="{% url 'attendance_floor' %}" class="ops-cta__btn ops-cta__btn--main">
-      <i class="bi bi-phone"></i>
-      <span>
-        <strong>{% trans "Zal rejimi" %}</strong>
-        <small>{% trans "Telefon bilan tezkor davomat" %}</small>
-      </span>
-    </a>
-    <a href="{% url 'bulk_attendance_create' %}" class="ops-cta__btn">
+    <a href="{% url 'attendance_list' %}" class="ops-cta__btn ops-cta__btn--main">
       <i class="bi bi-lightning-charge-fill"></i>
       <span>
-        <strong>{% trans "Jadvalda kiritish" %}</strong>
-        <small>{% trans "Ko'p xodim birga" %}</small>
+        <strong>{% trans "Bugungi davomat" %}</strong>
+        <small>{% if not_filled_count %}{{ not_filled_count }} {% trans "ta qoldi — bitta bosish" %}{% else %}{% trans "Hammasi tayyor" %}{% endif %}</small>
       </span>
     </a>
-    <a href="{% url 'attendance_list' %}" class="ops-cta__btn">
-      <i class="bi bi-list-check"></i>
+    <a href="{% url 'attendance_floor' %}" class="ops-cta__btn">
+      <i class="bi bi-phone"></i>
       <span>
-        <strong>{% trans "Bugungi ro'yxat" %}</strong>
-        <small>{{ attendance_today_count }} {% trans "yozuv" %}</small>
+        <strong>{% trans "Zal (telefon)" %}</strong>
+        <small>{% trans "Katta tugmalar" %}</small>
       </span>
     </a>
     <a href="{% url 'salary_statistics' %}" class="ops-cta__btn">
@@ -150,9 +144,10 @@
       </div>
 
       {% if not_filled %}
+      {% csrf_token %}
       <ul class="ops-queue__list">
         {% for emp in not_filled %}
-        <li>
+        <li class="ops-queue__item" data-floor-row data-status="">
           <div class="ops-person">
             <span class="ops-avatar">{{ emp.last_name|slice:":1" }}{{ emp.first_name|slice:":1" }}</span>
             <div>
@@ -160,15 +155,33 @@
               <small>{% if emp.position %}{{ emp.position }}{% else %}{{ emp.get_employee_type_display }}{% endif %}</small>
             </div>
           </div>
-          <a class="ops-queue__go" href="{% url 'individual_attendance_create' emp.id %}">
-            {% trans "Kiritish" %} <i class="bi bi-arrow-right"></i>
-          </a>
+          <div class="qs qs--compact"
+               data-quick-status
+               data-url="{% url 'attendance_quick_status' %}"
+               data-employee-id="{{ emp.id }}"
+               data-date="{{ today_date|date:'Y-m-d' }}"
+               data-status="">
+            <button type="button" class="qs-btn" data-status="present">{% trans "Keldi" %}</button>
+            <button type="button" class="qs-btn" data-status="absent">{% trans "Yo‘q" %}</button>
+            <button type="button" class="qs-btn" data-status="late">{% trans "Kech" %}</button>
+          </div>
         </li>
         {% endfor %}
       </ul>
-      <a class="ops-queue__bulk" href="{% url 'bulk_attendance_create' %}">
-        <i class="bi bi-table"></i> {% trans "Hammasini jadvalda to'ldirish" %}
-      </a>
+      <div class="ops-queue__actions">
+        <form method="post" action="{% url 'attendance_mark_remaining_present' %}">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ today_date|date:'Y-m-d' }}">
+          <input type="hidden" name="next" value="{% url 'dashboard' %}">
+          <button type="submit" class="ops-queue__bulk ops-queue__bulk--primary"
+                  onclick="return confirm('{% trans "Qolgan barchaga Keldi qo‘yilsinmi?" %}');">
+            <i class="bi bi-check2-all"></i> {% trans "Qolganlarga Keldi" %}
+          </button>
+        </form>
+        <a class="ops-queue__bulk" href="{% url 'attendance_list' %}?status=pending">
+          <i class="bi bi-list-check"></i> {% trans "To‘liq ro‘yxat" %}
+        </a>
+      </div>
       {% else %}
       <div class="ops-queue__done">
         <i class="bi bi-check2-circle"></i>
@@ -276,6 +289,7 @@
   {% endif %}
 
   <nav class="ops-more">
+    <a href="{% url 'attendance_list' %}"><i class="bi bi-journal-check"></i>{% trans "Davomat" %}</a>
     <a href="{% url 'attendance_floor' %}"><i class="bi bi-phone"></i>{% trans "Zal" %}</a>
     <a href="{% url 'activity_feed' %}"><i class="bi bi-clock-history"></i>{% trans "Audit" %}</a>
     <a href="{% url 'attendance_statistics' %}"><i class="bi bi-bar-chart"></i>{% trans "Statistika" %}</a>
@@ -286,4 +300,22 @@
     <a href="{% url 'salary_payment_history' %}"><i class="bi bi-receipt"></i>{% trans "To'lovlar" %}</a>
   </nav>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/quick-status.js' %}" defer></script>
+<script>
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.qs-btn');
+    if (!btn) return;
+    var item = btn.closest('.ops-queue__item');
+    if (!item) return;
+    setTimeout(function () {
+      if (item.dataset.status) {
+        item.classList.add('is-done');
+        setTimeout(function () { item.style.display = 'none'; }, 280);
+      }
+    }, 500);
+  });
+</script>
 {% endblock %}

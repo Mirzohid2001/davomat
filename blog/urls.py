@@ -14,6 +14,7 @@ urlpatterns = [
     path('attendance/', views.attendance_list, name='attendance_list'),
     path('attendance/floor/', views.attendance_floor, name='attendance_floor'),
     path('attendance/quick-status/', views.attendance_quick_status, name='attendance_quick_status'),
+    path('attendance/mark-remaining-present/', views.attendance_mark_remaining_present, name='attendance_mark_remaining_present'),
     path('attendance/bulk/', views.bulk_attendance_create, name='bulk_attendance_create'),
     path('attendance/<int:pk>/update/', views.attendance_update, name='attendance_update'),
     path('attendance/<int:pk>/delete/', views.attendance_delete, name='attendance_delete'),

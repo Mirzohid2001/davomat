@@ -1,0 +1,30 @@
+{% load i18n %}
+{# Tezkor holat: asosiy 3 + qolganlari dropdown #}
+<div class="qs {% if compact %}qs--compact{% endif %}"
+     data-quick-status
+     data-url="{% url 'attendance_quick_status' %}"
+     data-attendance-id="{{ row.attendance_id }}"
+     data-employee-id="{{ row.employee.id }}"
+     data-date="{{ day|date:'Y-m-d' }}"
+     data-status="{{ row.status }}">
+  {% for value, label in quick_statuses %}
+  <button type="button" class="qs-btn {% if row.status == value %}is-active{% endif %}" data-status="{{ value }}">{{ label }}</button>
+  {% endfor %}
+  <div class="qs-more {% if row.status == 'vacation' or row.status == 'business' or row.status == 'offday' %}is-active-more{% endif %}">
+    <button type="button" class="qs-more__toggle" aria-expanded="false" aria-haspopup="true" title="{% trans 'Boshqa holat' %}">
+      <span class="qs-more__label" data-default-yana="{% trans 'Yana' %}">
+        {% if row.status == 'vacation' or row.status == 'business' or row.status == 'offday' %}
+          {{ row.status_label }}
+        {% else %}
+          {% trans "Yana" %}
+        {% endif %}
+      </span>
+      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+    </button>
+    <div class="qs-more__menu" hidden role="menu">
+      {% for value, label in more_statuses %}
+      <button type="button" class="qs-btn qs-btn--more {% if row.status == value %}is-active{% endif %}" data-status="{{ value }}" role="menuitem">{{ label }}</button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
