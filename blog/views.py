@@ -1406,7 +1406,6 @@ def individual_attendance_create(request, employee_id=None):
                 _("%(date)s — %(reason)s. Bu kunda faqat nalivshiklar davomat kiritishi mumkin.") % {"date": date_val.strftime('%d.%m.%Y'), "reason": reason}
             )
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': msg})
             messages.error(request, msg)
             return redirect('dashboard')
@@ -1414,7 +1413,6 @@ def individual_attendance_create(request, employee_id=None):
         # Validatsiya
         if not status:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': 'Davomat holatini tanlang!'})
             messages.error(request, _("Davomat holatini tanlang!"))
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': 'present'})
@@ -1428,7 +1426,6 @@ def individual_attendance_create(request, employee_id=None):
         # Agar status absent yoki vacation bo'lsa, izoh majburiy
         if status in ['absent', 'vacation'] and not comment.strip():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': 'Izoh/sabab kiritish majburiy!'})
             messages.error(request, _("Izoh/sabab kiritish majburiy!"))
             form = AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'status': status})
@@ -1498,7 +1495,6 @@ def individual_attendance_create(request, employee_id=None):
             
         except Exception as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': f'Xatolik yuz berdi: {str(e)}'})
             messages.error(request, _("Xatolik yuz berdi: %(error)s") % {"error": str(e)})
     
@@ -2770,7 +2766,6 @@ def edit_salary_stat(request, stat_id):
 
         if payment_error:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({'success': False, 'message': payment_error}, status=400)
             messages.error(request, payment_error)
             return redirect(request.GET.get('next', '/statistics/salary/'))
@@ -2782,7 +2777,6 @@ def edit_salary_stat(request, stat_id):
             stat.refresh_from_db()
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                from django.http import JsonResponse
                 return JsonResponse({
                     'success': True,
                     'message': "Premiya bekor qilindi.",
@@ -2862,7 +2856,6 @@ def edit_salary_stat(request, stat_id):
 @login_required
 def advance_loan_create(request, employee_id):
     """Xodim uchun yangi oldindan qarz yaratish."""
-    from django.http import JsonResponse
 
     employee = get_object_or_404(Employee, pk=employee_id)
     next_url = request.POST.get('next') or request.GET.get('next') or reverse('salary_statistics')
@@ -2909,7 +2902,6 @@ def advance_loan_create(request, employee_id):
 @login_required
 def advance_loan_close(request, loan_id):
     """Faol qarzni yopish."""
-    from django.http import JsonResponse
 
     loan = get_object_or_404(EmployeeAdvanceLoan, pk=loan_id)
     next_url = request.POST.get('next') or request.GET.get('next') or reverse('salary_statistics')
@@ -3289,7 +3281,6 @@ def employee_attendance_history(request, employee_id):
 @login_required
 def get_attendance_data_ajax(request, employee_id):
     """AJAX orqali davomat ma'lumotlarini olish"""
-    from django.http import JsonResponse
     
     employee = get_object_or_404(Employee, id=employee_id, is_active=True)
     date_str = request.GET.get('date')
