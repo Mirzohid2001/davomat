@@ -67,7 +67,7 @@
                             <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
                         </div>
                         <h3 class="display-4 fw-bold text-danger">{{ stats.absent }}</h3>
-                        <p class="fs-5 text-muted">{% trans "Kelmadi" %}</p>
+                        <p class="fs-5 text-muted">{% trans "Kelmagan" %}</p>
                         <div class="progress">
                             <div class="progress-bar bg-danger" style="width: {{ stats.absent_percentage }}%"></div>
                         </div>
@@ -242,7 +242,7 @@
                                                     {% elif day_data.status == 'dayoff' or day_data.status == 'offday' %}bg-secondary
                                                     {% else %}bg-secondary{% endif %}">
                                                     {% if day_data.status == 'present' %}{% trans "Keldi" %}
-                                                    {% elif day_data.status == 'absent' %}{% trans "Kelmadi" %}
+                                                    {% elif day_data.status == 'absent' %}{% trans "Kelmagan" %}
                                                     {% elif day_data.status == 'late' %}{% trans "Kechikdi" %}
                                                     {% elif day_data.status == 'vacation' %}{% trans "Ta'til" %}
                                                     {% elif day_data.status == 'labor_leave' %}{% trans "Mehnat ta'tili" %}

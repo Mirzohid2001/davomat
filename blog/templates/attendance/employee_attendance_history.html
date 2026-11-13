@@ -121,7 +121,7 @@
                                                 <select class="form-select" id="statusFilter">
                                                     <option value="">{% trans "Barcha holatlar" %}</option>
                                                     <option value="present">{% trans "Keldi" %}</option>
-                                                    <option value="absent">{% trans "Kelmadi" %}</option>
+                                                    <option value="absent">{% trans "Kelmagan" %}</option>
                                                     <option value="late">{% trans "Kechikdi" %}</option>
                                                     <option value="vacation">{% trans "Ta'til" %}</option>
                                                     <option value="labor_leave">{% trans "Mehnat ta'tili" %}</option>
@@ -172,7 +172,7 @@
       <div class="att-hist__stat-icon"><i class="bi bi-x-lg"></i></div>
       <div>
         <p class="att-hist__stat-value">{{ stats.absent }}</p>
-        <p class="att-hist__stat-label">{% trans "Kelmadi" %}</p>
+        <p class="att-hist__stat-label">{% trans "Kelmagan" %}</p>
       </div>
     </div>
     <div class="att-hist__stat att-hist__stat--late">
@@ -254,7 +254,7 @@
     </div>
     <div class="att-hist__legend">
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--present"></span>{% trans "Keldi" %}</span>
-      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--absent"></span>{% trans "Kelmadi" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--absent"></span>{% trans "Kelmagan" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--late"></span>{% trans "Kechikdi" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--vacation"></span>{% trans "Ta'til" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--labor-leave"></span>{% trans "Mehnat ta'tili" %}</span>

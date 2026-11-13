@@ -43,7 +43,9 @@
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}premium-ui d-flex flex-column min-vh-100{% endblock %}">
+<body class="{% block body_class %}premium-ui d-flex flex-column min-vh-100{% endblock %}"
+      data-i18n-error="{% trans 'Xato' %}"
+      data-i18n-network-error="{% trans 'Tarmoq xatosi' %}">
   {% block show_nav %}
   <nav class="navbar navbar-expand-lg navbar-dark navbar-premium shadow flex-shrink-0">
     <div class="container-fluid">

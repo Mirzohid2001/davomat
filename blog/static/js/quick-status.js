@@ -105,7 +105,7 @@
       });
       var data = await res.json();
       if (!data.success) {
-        window.alert(data.message || 'Xato');
+        window.alert(data.message || (document.body && document.body.dataset.i18nError) || 'Xato');
         return;
       }
       applyStatus(root, data.status, data.status_label, data.attendance_id);
@@ -113,7 +113,7 @@
       root.classList.add('is-flash');
       setTimeout(function () { root.classList.remove('is-flash'); }, 450);
     } catch (err) {
-      window.alert('Tarmoq xatosi');
+      window.alert((document.body && document.body.dataset.i18nNetworkError) || 'Tarmoq xatosi');
     } finally {
       setBusy(root, false);
     }

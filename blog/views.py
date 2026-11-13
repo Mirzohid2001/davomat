@@ -3419,7 +3419,7 @@ def get_status_text(status):
     """Status matnini olish"""
     status_map = {
         'present': _('Keldi'),
-        'absent': _('Kelmadi'),
+        'absent': _('Kelmagan'),
         'late': _('Kechikdi'),
         'vacation': _("Ta'til"),
         'labor_leave': _("Mehnat ta'tili"),
