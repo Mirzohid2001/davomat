@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
     absent: '#dc2626',
     late: '#d97706',
     vacation: '#0d9488',
+    labor_leave: '#4f46e5',
     business: '#0284c7',
     offday: '#64748b',
   };
@@ -205,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
     absent: '{% trans "Kelmagan" %}',
     late: '{% trans "Kechikdi" %}',
     vacation: "{% filter escapejs %}{% trans "Ta'til" %}{% endfilter %}",
+    labor_leave: "{% filter escapejs %}{% trans "Mehnat ta'tili" %}{% endfilter %}",
     business: '{% trans "Ish safarida" %}',
     offday: '{% trans "Ish kuni emas" %}',
   };
@@ -236,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (trendDates.length > 0 && document.getElementById('trendChart')) {
-    const statuses = ['present', 'absent', 'late', 'vacation', 'business'];
+    const statuses = ['present', 'absent', 'late', 'vacation', 'labor_leave', 'business'];
     const datasets = statuses
       .filter(s => trendData[s] && trendData[s].some(v => v > 0))
       .map(s => ({

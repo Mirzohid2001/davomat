@@ -68,6 +68,7 @@
   box-shadow: none;
 }
 .qs-btn[data-status="vacation"].is-active,
+.qs-btn[data-status="labor_leave"].is-active,
 .qs-btn[data-status="business"].is-active,
 .qs-btn[data-status="offday"].is-active {
   background: #334155;

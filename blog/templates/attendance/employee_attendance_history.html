@@ -124,6 +124,7 @@
                                                     <option value="absent">{% trans "Kelmadi" %}</option>
                                                     <option value="late">{% trans "Kechikdi" %}</option>
                                                     <option value="vacation">{% trans "Ta'til" %}</option>
+                                                    <option value="labor_leave">{% trans "Mehnat ta'tili" %}</option>
                                                     <option value="business">{% trans "Ish safari" %}</option>
                                                 </select>
                                             </div>
@@ -188,6 +189,13 @@
         <p class="att-hist__stat-label">{% trans "Ta'til" %}</p>
       </div>
     </div>
+    <div class="att-hist__stat att-hist__stat--labor-leave">
+      <div class="att-hist__stat-icon"><i class="bi bi-calendar2-heart"></i></div>
+      <div>
+        <p class="att-hist__stat-value">{{ stats.labor_leave }}</p>
+        <p class="att-hist__stat-label">{% trans "Mehnat ta'tili" %}</p>
+      </div>
+    </div>
     <div class="att-hist__stat att-hist__stat--business">
       <div class="att-hist__stat-icon"><i class="bi bi-airplane"></i></div>
       <div>
@@ -249,6 +257,7 @@
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--absent"></span>{% trans "Kelmadi" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--late"></span>{% trans "Kechikdi" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--vacation"></span>{% trans "Ta'til" %}</span>
+      <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--labor-leave"></span>{% trans "Mehnat ta'tili" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--business"></span>{% trans "Ish safari" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--dayoff"></span>{% trans "Ish kuni emas" %}</span>
       <span class="att-hist__legend-item"><span class="att-hist__legend-dot att-hist__legend-dot--unknown"></span>{% trans "Ma'lumot yo'q" %}</span>
@@ -290,6 +299,7 @@
                                 <option value="absent">{% trans "Kelmagan" %}</option>
                                 <option value="late">{% trans "Kechikdi" %}</option>
                                 <option value="vacation">{% trans "Ta'til" %}</option>
+                                <option value="labor_leave">{% trans "Mehnat ta'tili" %}</option>
                                 <option value="business">{% trans "Ish safarida" %}</option>
                                 <option value="offday">{% trans "Ish kuni emas" %}</option>
                             </select>
@@ -377,7 +387,7 @@ function checkCommentRequired() {
     const commentField = document.getElementById('modalComment');
     const selectedStatus = statusSelect.value;
     
-    if (['absent', 'vacation'].includes(selectedStatus)) {
+    if (['absent', 'vacation', 'labor_leave'].includes(selectedStatus)) {
         commentField.setAttribute('required', 'required');
         commentField.classList.add('border-warning');
     } else {
@@ -400,7 +410,7 @@ function saveAttendance() {
     }
     
     const selectedStatus = statusSelect.value;
-    if (['absent', 'vacation'].includes(selectedStatus) && !commentField.value.trim()) {
+    if (['absent', 'vacation', 'labor_leave'].includes(selectedStatus) && !commentField.value.trim()) {
         alert('{% trans 'Iltimos, izoh/sabab kiriting!' %}');
         commentField.focus();
         return;

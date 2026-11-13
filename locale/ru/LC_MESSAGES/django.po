@@ -214,6 +214,9 @@ msgstr "Опоздал"
 msgid "Ta'til"
 msgstr "Отпуск"
 
+msgid "Mehnat ta'tili"
+msgstr "Трудовой отпуск"
+
 #: blog/migrations/0019_remove_sick_status.py:32 blog/models.py:151
 #: blog/templates/attendance/attendance_statistics.html:208
 #: blog/templates/attendance/employee_attendance_history.html:293

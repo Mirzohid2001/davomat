@@ -92,7 +92,7 @@
     <table class="attlist-table">
       <thead>
         <tr>
-          <th></th>
+          <th class="attlist-num-col">№</th>
           <th>{% trans "Xodim" %}</th>
           <th>{% trans "Bo'lim / lavozim" %}</th>
           <th>{% trans "Holat — bitta bosish" %}</th>
@@ -102,8 +102,8 @@
       <tbody>
         {% for row in rows %}
         <tr class="{% if row.is_pending %}is-pending{% endif %}" data-floor-row data-status="{{ row.status }}">
-          <td>
-            <span class="attlist-avatar">{{ row.employee.last_name|slice:":1" }}{{ row.employee.first_name|slice:":1" }}</span>
+          <td class="attlist-num-col">
+            <span class="attlist-num">{{ forloop.counter }}</span>
           </td>
           <td>
             <strong class="attlist-name">{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
@@ -141,7 +141,7 @@
     {% for row in rows %}
     <div class="attlist-mcard {% if row.is_pending %}is-pending{% endif %}" data-floor-row data-status="{{ row.status }}">
       <div class="attlist-mcard__top">
-        <span class="attlist-avatar">{{ row.employee.last_name|slice:":1" }}{{ row.employee.first_name|slice:":1" }}</span>
+        <span class="attlist-num">{{ forloop.counter }}</span>
         <div>
           <strong>{{ row.employee.last_name }} {{ row.employee.first_name }}</strong>
           <small>{% if row.employee.position %}{{ row.employee.position }}{% elif row.employee.department %}{{ row.employee.department }}{% endif %}</small>

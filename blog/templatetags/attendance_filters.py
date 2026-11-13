@@ -10,7 +10,9 @@ def status_color(status):
         'late': 'warning',
         'absent': 'danger',
         'vacation': 'info',
+        'labor_leave': 'primary',
         'business': 'primary',
+        'offday': 'secondary',
     }
     return status_colors.get(status.lower(), 'dark')
 
@@ -22,7 +24,9 @@ def status_icon(status):
         'late': 'exclamation-triangle-fill',
         'absent': 'x-circle-fill',
         'vacation': 'umbrella-fill',
+        'labor_leave': 'calendar2-heart-fill',
         'business': 'briefcase-fill',
+        'offday': 'calendar-x-fill',
     }
     return status_icons.get(status.lower(), 'question-circle-fill')
 
@@ -34,6 +38,8 @@ def status_color_rgb(status):
         'late': '255, 193, 7',
         'absent': '220, 53, 69',
         'vacation': '23, 162, 184',
+        'labor_leave': '79, 70, 229',
         'business': '111, 66, 193',
+        'offday': '108, 117, 125',
     }
     return status_colors_rgb.get(status.lower(), '108, 117, 125')

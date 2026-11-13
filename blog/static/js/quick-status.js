@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  var MORE = { vacation: true, business: true, offday: true };
+  var MORE = { vacation: true, labor_leave: true, business: true, offday: true };
 
   function csrfToken() {
     var el = document.querySelector('[name=csrfmiddlewaretoken]');

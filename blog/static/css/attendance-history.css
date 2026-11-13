@@ -5,6 +5,7 @@
   --ah-late: #d97706;
   --ah-sick: #0891b2;
   --ah-vacation: #0f766e;
+  --ah-labor-leave: #4f46e5;
   --ah-business: #0d9488;
   --ah-sunday: #ca8a04;
   --ah-dayoff: #64748b;
@@ -63,6 +64,7 @@
 .att-hist__stat--late .att-hist__stat-icon { background: #fef3c7; color: var(--ah-late); }
 .att-hist__stat--sick .att-hist__stat-icon { background: #cffafe; color: var(--ah-sick); }
 .att-hist__stat--vacation .att-hist__stat-icon { background: #ccfbf1; color: var(--ah-vacation); }
+.att-hist__stat--labor-leave .att-hist__stat-icon { background: #e0e7ff; color: var(--ah-labor-leave); }
 .att-hist__stat--business .att-hist__stat-icon { background: #ccfbf1; color: var(--ah-business); }
 .att-hist__stat--sunday .att-hist__stat-icon { background: #fef9c3; color: var(--ah-sunday); }
 .att-hist__stat--unknown .att-hist__stat-icon { background: #f1f5f9; color: var(--ah-dayoff); }
@@ -227,6 +229,7 @@
 .att-hist__cell--late { color: var(--ah-late); background: #fffbeb; border-color: #fde68a; }
 .att-hist__cell--sick { color: var(--ah-sick); background: #ecfeff; border-color: #a5f3fc; }
 .att-hist__cell--vacation { color: var(--ah-vacation); background: #f0fdfa; border-color: #99f6e4; }
+.att-hist__cell--labor_leave { color: var(--ah-labor-leave); background: #eef2ff; border-color: #c7d2fe; }
 .att-hist__cell--business { color: var(--ah-business); background: #f0fdfa; border-color: #99f6e4; }
 .att-hist__cell--sunday { color: var(--ah-sunday); background: #fffbeb; border-color: #fde68a; }
 .att-hist__cell--dayoff,
@@ -238,6 +241,7 @@
 .att-hist__badge--late { background: var(--ah-late); color: #fff; }
 .att-hist__badge--sick { background: var(--ah-sick); }
 .att-hist__badge--vacation { background: var(--ah-vacation); }
+.att-hist__badge--labor_leave { background: var(--ah-labor-leave); }
 .att-hist__badge--business { background: var(--ah-business); }
 .att-hist__badge--sunday { background: var(--ah-sunday); }
 .att-hist__badge--dayoff,
@@ -273,6 +277,7 @@
 .att-hist__legend-dot--late { background: var(--ah-late); }
 .att-hist__legend-dot--sick { background: var(--ah-sick); }
 .att-hist__legend-dot--vacation { background: var(--ah-vacation); }
+.att-hist__legend-dot--labor-leave { background: var(--ah-labor-leave); }
 .att-hist__legend-dot--business { background: var(--ah-business); }
 .att-hist__legend-dot--sunday { background: var(--ah-sunday); }
 .att-hist__legend-dot--dayoff { background: var(--ah-dayoff); }

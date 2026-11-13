@@ -148,6 +148,7 @@ class Attendance(models.Model):
         ('absent', _("Kelmagan")),
         ('late', _("Kechikdi")),
         ('vacation', _("Ta'til")),
+        ('labor_leave', _("Mehnat ta'tili")),
         ('business', _("Ish safarida")),
         ('offday', _("Ish kuni emas")),
     ]

@@ -2447,6 +2447,15 @@ class AttendanceQuickStatusTests(TestCase):
         self.assertEqual(att.status, "vacation")
         self.assertTrue((att.comment or "").strip())
 
+        r3 = self.client.post(url, {
+            "attendance_id": att.id,
+            "status": "labor_leave",
+        })
+        self.assertEqual(r3.status_code, 200)
+        self.assertTrue(r3.json()["success"])
+        att.refresh_from_db()
+        self.assertEqual(att.status, "labor_leave")
+
     def test_quick_status_rejects_invalid(self):
         r = self.client.post(reverse("attendance_quick_status"), {
             "employee_id": self.emp_a.id,

@@ -473,6 +473,7 @@
 .ops-dot--absent { background: #dc2626; }
 .ops-dot--late { background: #d97706; }
 .ops-dot--vacation { background: #0d9488; }
+.ops-dot--labor_leave { background: #4f46e5; }
 .ops-dot--business { background: #0284c7; }
 .ops-dot--offday { background: #64748b; }
 

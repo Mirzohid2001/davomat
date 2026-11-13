@@ -308,6 +308,7 @@
 .stx-bar__dot--absent { background: #dc2626; }
 .stx-bar__dot--late { background: #d97706; }
 .stx-bar__dot--vacation { background: #0d9488; }
+.stx-bar__dot--labor_leave { background: #4f46e5; }
 .stx-bar__dot--business { background: #0284c7; }
 .stx-bar__dot--offday { background: #64748b; }
 
@@ -328,6 +329,7 @@
 .stx-bar__fill--absent { background: #dc2626; }
 .stx-bar__fill--late { background: #d97706; }
 .stx-bar__fill--vacation { background: #0d9488; }
+.stx-bar__fill--labor_leave { background: #4f46e5; }
 .stx-bar__fill--business { background: #0284c7; }
 
 .stx-bar__val {

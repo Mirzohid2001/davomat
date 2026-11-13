@@ -168,6 +168,7 @@
                         <option value="absent" {% if form.instance.status == 'absent' %}selected{% endif %}>{% trans "Kelmagan" %}</option>
                         <option value="late" {% if form.instance.status == 'late' %}selected{% endif %}>{% trans "Kechikdi" %}</option>
                         <option value="vacation" {% if form.instance.status == 'vacation' %}selected{% endif %}>{% trans "Ta'til" %}</option>
+                        <option value="labor_leave" {% if form.instance.status == 'labor_leave' %}selected{% endif %}>{% trans "Mehnat ta'tili" %}</option>
                         <option value="business" {% if form.instance.status == 'business' %}selected{% endif %}>{% trans "Ish safarida" %}</option>
                         <option value="offday" {% if form.instance.status == 'offday' %}selected{% endif %}>{% trans "Ish kuni emas" %}</option>
                     </select>
@@ -208,9 +209,9 @@
         const form = document.getElementById('attendanceForm');
         
         function checkStatus() {
-            // Agar status absent yoki vacation bo'lsa, izoh majburiy
+            // Agar status absent / vacation / labor_leave bo'lsa, izoh majburiy
             const selectedStatus = statusSelect.value;
-            if (['absent', 'vacation'].includes(selectedStatus)) {
+            if (['absent', 'vacation', 'labor_leave'].includes(selectedStatus)) {
                 commentField.setAttribute('required', 'required');
                 commentField.parentElement.classList.add('required-field');
             } else {
@@ -231,7 +232,7 @@
             }
             
             const selectedStatus = statusSelect.value;
-            if (['absent', 'vacation'].includes(selectedStatus) && !commentField.value.trim()) {
+            if (['absent', 'vacation', 'labor_leave'].includes(selectedStatus) && !commentField.value.trim()) {
                 e.preventDefault();
                 alert('{% trans 'Iltimos, izoh/sabab kiriting!' %}');
                 commentField.focus();

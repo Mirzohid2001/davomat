@@ -268,17 +268,24 @@
   background: #f0fdfa;
 }
 
-.attlist-avatar {
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: 10px;
-  display: grid;
+.attlist-num-col {
+  width: 2.75rem;
+  text-align: center !important;
+}
+
+.attlist-num {
+  display: inline-grid;
   place-items: center;
-  background: #ecfdf5;
-  color: #0f766e;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.35rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 .attlist-name {
@@ -308,6 +315,7 @@
 .attlist-status--absent { background: #fee2e2; color: #991b1b; }
 .attlist-status--late { background: #fef3c7; color: #92400e; }
 .attlist-status--vacation { background: #ccfbf1; color: #115e59; }
+.attlist-status--labor_leave { background: #e0e7ff; color: #3730a3; }
 .attlist-status--business { background: #e0f2fe; color: #075985; }
 .attlist-status--offday { background: #e2e8f0; color: #475569; }
 

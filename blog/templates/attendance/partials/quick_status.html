@@ -10,10 +10,10 @@
   {% for value, label in quick_statuses %}
   <button type="button" class="qs-btn {% if row.status == value %}is-active{% endif %}" data-status="{{ value }}">{{ label }}</button>
   {% endfor %}
-  <div class="qs-more {% if row.status == 'vacation' or row.status == 'business' or row.status == 'offday' %}is-active-more{% endif %}">
+  <div class="qs-more {% if row.status == 'vacation' or row.status == 'labor_leave' or row.status == 'business' or row.status == 'offday' %}is-active-more{% endif %}">
     <button type="button" class="qs-more__toggle" aria-expanded="false" aria-haspopup="true" title="{% trans 'Boshqa holat' %}">
       <span class="qs-more__label" data-default-yana="{% trans 'Yana' %}">
-        {% if row.status == 'vacation' or row.status == 'business' or row.status == 'offday' %}
+        {% if row.status == 'vacation' or row.status == 'labor_leave' or row.status == 'business' or row.status == 'offday' %}
           {{ row.status_label }}
         {% else %}
           {% trans "Yana" %}

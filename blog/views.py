@@ -1153,7 +1153,7 @@ def attendance_quick_status(request):
 
     def _quick_comment(existing: str, new_status: str) -> str:
         text = (existing or '').strip()
-        if new_status in ('absent', 'vacation') and not text:
+        if new_status in ('absent', 'vacation', 'labor_leave') and not text:
             return str(_('Tezkor belgilash'))
         return text
 
@@ -1512,8 +1512,8 @@ def individual_attendance_create(request, employee_id=None):
                 'dayoff': DayOff.objects.filter(date=date_val).first()
             })
         
-        # Agar status absent yoki vacation bo'lsa, izoh majburiy
-        if status in ['absent', 'vacation'] and not comment.strip():
+        # Agar status absent / vacation / labor_leave bo'lsa, izoh majburiy
+        if status in ['absent', 'vacation', 'labor_leave'] and not comment.strip():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'message': 'Izoh/sabab kiritish majburiy!'})
             messages.error(request, _("Izoh/sabab kiritish majburiy!"))
@@ -1677,6 +1677,7 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
+        labor_leave=Count('id', filter=Q(status='labor_leave')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present', 'employee__last_name')
 
@@ -1688,6 +1689,7 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
+        labor_leave=Count('id', filter=Q(status='labor_leave')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present')
     
@@ -1700,6 +1702,7 @@ def attendance_statistics(request):
         absent=Count('id', filter=Q(status='absent')),
         late=Count('id', filter=Q(status='late')),
         vacation=Count('id', filter=Q(status='vacation')),
+        labor_leave=Count('id', filter=Q(status='labor_leave')),
         business=Count('id', filter=Q(status='business')),
     ).order_by('-present')
 
@@ -1719,7 +1722,7 @@ def attendance_statistics(request):
             'date': date_item['date'],
             'statuses': {}
         }
-        for status in ['present', 'absent', 'late', 'vacation', 'business']:
+        for status in ['present', 'absent', 'late', 'vacation', 'labor_leave', 'business']:
             count = attendances.filter(date=date_item['date'], status=status).count()
             date_stats['statuses'][status] = count
         stats_by_date.append(date_stats)
@@ -1744,7 +1747,7 @@ def attendance_statistics(request):
     # Trend data for line chart
     trend_dates = sorted(set(item['date'].strftime('%Y-%m-%d') for item in trend_list))
     trend_data = {}
-    for status in ['present', 'absent', 'late', 'vacation', 'business']:
+    for status in ['present', 'absent', 'late', 'vacation', 'labor_leave', 'business']:
         trend_data[status] = []
         for date_str in trend_dates:
             date_obj = date.fromisoformat(date_str)
@@ -3077,6 +3080,7 @@ def individual_employee_statistics(request, employee_id):
     absent = len([d for d in daily_data if d['status'] == 'absent'])
     late = len([d for d in daily_data if d['status'] == 'late'])
     vacation = len([d for d in daily_data if d['status'] == 'vacation'])
+    labor_leave = len([d for d in daily_data if d['status'] == 'labor_leave'])
     business = len([d for d in daily_data if d['status'] == 'business'])
     sunday = 0
     dayoff = len([d for d in daily_data if d['status'] in ('dayoff', 'offday')])
@@ -3088,6 +3092,7 @@ def individual_employee_statistics(request, employee_id):
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
+    labor_leave_percentage = (labor_leave / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
     sunday_percentage = 0
     unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
@@ -3115,6 +3120,7 @@ def individual_employee_statistics(request, employee_id):
             'absent': absent,
             'late': late,
             'vacation': vacation,
+            'labor_leave': labor_leave,
             'business': business,
             'sunday': sunday,
             'dayoff': dayoff,
@@ -3125,6 +3131,7 @@ def individual_employee_statistics(request, employee_id):
             'absent_percentage': round(absent_percentage, 1),
             'late_percentage': round(late_percentage, 1),
             'vacation_percentage': round(vacation_percentage, 1),
+            'labor_leave_percentage': round(labor_leave_percentage, 1),
             'business_percentage': round(business_percentage, 1),
             'sunday_percentage': round(sunday_percentage, 1),
             'unknown_percentage': round(unknown_percentage, 1),
@@ -3311,6 +3318,7 @@ def employee_attendance_history(request, employee_id):
     absent = len([d for d in calendar_days if d['status'] == 'absent'])
     late = len([d for d in calendar_days if d['status'] == 'late'])
     vacation = len([d for d in calendar_days if d['status'] == 'vacation'])
+    labor_leave = len([d for d in calendar_days if d['status'] == 'labor_leave'])
     business = len([d for d in calendar_days if d['status'] == 'business'])
     sunday = 0
     dayoff = len([d for d in calendar_days if d['status'] in ('dayoff', 'offday')])
@@ -3322,6 +3330,7 @@ def employee_attendance_history(request, employee_id):
     absent_percentage = (absent / working_days * 100) if working_days > 0 else 0
     late_percentage = (late / working_days * 100) if working_days > 0 else 0
     vacation_percentage = (vacation / working_days * 100) if working_days > 0 else 0
+    labor_leave_percentage = (labor_leave / working_days * 100) if working_days > 0 else 0
     business_percentage = (business / working_days * 100) if working_days > 0 else 0
     sunday_percentage = 0
     unknown_percentage = (unknown / working_days * 100) if working_days > 0 else 0
@@ -3349,6 +3358,7 @@ def employee_attendance_history(request, employee_id):
             'absent': absent,
             'late': late,
             'vacation': vacation,
+            'labor_leave': labor_leave,
             'business': business,
             'sunday': sunday,
             'dayoff': dayoff,
@@ -3359,6 +3369,7 @@ def employee_attendance_history(request, employee_id):
             'absent_percentage': round(absent_percentage, 1),
             'late_percentage': round(late_percentage, 1),
             'vacation_percentage': round(vacation_percentage, 1),
+            'labor_leave_percentage': round(labor_leave_percentage, 1),
             'business_percentage': round(business_percentage, 1),
             'sunday_percentage': round(sunday_percentage, 1),
             'unknown_percentage': round(unknown_percentage, 1),
@@ -3411,6 +3422,7 @@ def get_status_text(status):
         'absent': _('Kelmadi'),
         'late': _('Kechikdi'),
         'vacation': _("Ta'til"),
+        'labor_leave': _("Mehnat ta'tili"),
         'business': _('Ish safari'),
         'sunday': _('Yakshanba'),
         'dayoff': _('Yopiq kun'),
